@@ -129,8 +129,9 @@ namespace LaptopTracker.Controllers
         public async Task<IActionResult> BulkUpdateWorkOrder(int[] ids, string workOrder)
         {
             if (ids == null || ids.Length == 0) return RedirectToAction(nameof(Index));
+            var idList = ids.ToList();
             var devices = await _context.ReturnDevices
-                .Where(d => ids.Contains(d.Id) && !d.IsDeleted)
+                .Where(d => idList.Contains(d.Id) && !d.IsDeleted)
                 .ToListAsync();
             foreach (var d in devices)
                 d.WorkOrder = workOrder;
@@ -311,3 +312,4 @@ namespace LaptopTracker.Controllers
         }
     }
 }
+
