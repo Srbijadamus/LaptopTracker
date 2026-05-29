@@ -1,0 +1,84 @@
+/* ============================================================
+   THEME — CSS Custom Properties
+   Default (dark). Switch to light via data-theme="light" on <html>.
+   ============================================================ */
+
+/* Dark mode — default */
+:root {
+  --bg-page:        #0d1117;
+  --bg-panel:       #161b22;
+  --bg-topbar:      #13161f;
+  --bg-input:       #21262d;
+  --bg-hover:       #1c2128;
+  --bg-thead:       #1c2128;
+  --border:         #30363d;
+  --border-input:   #484f58;
+  --text-primary:   #c9d1d9;
+  --text-secondary: #8b949e;
+  --text-muted:     #6e7681;
+  --accent:         #14b8c4;
+  --accent-bg:      #0a2b2e;
+  --kid-badge-bg:   #122a20;
+  --kid-badge-color:#4ade80;
+  --warning-bg:     #3d2000;
+  --warning-border: #a04000;
+  --warning-text:   #f5a557;
+}
+
+/* Light mode */
+[data-theme="light"] {
+  --bg-page:        #f3f2f1;
+  --bg-panel:       #ffffff;
+  --bg-topbar:      #ffffff;
+  --bg-input:       #ffffff;
+  --bg-hover:       #f8f7f5;
+  --bg-thead:       #faf9f8;
+  --border:         #e1dfdd;
+  --border-input:   #c8c6c4;
+  --text-primary:   #201f1e;
+  --text-secondary: #605e5c;
+  --text-muted:     #a19f9d;
+  --accent:         #0f6c75;
+  --accent-bg:      #e5f6f7;
+  --kid-badge-bg:   #e8f5e9;
+  --kid-badge-color:#1b5e20;
+  --warning-bg:     #fde2c7;
+  --warning-border: #c45000;
+  --warning-text:   #8a4f00;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+  background: transparent;
+  border: 1px solid var(--border-input);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 17px;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  line-height: 1;
+  padding: 0;
+}
+.theme-toggle:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+/* Warning box dark mode override */
+[data-theme="dark"] .warning {
+  background: var(--warning-bg);
+  border-color: var(--warning-border);
+}
+[data-theme="dark"] .warning strong,
+[data-theme="dark"] .warning span {
+  color: var(--warning-text);
+}
+[data-theme="dark"] .warning-icon {
+  color: var(--warning-text);
+}

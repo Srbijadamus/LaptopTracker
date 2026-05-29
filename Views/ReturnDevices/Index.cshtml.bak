@@ -1,0 +1,181 @@
+@model List<LaptopTracker.Models.ReturnDevice>
+@{
+    Layout = null;
+    var searchQuery      = ViewData["SearchQuery"]      as string;
+    var statusFilter     = ViewData["StatusFilter"]     as string;
+    var locationFilter   = ViewData["LocationFilter"]   as string;
+    var deviceTypeFilter = ViewData["DeviceTypeFilter"] as string;
+    var hasWorkOrder = (bool)(ViewData["HasWorkOrder"] ?? false);
+    var allLocations = ViewData["Locations"] as List<string> ?? new List<string>();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Return Devices | WIC Asset Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;background:#f3f2f1;color:#201f1e}
+.page{min-height:100vh;padding-bottom:48px}
+.topbar{display:flex;flex-wrap:wrap;align-items:center;gap:0;padding:0 28px;background:#fff;border-bottom:1px solid #e1dfdd;height:60px}
+.brand{font-size:17px;font-weight:800;color:#0f6c75;text-decoration:none;margin-right:32px;white-space:nowrap}
+.nav-links{display:flex;gap:2px;align-items:center;flex:1}
+.nav-link{padding:8px 14px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:500;color:#605e5c}
+.nav-link:hover{background:#f3f2f1;color:#201f1e}
+.nav-link.active{background:#e5f6f7;color:#0f6c75;font-weight:600}
+.topbar-actions{display:flex;gap:10px;align-items:center}
+.btn{padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;border:none;cursor:pointer;display:inline-block}
+.btn-primary{background:#0f6c75;color:#fff}
+.content{padding:20px 28px 0}
+.search-form{display:flex;gap:10px;margin-bottom:8px}
+.search-input{flex:1;padding:10px 14px;border:1px solid #c8c6c4;border-radius:8px;font-size:14px;color:#201f1e;background:#fff;outline:none}
+.search-input:focus{border-color:#0f6c75}
+.search-btn{padding:10px 20px;background:#0f6c75;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+.panel{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;padding:11px 14px;border-bottom:1px solid #e1dfdd;background:#faf9f8;font-size:12px;font-weight:700;color:#605e5c;text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+tbody td{padding:12px 14px;border-bottom:1px solid #eceae8;font-size:14px;color:#323130;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#f8f7f5}
+.empty td{padding:48px;text-align:center;color:#a19f9d;font-size:14px}
+.link{color:#0f6c75;font-weight:700;text-decoration:none}
+.badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+.b-pending{background:#fff4d6;color:#755000}
+.b-pickedup{background:#d8f6e8;color:#0b633d}
+.b-intransit{background:#ede9fe;color:#5b21b6}
+.b-inwic{background:#f3f2f1;color:#323130}
+.muted{color:#a19f9d}
+.scan-panel{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);padding:20px 24px;margin-bottom:16px}
+.scan-panel h3{font-size:15px;font-weight:700;color:#201f1e;margin-bottom:14px}
+.scan-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.scan-field{display:flex;flex-direction:column;gap:4px}
+.scan-field label{font-size:12px;font-weight:600;color:#605e5c;text-transform:uppercase;letter-spacing:0.04em}
+.scan-field input,.scan-field select{padding:9px 12px;border:1px solid #c8c6c4;border-radius:8px;font-size:14px;color:#201f1e;background:#fff;outline:none;min-width:150px}
+.scan-field input:focus,.scan-field select:focus{border-color:#0f6c75}
+.scan-submit{padding:10px 20px;background:#0f6c75;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;align-self:flex-end}
+.filter-dropdowns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.filter-select{padding:10px 14px;border:1px solid #c8c6c4;border-radius:8px;font-size:14px;color:#201f1e;background:#fff;outline:none;cursor:pointer}
+.filter-select:focus{border-color:#0f6c75}
+</style>
+</head>
+<body>
+<div class="page">
+  <nav class="topbar">
+    <a href="/Dashboard" class="brand">WIC Asset Tracker</a>
+    <div class="nav-links">
+      <a href="/Dashboard" class="nav-link">Dashboard</a>
+      <a href="/ReturnDevices" class="nav-link active">Return Devices</a>
+      <a href="/WicStock" class="nav-link">WIC Stock</a>
+      <a href="/LoanerDevices" class="nav-link">Loaner Devices</a>
+    </div>
+    <div class="topbar-actions">
+      <a href="/ReturnDevices/Create" class="btn btn-primary">+ Add Return Device</a>
+      <form method="post" action="/ReturnDevices/Import" enctype="multipart/form-data" style="display:flex;gap:8px;align-items:center;">
+        <label style="padding:12px 22px;background:transparent;color:#0f6c75;border:1px solid #0f6c75;font-weight:700;border-radius:10px;cursor:pointer;font-size:14px;white-space:nowrap;">
+          Choose CSV
+          <input type="file" name="csvFile" accept=".csv" style="display:none;" />
+        </label>
+        <button type="submit" style="padding:12px 22px;background:#0f6c75;color:#ffffff;font-weight:700;border-radius:10px;border:none;cursor:pointer;font-size:14px;">Import CSV</button>
+      </form>
+    </div>
+  </nav>
+
+  <div style="padding:16px 28px 0;">
+    <div class="scan-panel">
+      <h3>Scan Device</h3>
+      <form method="post" action="/ReturnDevices/Scan" class="scan-row">
+        <div class="scan-field">
+          <label>Serial Number</label>
+          <input type="text" name="serialNumber" placeholder="Scan or type serial…" required />
+        </div>
+        <button type="submit" class="scan-submit">Scan</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="content">
+    <form method="get" action="/ReturnDevices">
+      <div class="search-form">
+        <input class="search-input" name="searchQuery" type="text" placeholder="Search by serial, RITM, work order…" value="@searchQuery" />
+        <button type="submit" class="search-btn">Search</button>
+      </div>
+      <div class="filter-dropdowns">
+        <select name="statusFilter" class="filter-select" onchange="this.form.submit()">
+          <option value="">All Statuses</option>
+          @if (statusFilter == "PendingPickup") { <option value="PendingPickup" selected>Pending Pickup</option> } else { <option value="PendingPickup">Pending Pickup</option> }
+          @if (statusFilter == "PickedUp") { <option value="PickedUp" selected>Picked Up</option> } else { <option value="PickedUp">Picked Up</option> }
+        </select>
+        <select name="locationFilter" class="filter-select" onchange="this.form.submit()">
+          <option value="">All Locations</option>
+          @foreach (var loc in allLocations)
+          {
+            if (locationFilter == loc) { <option value="@loc" selected>@loc</option> }
+            else { <option value="@loc">@loc</option> }
+          }
+        </select>
+        <select name="deviceTypeFilter" class="filter-select" onchange="this.form.submit()">
+          <option value="">All Types</option>
+          @foreach (var t in new[] { "Lenovo", "HP", "Dell" })
+          {
+            if (deviceTypeFilter == t) { <option value="@t" selected>@t</option> }
+            else { <option value="@t">@t</option> }
+          }
+        </select>
+        <a href="?hasWorkOrder=@(!hasWorkOrder)&searchQuery=@Uri.EscapeDataString(searchQuery ?? "")&statusFilter=@Uri.EscapeDataString(statusFilter ?? "")&locationFilter=@Uri.EscapeDataString(locationFilter ?? "")&deviceTypeFilter=@Uri.EscapeDataString(deviceTypeFilter ?? "")"
+           style="padding:10px 16px;border-radius:8px;font-size:14px;cursor:pointer;background:@(hasWorkOrder ? "#0f6c75" : "transparent");color:@(hasWorkOrder ? "#ffffff" : "#201f1e");border:1px solid @(hasWorkOrder ? "#0f6c75" : "#c8c6c4");text-decoration:none;white-space:nowrap;">
+          Has Work Order
+        </a>
+      </div>
+    </form>
+
+    <div class="panel">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Serial Number</th>
+            <th>Device Type</th>
+            <th>RITM</th>
+            <th>Date</th>
+            <th>Device Location</th>
+            <th>Status</th>
+            <th>Work Order</th>
+            <th>Pickup Status</th>
+            <th>Location</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (!Model.Any())
+          {
+            <tr class="empty"><td colspan="11">No return devices found.</td></tr>
+          }
+          else
+          {
+            @for (int i = 0; i < Model.Count; i++)
+            {
+              var d = Model[i];
+              var statusClass = d.Status == LaptopTracker.Models.ReturnDeviceStatus.PendingPickup ? "b-pending" : "b-pickedup";
+              var locClass    = d.DeviceLocation == "In Transit" ? "b-intransit" : "b-inwic";
+              <tr>
+                <td class="muted">@(i + 1)</td>
+                <td><a class="link" href="/ReturnDevices/Edit/@d.Id">@d.SerialNumber</a></td>
+                <td>@d.DeviceType</td>
+                <td>@d.RITM</td>
+                <td>@d.Date.ToString("dd/MM/yyyy")</td>
+                <td><span class="badge @locClass">@d.DeviceLocation</span></td>
+                <td><span class="badge @statusClass">@(d.Status == LaptopTracker.Models.ReturnDeviceStatus.PendingPickup ? "Pending Pickup" : "Picked Up")</span></td>
+                <td>@(string.IsNullOrWhiteSpace(d.WorkOrder) ? "—" : d.WorkOrder)</td>
+                <td>@(string.IsNullOrWhiteSpace(d.PickupStatus) ? "—" : d.PickupStatus)</td>
+                <td>@(string.IsNullOrWhiteSpace(d.Location) ? "—" : d.Location)</td>
+                <td><a class="link" href="/ReturnDevices/Edit/@d.Id">Edit</a></td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</body>
+</html>

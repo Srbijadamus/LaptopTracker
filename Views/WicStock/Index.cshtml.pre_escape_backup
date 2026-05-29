@@ -1,0 +1,191 @@
+@model List<LaptopTracker.Models.WicStockDevice>
+@{
+    Layout = null;
+    var searchQuery      = ViewData["SearchQuery"]      as string;
+    var statusFilter     = ViewData["StatusFilter"]     as string;
+    var locationFilter   = ViewData["LocationFilter"]   as string;
+    var deviceTypeFilter = ViewData["DeviceTypeFilter"] as string;
+    var allLocations   = ViewData["Locations"]   as List<string> ?? new List<string>();
+    var allDeviceTypes = ViewData["DeviceTypes"] as List<string> ?? new List<string>();
+    var anyFilter = !string.IsNullOrWhiteSpace(searchQuery) || !string.IsNullOrWhiteSpace(statusFilter)
+        || !string.IsNullOrWhiteSpace(locationFilter) || !string.IsNullOrWhiteSpace(deviceTypeFilter);
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WIC Stock | WIC Asset Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;background:#f3f2f1;color:#201f1e}
+.page{min-height:100vh;padding-bottom:48px}
+.topbar{display:flex;flex-wrap:wrap;align-items:center;gap:0;padding:0 28px;background:#fff;border-bottom:1px solid #e1dfdd;height:60px}
+.brand{font-size:17px;font-weight:800;color:#0f6c75;text-decoration:none;margin-right:32px;white-space:nowrap}
+.nav-links{display:flex;gap:2px;align-items:center;flex:1}
+.nav-link{padding:8px 14px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:500;color:#605e5c}
+.nav-link:hover{background:#f3f2f1;color:#201f1e}
+.nav-link.active{background:#e5f6f7;color:#0f6c75;font-weight:600}
+.topbar-actions{display:flex;gap:10px;align-items:center}
+.btn-primary{padding:10px 20px;background:#0f6c75;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;display:inline-block;cursor:pointer}
+.btn-danger{padding:10px 20px;background:#c4314b;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
+.content{padding:20px 28px 0}
+.search-form{display:flex;gap:10px;margin-bottom:8px}
+.search-input{flex:1;padding:10px 14px;border:1px solid #c8c6c4;border-radius:8px;font-size:14px;color:#201f1e;background:#fff;outline:none}
+.search-input:focus{border-color:#0f6c75}
+.search-btn{padding:10px 20px;background:#0f6c75;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+.panel{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;padding:11px 14px;border-bottom:1px solid #e1dfdd;background:#faf9f8;font-size:12px;font-weight:700;color:#605e5c;text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+tbody td{padding:10px 14px;border-bottom:1px solid #eceae8;font-size:14px;color:#323130;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#f8f7f5}
+.empty td{padding:48px;text-align:center;color:#a19f9d;font-size:14px}
+.link{color:#0f6c75;font-weight:700;text-decoration:none}
+.badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+.b-available{background:#dff4ff;color:#0b4a74}
+.b-notavail{background:#fde2c7;color:#8a4f00}
+.b-inwic{background:#f3f2f1;color:#323130}
+.b-inuse{background:#fff4d6;color:#755000}
+.muted{color:#a19f9d;font-size:13px}
+.scan-panel{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);padding:20px 24px;margin-bottom:16px}
+.scan-panel h3{font-size:15px;font-weight:700;color:#201f1e;margin-bottom:14px}
+.scan-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.scan-field{display:flex;flex-direction:column;gap:4px}
+.scan-field label{font-size:12px;font-weight:600;color:#605e5c;text-transform:uppercase;letter-spacing:0.04em}
+.scan-field input,.scan-field select{padding:9px 12px;border:1px solid #c8c6c4;border-radius:8px;font-size:14px;color:#201f1e;background:#fff;outline:none;min-width:150px}
+.scan-field input:focus,.scan-field select:focus{border-color:#0f6c75}
+.scan-submit{padding:10px 20px;background:#0f6c75;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;align-self:flex-end}
+.filter-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center}
+.filter-select{padding:9px 13px;border:1px solid #c8c6c4;border-radius:8px;font-size:14px;color:#201f1e;background:#fff;outline:none;cursor:pointer}
+.filter-select:focus{border-color:#0f6c75}
+.clear-link{padding:9px 13px;border-radius:8px;font-size:13px;font-weight:600;color:#605e5c;text-decoration:none;border:1px solid #c8c6c4;background:#fff;white-space:nowrap}
+.clear-link:hover{background:#f3f2f1}
+.btn-row-del{padding:4px 10px;background:transparent;color:#c4314b;border:1px solid #c4314b;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer}
+.btn-row-del:hover{background:#c4314b;color:#fff}
+</style>
+</head>
+<body>
+<div class="page">
+  <nav class="topbar">
+    <a href="/Dashboard" class="brand">WIC Asset Tracker</a>
+    <div class="nav-links">
+      <a href="/Dashboard" class="nav-link">Dashboard</a>
+      <a href="/ReturnDevices" class="nav-link">Return Devices</a>
+      <a href="/WicStock" class="nav-link active">WIC Stock</a>
+      <a href="/LoanerDevices" class="nav-link">Loaner Devices</a>
+    </div>
+    <div class="topbar-actions">
+      <a href="/WicStock/Create" class="btn-primary">+ Add WIC Stock Device</a>
+      <form method="post" action="/WicStock/Import" enctype="multipart/form-data" style="display:flex;gap:8px;align-items:center;">
+        <label style="padding:10px 18px;background:transparent;color:#0f6c75;border:1px solid #0f6c75;font-weight:700;border-radius:10px;cursor:pointer;font-size:14px;white-space:nowrap;">
+          Choose CSV
+          <input type="file" name="csvFile" accept=".csv" style="display:none;" />
+        </label>
+        <button type="submit" style="padding:10px 18px;background:#0f6c75;color:#fff;font-weight:700;border-radius:10px;border:none;cursor:pointer;font-size:14px;">Import CSV</button>
+      </form>
+      <form method="post" action="/WicStock/DeleteAll" onsubmit="return confirm('Delete ALL WIC stock devices? This cannot be undone.')">
+        <button type="submit" class="btn-danger">Delete All</button>
+      </form>
+    </div>
+  </nav>
+
+  <div style="padding:16px 28px 0;">
+    <div class="scan-panel">
+      <h3>Scan Device</h3>
+      <form method="post" action="/WicStock/Scan" class="scan-row">
+        <div class="scan-field">
+          <label>Serial Number</label>
+          <input type="text" name="serialNumber" placeholder="Scan or type serial…" required />
+        </div>
+        <button type="submit" class="scan-submit">Scan</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="content">
+    <form method="get" action="/WicStock">
+      <div class="search-form">
+        <input class="search-input" name="searchQuery" type="text" placeholder="Search by serial, RITM…" value="@searchQuery" />
+        <button type="submit" class="search-btn">Search</button>
+      </div>
+      <div class="filter-bar">
+        <select name="statusFilter" class="filter-select" onchange="this.form.submit()">
+          <option value="">All Statuses</option>
+          <option value="Available" @(statusFilter == "Available" ? "selected=""selected""" : null)>Available</option>
+          <option value="NotAvailable" @(statusFilter == "NotAvailable" ? "selected=""selected""" : null)>Not Available</option>
+        </select>
+        <select name="locationFilter" class="filter-select" onchange="this.form.submit()">
+          <option value="">All Locations</option>
+          @foreach (var loc in allLocations)
+          {
+            <option value="@loc" @(locationFilter == loc ? "selected=""selected""" : null)>@loc</option>
+          }
+        </select>
+        <select name="deviceTypeFilter" class="filter-select" onchange="this.form.submit()">
+          <option value="">All Types</option>
+          @foreach (var t in allDeviceTypes)
+          {
+            <option value="@t" @(deviceTypeFilter == t ? "selected=""selected""" : null)>@t</option>
+          }
+        </select>
+        @if (anyFilter)
+        {
+          <a href="/WicStock" class="clear-link">&#x2715; Clear Filters</a>
+        }
+      </div>
+    </form>
+
+    <div class="panel">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Serial Number</th>
+            <th>Type</th>
+            <th>RITM</th>
+            <th>Date</th>
+            <th>Device Location</th>
+            <th>Status</th>
+            <th>Swap RITM</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (!Model.Any())
+          {
+            <tr class="empty"><td colspan="9">No WIC stock devices found.@(anyFilter ? " Try clearing the filters." : "")</td></tr>
+          }
+          else
+          {
+            @for (int i = 0; i < Model.Count; i++)
+            {
+              var d = Model[i];
+              var statusClass = d.Status == LaptopTracker.Models.WicStockStatus.Available ? "b-available" : "b-notavail";
+              var locClass    = d.DeviceLocation == "In Use" ? "b-inuse" : "b-inwic";
+              <tr>
+                <td class="muted">@(i + 1)</td>
+                <td><a class="link" href="/WicStock/Edit/@d.Id">@d.SerialNumber</a></td>
+                <td>@d.DeviceType</td>
+                <td>@d.RITM</td>
+                <td>@d.Date.ToString("dd/MM/yyyy")</td>
+                <td><span class="badge @locClass">@d.DeviceLocation</span></td>
+                <td><span class="badge @statusClass">@(d.Status == LaptopTracker.Models.WicStockStatus.Available ? "Available" : "Not Available")</span></td>
+                <td class="muted">@(string.IsNullOrWhiteSpace(d.SwapRITM) ? "—" : d.SwapRITM)</td>
+                <td style="white-space:nowrap">
+                  <a class="link" href="/WicStock/Edit/@d.Id">Edit</a>
+                  &nbsp;
+                  <form method="post" action="/WicStock/Delete/@d.Id" style="display:inline" onsubmit="return confirm('Delete @Html.Raw(d.SerialNumber.Replace("'", "\\'"))?')">
+                    <button type="submit" class="btn-row-del">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+

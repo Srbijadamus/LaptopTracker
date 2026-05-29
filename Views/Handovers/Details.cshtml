@@ -1,0 +1,109 @@
+@model LaptopTracker.Models.Handover
+@{
+    ViewData["Title"] = $"Handover #{Model.Id}";
+}
+@section Styles {
+<style>
+.content{padding:28px;max-width:800px}
+.page-header{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+.page-title{font-size:22px;font-weight:800;color:var(--text-primary)}
+.btn-print{padding:10px 22px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
+.btn-back{padding:10px 18px;background:transparent;color:var(--text-secondary);border:1px solid var(--border-input);border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block}
+.section{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:24px;margin-bottom:20px}
+.section-title{font-size:14px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:16px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.info-item{display:flex;flex-direction:column;gap:4px}
+.info-label{font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em}
+.info-value{font-size:15px;font-weight:600;color:var(--text-primary)}
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);background:var(--bg-thead);font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em}
+tbody td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:14px;color:var(--text-primary)}
+tbody tr:last-child td{border-bottom:none}
+.muted{color:var(--text-muted);font-size:13px}
+.sig-img{display:block;max-width:100%;border:1px solid var(--border);border-radius:8px;background:#fff}
+.no-sig{color:var(--text-muted);font-style:italic;font-size:14px}
+
+@@media print {
+  .topbar, .btn-print, .btn-back, .page-header .btn-print, .page-header .btn-back { display: none !important; }
+  .page { padding: 0; }
+  .content { max-width: 100%; padding: 20px; }
+  .section { box-shadow: none; border: 1px solid #ccc; }
+  body { background: #fff !important; color: #000 !important; }
+}
+</style>
+}
+  <div class="content">
+    <div class="page-header">
+      <div class="page-title">Handover #@Model.Id</div>
+      <button class="btn-print" onclick="window.print()">Print</button>
+      <a href="/Handovers" class="btn-back">&#8592; Back to List</a>
+    </div>
+
+    <!-- Summary -->
+    <div class="section">
+      <div class="section-title">Handover Details</div>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Name</span>
+          <span class="info-value">@Model.Name</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">KID / Employee ID</span>
+          <span class="info-value">@Model.Kid</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Location</span>
+          <span class="info-value">@Model.Location</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Date</span>
+          <span class="info-value">@Model.Date.ToString("dd/MM/yyyy HH:mm")</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Devices -->
+    <div class="section">
+      <div class="section-title">Devices Handed Over (@Model.Devices.Count)</div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Serial Number</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (!Model.Devices.Any())
+          {
+            <tr><td colspan="3" style="padding:24px;text-align:center;color:var(--text-muted)">No devices recorded.</td></tr>
+          }
+          else
+          {
+            @for (int i = 0; i < Model.Devices.Count; i++)
+            {
+              var d = Model.Devices[i];
+              <tr>
+                <td class="muted">@(i + 1)</td>
+                <td>@d.SerialNumber</td>
+                <td class="muted">@d.DeviceType</td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Signature -->
+    <div class="section">
+      <div class="section-title">Recipient Signature</div>
+      @if (!string.IsNullOrWhiteSpace(Model.Signature))
+      {
+        <img class="sig-img" src="@Model.Signature" alt="Recipient signature" />
+      }
+      else
+      {
+        <span class="no-sig">No signature captured.</span>
+      }
+    </div>
+  </div>

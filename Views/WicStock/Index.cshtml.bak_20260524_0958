@@ -1,0 +1,250 @@
+@model List<LaptopTracker.Models.WicStockDevice>
+@{
+    var searchQuery      = ViewData["SearchQuery"]      as string;
+    var statusFilter     = ViewData["StatusFilter"]     as string;
+    var locationFilter   = ViewData["LocationFilter"]   as string;
+    var deviceTypeFilter = ViewData["DeviceTypeFilter"] as string;
+    var allLocations   = ViewData["Locations"]   as List<string> ?? new List<string>();
+    var allDeviceTypes = ViewData["DeviceTypes"] as List<string> ?? new List<string>();
+    var anyFilter = !string.IsNullOrWhiteSpace(searchQuery) || !string.IsNullOrWhiteSpace(statusFilter)
+        || !string.IsNullOrWhiteSpace(locationFilter) || !string.IsNullOrWhiteSpace(deviceTypeFilter);
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WIC Stock | WIC Asset Tracker</title>
+<link rel="stylesheet" href="/css/theme.css" />
+<script>(function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg-page);color:var(--text-primary)}
+.page{min-height:100vh;padding-bottom:80px}
+.topbar{display:flex;flex-wrap:wrap;align-items:center;gap:0;padding:0 28px;background:var(--bg-topbar);border-bottom:1px solid var(--border);height:60px}
+.brand{font-size:17px;font-weight:800;color:var(--accent);text-decoration:none;margin-right:32px;white-space:nowrap}
+.nav-links{display:flex;gap:2px;align-items:center;flex:1}
+.nav-link{padding:8px 14px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:500;color:var(--text-secondary)}
+.nav-link:hover{background:var(--bg-hover);color:var(--text-primary)}
+.nav-link.active{background:var(--accent-bg);color:var(--accent);font-weight:600}
+.topbar-actions{display:flex;gap:10px;align-items:center}
+.btn-primary{padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;display:inline-block;cursor:pointer}
+.content{padding:20px 28px 0}
+.search-form{display:flex;gap:10px;margin-bottom:8px}
+.search-input{flex:1;padding:10px 14px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);outline:none}
+.search-input:focus{border-color:var(--accent)}
+.search-btn{padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+.panel{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg-thead);font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+thead th:first-child{width:36px;padding-left:12px;padding-right:4px}
+tbody td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:14px;color:var(--text-primary);vertical-align:middle}
+tbody td:first-child{padding-left:12px;padding-right:4px}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--bg-hover)}
+.empty td{padding:48px;text-align:center;color:var(--text-muted);font-size:14px}
+.link{color:var(--accent);font-weight:700;text-decoration:none}
+.badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+.b-available{background:#dff4ff;color:#0b4a74}
+.b-notavail{background:#fde2c7;color:#8a4f00}
+.b-inwic{background:#f3f2f1;color:#323130}
+.b-inuse{background:#fff4d6;color:#755000}
+.muted{color:var(--text-muted);font-size:13px}
+.scan-panel{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:20px 24px;margin-bottom:16px}
+.scan-panel h3{font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:14px}
+.scan-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.scan-field{display:flex;flex-direction:column;gap:4px}
+.scan-field label{font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em}
+.scan-field input,.scan-field select{padding:9px 12px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);outline:none;min-width:150px}
+.scan-field input:focus,.scan-field select:focus{border-color:var(--accent)}
+.scan-submit{padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;align-self:flex-end}
+.filter-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center}
+.filter-select{padding:9px 13px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);outline:none;cursor:pointer}
+.filter-select:focus{border-color:var(--accent)}
+.clear-link{padding:9px 13px;border-radius:8px;font-size:13px;font-weight:600;color:var(--text-secondary);text-decoration:none;border:1px solid var(--border-input);background:var(--bg-panel);white-space:nowrap}
+.clear-link:hover{background:var(--bg-hover)}
+.btn-row-del{padding:4px 10px;background:transparent;color:#c4314b;border:1px solid #c4314b;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer}
+.btn-row-del:hover{background:#c4314b;color:#fff}
+.row-checkbox{width:16px;height:16px;cursor:pointer;accent-color:var(--accent)}
+.bulk-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg-topbar);border-top:1px solid var(--border);padding:14px 28px;display:none;align-items:center;gap:14px;z-index:100;box-shadow:0 -2px 12px rgba(0,0,0,0.15)}
+.bulk-count{font-size:14px;font-weight:600;color:var(--text-primary);white-space:nowrap}
+.bulk-edit{padding:10px 22px;background:var(--bg-panel);color:var(--accent);border:1px solid var(--accent);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="page">
+  <nav class="topbar">
+    <a href="/Dashboard" class="brand">WIC Asset Tracker</a>
+    <div class="nav-links">
+      <a href="/Dashboard" class="nav-link">Dashboard</a>
+      <a href="/Operations" class="nav-link">Operations</a>
+      <a href="/ReturnDevices" class="nav-link">Return Devices</a>
+      <a href="/WicStock" class="nav-link active">WIC Stock</a>
+      <a href="/LoanerDevices" class="nav-link">Loaner Devices</a>
+      <a href="/Archive" class="nav-link">Archive</a>
+      <a href="/Handovers" class="nav-link">Handovers</a>
+    </div>
+    <div class="topbar-actions">
+      <a href="/WicStock/Create" class="btn-primary">+ Add WIC Stock Device</a>
+      <form method="post" action="/WicStock/Import" enctype="multipart/form-data" style="display:flex;gap:8px;align-items:center;">
+        <label style="padding:10px 18px;background:transparent;color:var(--accent);border:1px solid var(--accent);font-weight:700;border-radius:10px;cursor:pointer;font-size:14px;white-space:nowrap;">
+          Choose CSV
+          <input type="file" name="csvFile" accept=".csv" style="display:none;" />
+        </label>
+        <button type="submit" style="padding:10px 18px;background:var(--accent);color:#fff;font-weight:700;border-radius:10px;border:none;cursor:pointer;font-size:14px;">Import CSV</button>
+      </form>
+<button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark/light mode">☀️</button>
+    </div>
+  </nav>
+
+  <div style="padding:16px 28px 0;">
+    <div class="scan-panel">
+      <h3>Scan Device</h3>
+      <form method="post" action="/WicStock/Scan" class="scan-row">
+        <div class="scan-field">
+          <label>Serial Number</label>
+          <input type="text" name="serialNumber" placeholder="Scan or type serial…" required />
+        </div>
+        <button type="submit" class="scan-submit">Scan</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="content">
+    <form method="get" action="/WicStock">
+      <div class="search-form">
+        <input class="search-input" name="searchQuery" type="text" placeholder="Search by serial, RITM…" value="@searchQuery" />
+        <button type="submit" class="search-btn">Search</button>
+      </div>
+      <div class="filter-bar">
+        <select name="statusFilter" class="filter-select" onchange="this.form.submit()">
+          <option value="">All Statuses</option>
+          <option value="Available" selected="@(statusFilter == "Available" ? "selected" : null)">Available</option>
+          <option value="NotAvailable" selected="@(statusFilter == "NotAvailable" ? "selected" : null)">Not Available</option>
+        </select>
+        <select name="locationFilter" class="filter-select" onchange="this.form.submit()">
+          <option value="">All Locations</option>
+          @foreach (var loc in allLocations)
+          {
+            <option value="@loc" selected="@(locationFilter == loc ? "selected" : null)">@loc</option>
+          }
+        </select>
+        <select name="deviceTypeFilter" class="filter-select" onchange="this.form.submit()">
+          <option value="">All Types</option>
+          @foreach (var t in allDeviceTypes)
+          {
+            <option value="@t" selected="@(deviceTypeFilter == t ? "selected" : null)">@t</option>
+          }
+        </select>
+        @if (anyFilter)
+        {
+          <a href="/WicStock" class="clear-link">&#x2715; Clear Filters</a>
+        }
+      </div>
+    </form>
+
+    <div class="panel">
+      <table>
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="selectAll" class="row-checkbox" title="Select all" /></th>
+            <th>#</th>
+            <th>Serial Number</th>
+            <th>Type</th>
+            <th>RITM</th>
+            <th>Date</th>
+            <th>Device Location</th>
+            <th>Status</th>
+            <th>Swap RITM</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (!Model.Any())
+          {
+            <tr class="empty"><td colspan="10">No WIC stock devices found.@(anyFilter ? " Try clearing the filters." : "")</td></tr>
+          }
+          else
+          {
+            @for (int i = 0; i < Model.Count; i++)
+            {
+              var d = Model[i];
+              var statusClass = d.Status == LaptopTracker.Models.WicStockStatus.Available ? "b-available" : "b-notavail";
+              var locClass    = d.DeviceLocation == "In Use" ? "b-inuse" : "b-inwic";
+              <tr>
+                <td><input type="checkbox" value="@d.Id" class="row-check row-checkbox" /></td>
+                <td class="muted">@(i + 1)</td>
+                <td><a class="link" href="/WicStock/Edit/@d.Id">@d.SerialNumber</a></td>
+                <td>@d.DeviceType</td>
+                <td>@d.RITM</td>
+                <td>@d.Date.ToString("dd/MM/yyyy")</td>
+                <td><span class="badge @locClass">@d.DeviceLocation</span></td>
+                <td><span class="badge @statusClass">@(d.Status == LaptopTracker.Models.WicStockStatus.Available ? "Available" : "Not Available")</span></td>
+                <td class="muted">@(string.IsNullOrWhiteSpace(d.SwapRITM) ? "—" : d.SwapRITM)</td>
+                <td style="white-space:nowrap">
+                  <a class="link" href="/WicStock/Edit/@d.Id">Edit</a>
+                  &nbsp;
+                  <button type="button" class="btn-row-del" onclick="deleteDevice(@d.Id,'@Html.Raw(d.SerialNumber.Replace("'","\\'"  ))')">&#x1F5D1; Delete</button>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Bulk action bar -->
+    <div class="bulk-bar" id="bulkBar">
+      <span class="bulk-count" id="bulkCount">0 items selected</span>
+      <button type="button" class="bulk-edit" onclick="editSelected()">Edit Selected</button>
+      <button type="button" style="padding:10px 22px;background:#1a7f37;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;" onclick="handOverSelected()">Hand Over Devices</button>
+    </div>
+  </div>
+</div>
+<script src="/js/theme.js"></script>
+<script>
+var selectAll = document.getElementById('selectAll');
+var bulkBar   = document.getElementById('bulkBar');
+var bulkCount = document.getElementById('bulkCount');
+
+function getChecked() { return document.querySelectorAll('.row-check:checked'); }
+function getAllChecks() { return document.querySelectorAll('.row-check'); }
+
+function updateBulkBar() {
+  var n = getChecked().length;
+  var total = getAllChecks().length;
+  bulkBar.style.display = n > 0 ? 'flex' : 'none';
+  bulkCount.textContent = n + ' item' + (n === 1 ? '' : 's') + ' selected';
+  selectAll.indeterminate = n > 0 && n < total;
+  selectAll.checked = total > 0 && n === total;
+}
+
+selectAll.addEventListener('change', function() {
+  getAllChecks().forEach(function(c) { c.checked = selectAll.checked; });
+  updateBulkBar();
+});
+
+getAllChecks().forEach(function(c) { c.addEventListener('change', updateBulkBar); });
+
+function editSelected() {
+  var checks = getChecked();
+  if (checks.length === 0) { alert('No devices selected.'); return; }
+  var url = '/WicStock/BulkEdit?' + Array.from(checks).map(function(c) { return 'ids=' + encodeURIComponent(c.value); }).join('&');
+  window.location.href = url;
+}
+function deleteDevice(id, serial) {
+  if (!confirm('Delete ' + serial + '? This cannot be undone.')) return;
+  var f = document.createElement('form');
+  f.method = 'post';
+  f.action = '/WicStock/Delete/' + id;
+  document.body.appendChild(f);
+  f.submit();
+}
+function handOverSelected() {
+  var checks = getChecked();
+  if (checks.length === 0) { alert('No devices selected.'); return; }
+  var url = '/Handovers/Create?source=WicStock&' + Array.from(checks).map(function(c) { return 'ids=' + encodeURIComponent(c.value); }).join('&');
+  window.location.href = url;
+}
+</script>
+</body>
+</html>

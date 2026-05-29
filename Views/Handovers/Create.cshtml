@@ -1,0 +1,186 @@
+@model LaptopTracker.Models.Handover
+@{
+    ViewData["Title"] = "New Handover";
+    var source  = ViewData["Source"]  as string ?? string.Empty;
+    var ids     = ViewData["Ids"]     as int[]  ?? Array.Empty<int>();
+    var devices = ViewData["Devices"] as List<LaptopTracker.Models.DeviceSelectionInfo> ?? new List<LaptopTracker.Models.DeviceSelectionInfo>();
+}
+@section Styles {
+<style>
+.content{padding:28px;max-width:800px}
+.page-title{font-size:22px;font-weight:800;color:var(--text-primary);margin-bottom:24px}
+.section{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:24px;margin-bottom:20px}
+.section-title{font-size:14px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:16px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-field{display:flex;flex-direction:column;gap:6px}
+.form-field label{font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em}
+.form-field input{padding:10px 13px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);outline:none}
+.form-field input:focus{border-color:var(--accent)}
+.form-field input[readonly]{opacity:0.6;cursor:default}
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);background:var(--bg-thead);font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em}
+tbody td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:14px;color:var(--text-primary)}
+tbody tr:last-child td{border-bottom:none}
+.muted{color:var(--text-muted);font-size:13px}
+.sig-wrap{position:relative}
+.sig-canvas{display:block;background:#fff;border:2px solid var(--border-input);border-radius:8px;cursor:crosshair;touch-action:none;width:100%;height:180px}
+.sig-actions{display:flex;gap:10px;margin-top:10px;align-items:center}
+.btn-clear{padding:8px 18px;background:transparent;color:var(--text-secondary);border:1px solid var(--border-input);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
+.btn-clear:hover{background:var(--bg-hover)}
+.sig-hint{font-size:12px;color:var(--text-muted)}
+.btn-save{padding:12px 32px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer}
+.btn-save:hover{opacity:0.9}
+.btn-cancel{padding:12px 24px;background:transparent;color:var(--text-secondary);border:1px solid var(--border-input);border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block}
+.form-actions{display:flex;gap:12px;align-items:center;margin-top:8px}
+</style>
+}
+  <div class="content">
+    <div class="page-title">New Handover / Pickup Confirmation</div>
+
+    <form id="handoverForm" method="post" action="/Handovers/Create">
+      <input type="hidden" name="source" value="@source" />
+      <input type="hidden" name="signature" id="signatureInput" />
+      @foreach (var id in ids)
+      {
+        <input type="hidden" name="ids" value="@id" />
+      }
+
+      <!-- Recipient details -->
+      <div class="section">
+        <div class="section-title">Recipient Details</div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Full Name <span style="color:#c4314b">*</span></label>
+            <input type="text" name="name" placeholder="Enter recipient name" required />
+          </div>
+          <div class="form-field">
+            <label>KID / Employee ID <span style="color:#c4314b">*</span></label>
+            <input type="text" name="kid" placeholder="Enter KID or employee ID" required />
+          </div>
+          <div class="form-field">
+            <label>Location <span style="color:#c4314b">*</span></label>
+            <input type="text" name="location" placeholder="Enter location" required />
+          </div>
+          <div class="form-field">
+            <label>Date</label>
+            <input type="text" value="@DateTime.Now.ToString("dd/MM/yyyy HH:mm")" readonly />
+          </div>
+        </div>
+      </div>
+
+      <!-- Devices being handed over -->
+      <div class="section">
+        <div class="section-title">Devices Being Handed Over (@devices.Count)</div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Serial Number</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (int i = 0; i < devices.Count; i++)
+            {
+              var d = devices[i];
+              <tr>
+                <td class="muted">@(i + 1)</td>
+                <td>@d.SerialNumber</td>
+                <td class="muted">@d.DeviceType</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Signature pad -->
+      <div class="section">
+        <div class="section-title">Recipient Signature</div>
+        <div class="sig-wrap">
+          <canvas id="sigCanvas" class="sig-canvas"></canvas>
+        </div>
+        <div class="sig-actions">
+          <button type="button" class="btn-clear" onclick="clearSignature()">Clear Signature</button>
+          <span class="sig-hint">Sign using mouse or touch</span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="submit" class="btn-save">Save Handover</button>
+        <a href="/Handovers" class="btn-cancel">Cancel</a>
+      </div>
+    </form>
+  </div>
+@section Scripts {
+<script>
+(function() {
+  var canvas = document.getElementById('sigCanvas');
+  var ctx = canvas.getContext('2d');
+  var drawing = false;
+
+  function resize() {
+    var w = canvas.offsetWidth;
+    var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    canvas.width = w;
+    canvas.height = 180;
+    ctx.putImageData(imgData, 0, 0);
+    ctx.strokeStyle = '#222';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function pos(e) {
+    var r = canvas.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  function touchPos(e) {
+    var r = canvas.getBoundingClientRect();
+    var t = e.touches[0];
+    return { x: t.clientX - r.left, y: t.clientY - r.top };
+  }
+
+  canvas.addEventListener('mousedown', function(e) {
+    drawing = true;
+    var p = pos(e);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+  });
+  canvas.addEventListener('mousemove', function(e) {
+    if (!drawing) return;
+    var p = pos(e);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+  });
+  canvas.addEventListener('mouseup', function() { drawing = false; });
+  canvas.addEventListener('mouseleave', function() { drawing = false; });
+
+  canvas.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    drawing = true;
+    var p = touchPos(e);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+  }, { passive: false });
+  canvas.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    if (!drawing) return;
+    var p = touchPos(e);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+  }, { passive: false });
+  canvas.addEventListener('touchend', function() { drawing = false; });
+
+  window.clearSignature = function() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  document.getElementById('handoverForm').addEventListener('submit', function() {
+    document.getElementById('signatureInput').value = canvas.toDataURL('image/png');
+  });
+})();
+</script>
+}

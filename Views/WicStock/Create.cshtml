@@ -1,0 +1,164 @@
+@model LaptopTracker.Models.WicStockDevice
+@using LaptopTracker.Helpers
+@{
+    ViewData["Title"] = "Add WIC Stock Device";
+    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad" };
+    var eonLocations = LocationList.Locations.OrderBy(l => l).ToList();
+    var curLoc = Model.DeviceLocation ?? "In WIC";
+    var locInList = eonLocations.Contains(curLoc);
+    var showOther = !locInList && curLoc != "";
+}
+@section Styles {
+<style>
+.back{padding:9px 18px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;border:1px solid var(--accent);color:var(--accent);background:transparent;display:inline-block;margin-bottom:16px}
+.content{padding:24px 28px 0}
+.page-title{font-size:20px;font-weight:700;margin-bottom:20px;color:var(--text-primary)}
+.section-card{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:24px 28px;margin-bottom:16px;max-width:960px}
+.section-head{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-secondary);margin-bottom:16px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px}
+.form-full{grid-column:1/-1}
+.fg{display:flex;flex-direction:column;gap:6px}
+.fg label{font-size:13px;font-weight:600;color:var(--text-primary)}
+.fg input,.fg select{padding:10px 13px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);font-family:inherit;outline:none}
+.fg input:focus,.fg select:focus{border-color:var(--accent)}
+.fg .hint{font-size:12px;color:var(--text-muted)}
+.devices-table{width:100%;border-collapse:collapse;font-size:14px}
+.devices-table th{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;background:var(--bg-thead)}
+.devices-table td{padding:7px 6px;border-bottom:1px solid var(--border);vertical-align:middle}
+.devices-table tr:last-child td{border-bottom:none}
+.devices-table input,.devices-table select{padding:8px 10px;border:1px solid var(--border-input);border-radius:7px;font-size:14px;color:var(--text-primary);background:var(--bg-input);font-family:inherit;outline:none;width:100%}
+.devices-table input:focus,.devices-table select:focus{border-color:var(--accent)}
+.btn-add-row{padding:9px 18px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-top:12px}
+.btn-add-row:hover{background:var(--accent-bg)}
+.btn-remove-row{padding:5px 10px;background:transparent;color:#c4314b;border:1px solid #c4314b;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn-remove-row:hover{background:#c4314b;color:#fff}
+.form-actions{display:flex;gap:12px;align-items:center;padding-top:8px;max-width:960px}
+.btn-submit{padding:11px 28px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
+.btn-cancel{padding:11px 20px;background:transparent;color:var(--text-secondary);border:1px solid var(--border-input);border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block}
+</style>
+}
+  <div class="content">
+    <a href="/WicStock" class="back">&larr; Back</a>
+    <div class="page-title">Add WIC Stock Device(s)</div>
+
+    <form method="post" action="/WicStock/BulkCreate">
+
+      <!-- Shared settings -->
+      <div class="section-card">
+        <div class="section-head">Shared Settings (apply to all devices)</div>
+        <div class="form-grid">
+
+          <div class="fg">
+            <label>Date</label>
+            <input name="date" type="date" value="@Model.Date.ToString("yyyy-MM-dd")" />
+          </div>
+
+          <div class="fg">
+            <label>Status</label>
+            <select name="status">
+              <option value="Available" selected="@(Model.Status == LaptopTracker.Models.WicStockStatus.Available ? "selected" : null)">Available</option>
+              <option value="NotAvailable" selected="@(Model.Status == LaptopTracker.Models.WicStockStatus.NotAvailable ? "selected" : null)">Not Available</option>
+            </select>
+          </div>
+
+          <div class="fg form-full">
+            <label>Device Location</label>
+            <select id="locSelect" onchange="onLocChange(this)">
+              <option value="">— Select location —</option>
+              @foreach (var l in eonLocations)
+              {
+                <option value="@l" selected="@(locInList && curLoc == l ? "selected" : null)">@l</option>
+              }
+              <option value="__other__" selected="@(showOther ? "selected" : null)">Other (type below)</option>
+            </select>
+            <input id="locCustom" type="text" placeholder="Type custom location…"
+                   style="margin-top:6px;@(showOther ? "" : "display:none;")"
+                   value="@(showOther ? curLoc : "")"
+                   oninput="document.getElementById('locHidden').value=this.value" />
+            <input type="hidden" id="locHidden" name="deviceLocation" value="@curLoc" />
+          </div>
+
+          <div class="fg form-full">
+            <label>Swap RITM <span class="hint">(optional — applied to all)</span></label>
+            <input name="swapRITM" type="text" value="@Model.SwapRITM" placeholder="e.g. RITM0098765" />
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Device rows -->
+      <div class="section-card">
+        <div class="section-head">Devices to Add</div>
+        <table class="devices-table">
+          <thead>
+            <tr>
+              <th style="width:38%">Serial Number *</th>
+              <th style="width:24%">Device Type</th>
+              <th style="width:30%">RITM *</th>
+              <th style="width:8%"></th>
+            </tr>
+          </thead>
+          <tbody id="deviceRows">
+            <tr class="device-row">
+              <td><input type="text" name="serials" value="@Model.SerialNumber" placeholder="e.g. SN-123456" /></td>
+              <td>
+                <select name="types">
+                  @foreach (var t in deviceTypes)
+                  {
+                    <option value="@t" selected="@(Model.DeviceType == t ? "selected" : null)">@t</option>
+                  }
+                </select>
+              </td>
+              <td><input type="text" name="ritms" value="@Model.RITM" placeholder="e.g. RITM0012345" /></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+        <button type="button" class="btn-add-row" onclick="addRow()">+ Add Another Device</button>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">Save All</button>
+        <a href="/WicStock" class="btn-cancel">Cancel</a>
+      </div>
+
+    </form>
+  </div>
+
+<template id="rowTemplate">
+  <tr class="device-row">
+    <td><input type="text" name="serials" placeholder="e.g. SN-123456" /></td>
+    <td>
+      <select name="types">
+        <option value="Lenovo">Lenovo</option>
+        <option value="HP">HP</option>
+        <option value="Dell">Dell</option>
+        <option value="Apple iPad">Apple iPad</option>
+      </select>
+    </td>
+    <td><input type="text" name="ritms" placeholder="e.g. RITM0012345" /></td>
+    <td><button type="button" class="btn-remove-row" onclick="removeRow(this)">&#x2715; Remove</button></td>
+  </tr>
+</template>
+
+@section Scripts {
+<script>
+function onLocChange(sel) {
+  var c = document.getElementById('locCustom');
+  var h = document.getElementById('locHidden');
+  if (sel.value === '__other__') {
+    c.style.display = ''; c.value = ''; h.value = ''; c.focus();
+  } else {
+    c.style.display = 'none'; h.value = sel.value;
+  }
+}
+function addRow() {
+  var template = document.getElementById('rowTemplate');
+  var clone = template.content.cloneNode(true);
+  document.getElementById('deviceRows').appendChild(clone);
+}
+function removeRow(btn) {
+  btn.closest('tr').remove();
+}
+</script>
+}

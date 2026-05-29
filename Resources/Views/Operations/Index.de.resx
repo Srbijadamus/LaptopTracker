@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/2001/XMLSchema" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute name="xml:space" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute name="xml:space" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Placeholder_SerialRitm" xml:space="preserve">
+    <value>Seriennummer oder RITM…</value>
+  </data>
+  <data name="AllSources" xml:space="preserve">
+    <value>Alle Quellen</value>
+  </data>
+  <data name="BtnFind" xml:space="preserve">
+    <value>Gerät suchen</value>
+  </data>
+  <data name="BtnShowAvailable" xml:space="preserve">
+    <value>Verfügbare anzeigen</value>
+  </data>
+  <data name="BtnReset" xml:space="preserve">
+    <value>Zurücksetzen</value>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>Quelle</value>
+  </data>
+  <data name="ColID" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="ColSerial" xml:space="preserve">
+    <value>Seriennr.</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ColDeviceLocation" xml:space="preserve">
+    <value>Gerätestandort</value>
+  </data>
+  <data name="ColActions" xml:space="preserve">
+    <value>Aktionen</value>
+  </data>
+  <data name="Step1" xml:space="preserve">
+    <value>1. Vorbereiten</value>
+  </data>
+  <data name="Step2" xml:space="preserve">
+    <value>2. Bestätigen</value>
+  </data>
+  <data name="SectionDevice" xml:space="preserve">
+    <value>Gerät</value>
+  </data>
+  <data name="FieldSource" xml:space="preserve">
+    <value>Quelle</value>
+  </data>
+  <data name="FieldID" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="FieldSerial" xml:space="preserve">
+    <value>Seriennr.</value>
+  </data>
+  <data name="FieldType" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+  <data name="FieldStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="FieldDeviceLocation" xml:space="preserve">
+    <value>Gerätestandort</value>
+  </data>
+  <data name="SectionAction" xml:space="preserve">
+    <value>Aktion</value>
+  </data>
+  <data name="FieldNewStatus" xml:space="preserve">
+    <value>Neuer Status</value>
+  </data>
+  <data name="FieldNewLocation" xml:space="preserve">
+    <value>Neuer Standort</value>
+  </data>
+  <data name="Placeholder_Location" xml:space="preserve">
+    <value>z.B. In Transit, WIC, In Use…</value>
+  </data>
+  <data name="FieldKidHandedTo" xml:space="preserve">
+    <value>KidHandedTo</value>
+  </data>
+  <data name="FieldKID" xml:space="preserve">
+    <value>KID</value>
+  </data>
+  <data name="FieldDateHandedOver" xml:space="preserve">
+    <value>DateHandedOver</value>
+  </data>
+  <data name="SectionProposed" xml:space="preserve">
+    <value>Vorgeschlagene Änderung</value>
+  </data>
+  <data name="BtnCancel" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="BtnPrepare" xml:space="preserve">
+    <value>Vorbereiten</value>
+  </data>
+  <data name="BtnConfirm" xml:space="preserve">
+    <value>Änderung bestätigen</value>
+  </data>
+  <data name="i18n_actionSelectPlaceholder" xml:space="preserve">
+    <value>-- Aktion auswählen --</value>
+  </data>
+  <data name="i18n_actionStatusUpdate" xml:space="preserve">
+    <value>Status ändern</value>
+  </data>
+  <data name="i18n_actionLocationUpdate" xml:space="preserve">
+    <value>Standort ändern</value>
+  </data>
+  <data name="i18n_actionAssignmentUpdate" xml:space="preserve">
+    <value>Zuweisung aktualisieren</value>
+  </data>
+  <data name="i18n_actionReturnMark" xml:space="preserve">
+    <value>Als zurückgegeben markieren</value>
+  </data>
+  <data name="i18n_btnDetails" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="i18n_btnPrepareChange" xml:space="preserve">
+    <value>Änderung vorbereiten</value>
+  </data>
+  <data name="i18n_noChanges" xml:space="preserve">
+    <value>Keine Änderungen.</value>
+  </data>
+  <data name="i18n_validationSelectAction" xml:space="preserve">
+    <value>Bitte Aktion auswählen.</value>
+  </data>
+  <data name="i18n_validationFillFields" xml:space="preserve">
+    <value>Alle Pflichtfelder ausfüllen.</value>
+  </data>
+  <data name="i18n_preparing" xml:space="preserve">
+    <value>Wird vorbereitet...</value>
+  </data>
+  <data name="i18n_prepareOk" xml:space="preserve">
+    <value>Vorbereitung erfolgreich. Klicken Sie auf Bestätigen.</value>
+  </data>
+  <data name="i18n_networkErrorRetry" xml:space="preserve">
+    <value>Netzwerkfehler. Bitte erneut versuchen.</value>
+  </data>
+  <data name="i18n_executing" xml:space="preserve">
+    <value>Wird ausgeführt…</value>
+  </data>
+  <data name="i18n_confirmedOk" xml:space="preserve">
+    <value>Erfolgreich ausgeführt!</value>
+  </data>
+  <data name="i18n_devInfoSerial" xml:space="preserve">
+    <value> · Seriennr.: </value>
+  </data>
+  <data name="i18n_devInfoStatus" xml:space="preserve">
+    <value> · Status: </value>
+  </data>
+  <data name="i18n_networkError" xml:space="preserve">
+    <value>Netzwerkfehler.</value>
+  </data>
+  <data name="i18n_enterSerial" xml:space="preserve">
+    <value>Seriennummer oder RITM eingeben</value>
+  </data>
+  <data name="i18n_searching" xml:space="preserve">
+    <value>Suche läuft…</value>
+  </data>
+  <data name="i18n_errorPrefix" xml:space="preserve">
+    <value>Fehler: </value>
+  </data>
+  <data name="i18n_unknownError" xml:space="preserve">
+    <value>Unbekannter Fehler</value>
+  </data>
+  <data name="i18n_noResults" xml:space="preserve">
+    <value>Keine Ergebnisse</value>
+  </data>
+  <data name="i18n_foundPrefix" xml:space="preserve">
+    <value>Gefunden: </value>
+  </data>
+  <data name="i18n_multipleHits" xml:space="preserve">
+    <value> — Mehrere Treffer, richtigen Source + ID auswählen</value>
+  </data>
+  <data name="i18n_noAvailable" xml:space="preserve">
+    <value>Keine verfügbaren Geräte</value>
+  </data>
+  <data name="i18n_availablePrefix" xml:space="preserve">
+    <value>Verfügbare Geräte: </value>
+  </data>
+</root>

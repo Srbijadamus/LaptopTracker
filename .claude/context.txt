@@ -1,0 +1,12 @@
+Project: LaptopTracker
+Path: C:\LaptopTracker\LaptopTracker
+Stack: ASP.NET Core MVC, EF Core, SQL Server
+
+Rules:
+- no truncation
+- full files only
+- read from line 1
+- do not guess
+
+Goal:
+Implement/fix features without breaking existing UI.

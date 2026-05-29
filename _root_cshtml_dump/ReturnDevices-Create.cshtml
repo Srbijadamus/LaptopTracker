@@ -1,0 +1,191 @@
+@model LaptopTracker.Models.ReturnDevice
+@using LaptopTracker.Helpers
+@{
+    Layout = null;
+    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "iPad" };
+    var eonLocations = LocationList.Locations.OrderBy(l => l).ToList();
+    var curLoc = Model.Location ?? "";
+    var locInList = eonLocations.Contains(curLoc);
+    var showOther = !locInList && curLoc != "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Add Return Device | WIC Asset Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;background:#f3f2f1;color:#201f1e}
+.page{min-height:100vh;padding-bottom:48px}
+.topbar{display:flex;flex-wrap:wrap;align-items:center;gap:0;padding:0 28px;background:#fff;border-bottom:1px solid #e1dfdd;height:60px}
+.brand{font-size:17px;font-weight:800;color:#0f6c75;text-decoration:none;margin-right:32px;white-space:nowrap}
+.nav-links{display:flex;gap:2px;align-items:center;flex:1}
+.nav-link{padding:8px 14px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:500;color:#605e5c}
+.nav-link:hover{background:#f3f2f1;color:#201f1e}
+.nav-link.active{background:#e5f6f7;color:#0f6c75;font-weight:600}
+.topbar-actions{display:flex;gap:10px;align-items:center}
+.back{padding:9px 18px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;border:1px solid #0f6c75;color:#0f6c75;background:transparent}
+.content{padding:24px 28px 0}
+.page-title{font-size:20px;font-weight:700;margin-bottom:20px}
+.form-card{background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);padding:28px 32px;max-width:860px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px 24px}
+.form-full{grid-column:1/-1}
+.fg{display:flex;flex-direction:column;gap:6px}
+.fg label{font-size:13px;font-weight:600;color:#323130}
+.fg input,.fg select{padding:10px 13px;border:1px solid #c8c6c4;border-radius:8px;font-size:14px;color:#201f1e;background:#fff;font-family:inherit;outline:none}
+.fg input:focus,.fg select:focus{border-color:#0f6c75}
+.fg .hint{font-size:12px;color:#a19f9d}
+.form-actions{display:flex;gap:12px;align-items:center;padding-top:8px}
+.btn-submit{padding:11px 24px;background:#0f6c75;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
+.btn-cancel{padding:11px 20px;background:transparent;color:#605e5c;border:1px solid #c8c6c4;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block}
+.val-error{color:#c4314b;font-size:12px;margin-top:2px}
+.section-divider{grid-column:1/-1;border-top:1px solid #e1dfdd;margin-top:4px;padding-top:4px}
+.section-label-sm{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#605e5c;margin-bottom:-8px}
+</style>
+</head>
+<body>
+<div class="page">
+  <nav class="topbar">
+    <a href="/Dashboard" class="brand">WIC Asset Tracker</a>
+    <div class="nav-links">
+      <a href="/Dashboard" class="nav-link">Dashboard</a>
+      <a href="/ReturnDevices" class="nav-link active">Return Devices</a>
+      <a href="/WicStock" class="nav-link">WIC Stock</a>
+      <a href="/LoanerDevices" class="nav-link">Loaner Devices</a>
+    </div>
+    <div class="topbar-actions">
+      <a href="/ReturnDevices" class="back">&larr; Back</a>
+    </div>
+  </nav>
+
+  <div class="content">
+    <div class="page-title">Add Return Device</div>
+    <div class="form-card">
+      <form method="post" action="/ReturnDevices/Create">
+        <input type="hidden" name="DeviceStateType" value="Return" />
+        <div class="form-grid">
+
+          <div class="fg">
+            <label>Serial Number *</label>
+            <input name="SerialNumber" type="text" value="@Model.SerialNumber" required placeholder="e.g. SN-123456" />
+            @if (!ViewData.ModelState.IsValid && ViewData.ModelState["SerialNumber"]?.Errors.Any() == true)
+            {
+              <span class="val-error">@ViewData.ModelState["SerialNumber"]!.Errors[0].ErrorMessage</span>
+            }
+          </div>
+
+          <div class="fg">
+            <label>Device Type</label>
+            <select name="DeviceType">
+              @foreach (var t in deviceTypes)
+              {
+                <option value="@t" @(Model.DeviceType == t ? "selected" : "")>@t</option>
+              }
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>RITM *</label>
+            <input name="RITM" type="text" value="@Model.RITM" required placeholder="e.g. RITM0012345" />
+            @if (!ViewData.ModelState.IsValid && ViewData.ModelState["RITM"]?.Errors.Any() == true)
+            {
+              <span class="val-error">@ViewData.ModelState["RITM"]!.Errors[0].ErrorMessage</span>
+            }
+          </div>
+
+          <div class="fg">
+            <label>Date</label>
+            <input name="Date" type="date" value="@Model.Date.ToString("yyyy-MM-dd")" />
+          </div>
+
+          <div class="fg">
+            <label>Device Location</label>
+            <select name="DeviceLocation">
+              @foreach (var loc in new[] { "In WIC", "In Transit" })
+              {
+                <option value="@loc" @(Model.DeviceLocation == loc ? "selected" : "")>@loc</option>
+              }
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Status</label>
+            <select name="Status">
+              <option value="PendingPickup" @(Model.Status == LaptopTracker.Models.ReturnDeviceStatus.PendingPickup ? "selected" : "")>Pending Pickup</option>
+              <option value="PickedUp" @(Model.Status == LaptopTracker.Models.ReturnDeviceStatus.PickedUp ? "selected" : "")>Picked Up</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Work Order <span class="hint">(optional)</span></label>
+            <input name="WorkOrder" type="text" value="@Model.WorkOrder" placeholder="e.g. WO-789" />
+          </div>
+
+          <div class="fg">
+            <label>Pickup Status <span class="hint">(optional)</span></label>
+            <input name="PickupStatus" type="text" value="@Model.PickupStatus" placeholder="e.g. Scheduled" />
+          </div>
+
+          <!-- Accessories returned section -->
+          <div class="section-divider">
+            <div class="section-label-sm">Accessories Returned</div>
+          </div>
+
+          <div class="fg">
+            <label>Charger returned? (Ladegerät zurückgegeben?)</label>
+            <select name="ChargerReturned">
+              <option value="" @(Model.ChargerReturned == null ? "selected" : "")>— Not specified —</option>
+              <option value="true" @(Model.ChargerReturned == true ? "selected" : "")>Yes</option>
+              <option value="false" @(Model.ChargerReturned == false ? "selected" : "")>No</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Power cable returned? (Netzkabel zurückgegeben?)</label>
+            <select name="PowerCableReturned">
+              <option value="" @(Model.PowerCableReturned == null ? "selected" : "")>— Not specified —</option>
+              <option value="true" @(Model.PowerCableReturned == true ? "selected" : "")>Yes</option>
+              <option value="false" @(Model.PowerCableReturned == false ? "selected" : "")>No</option>
+            </select>
+          </div>
+
+          <div class="fg form-full">
+            <label>Location <span class="hint">(optional)</span></label>
+            <select id="locSelect" onchange="onLocChange(this)">
+              <option value="">— Select location —</option>
+              @foreach (var l in eonLocations)
+              {
+                <option value="@l" @(locInList && curLoc == l ? "selected" : "")>@l</option>
+              }
+              <option value="__other__" @(showOther ? "selected" : "")>Other (type below)</option>
+            </select>
+            <input id="locCustom" type="text" placeholder="Type custom location…"
+                   style="margin-top:6px;@(showOther ? "" : "display:none;")"
+                   value="@(showOther ? curLoc : "")"
+                   oninput="document.getElementById('locHidden').value=this.value" />
+            <input type="hidden" id="locHidden" name="Location" value="@curLoc" />
+          </div>
+
+          <div class="form-actions form-full">
+            <button type="submit" class="btn-submit">Save</button>
+            <a href="/ReturnDevices" class="btn-cancel">Cancel</a>
+          </div>
+
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+function onLocChange(sel) {
+  var c = document.getElementById('locCustom');
+  var h = document.getElementById('locHidden');
+  if (sel.value === '__other__') {
+    c.style.display = ''; c.value = ''; h.value = ''; c.focus();
+  } else {
+    c.style.display = 'none'; h.value = sel.value;
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using LaptopTracker.Data;
+using LaptopTracker.Helpers;
+using LaptopTracker.Models;
+
+namespace LaptopTracker.Controllers
+{
+    public class ReturnDevicesController : Controller
+    {
+        private readonly LaptopTrackerDbContext _context;
+
+        public ReturnDevicesController(LaptopTrackerDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<IActionResult> Index(string? searchQuery, string? statusFilter, string? locationFilter, string? deviceTypeFilter, bool hasWorkOrder)
+        {
+            var query = _context.ReturnDevices.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+                query = query.Where(d =>
+                    d.SerialNumber.Contains(searchQuery) ||
+                    d.RITM.Contains(searchQuery) ||
+                    (d.WorkOrder != null && d.WorkOrder.Contains(searchQuery)));
+
+            if (!string.IsNullOrWhiteSpace(statusFilter) && Enum.TryParse<ReturnDeviceStatus>(statusFilter, out var sf))
+                query = query.Where(d => d.Status == sf);
+
+            if (!string.IsNullOrWhiteSpace(locationFilter))
+                query = query.Where(d =>
+                    d.DeviceLocation == locationFilter ||
+                    (d.Location != null && d.Location == locationFilter));
+
+            if (!string.IsNullOrWhiteSpace(deviceTypeFilter))
+                query = query.Where(d => d.DeviceType == deviceTypeFilter);
+
+            if (hasWorkOrder)
+                query = query.Where(d => d.WorkOrder != null && d.WorkOrder != "" && d.WorkOrder != "NA");
+
+            var deviceLocations = await _context.ReturnDevices
+                .Select(d => d.DeviceLocation)
+                .Where(l => l != null && l.Length > 0)
+                .Distinct()
+                .ToListAsync();
+
+            var locationFieldValues = await _context.ReturnDevices
+                .Where(d => d.Location != null && d.Location.Length > 0)
+                .Select(d => d.Location!)
+                .Distinct()
+                .ToListAsync();
+
+            ViewData["Locations"] = deviceLocations.Concat(locationFieldValues).Concat(LocationList.Locations)
+                .Where(l => !string.IsNullOrWhiteSpace(l)).Distinct().OrderBy(l => l).ToList();
+
+            ViewData["SearchQuery"]      = searchQuery;
+            ViewData["StatusFilter"]     = statusFilter;
+            ViewData["LocationFilter"]   = locationFilter;
+            ViewData["DeviceTypeFilter"] = deviceTypeFilter;
+            ViewData["HasWorkOrder"]     = hasWorkOrder;
+
+            return View(await query.OrderByDescending(d => d.Date).ToListAsync());
+        }
+
+        [HttpGet]
+        public IActionResult Create(string? serialNumber)
+        {
+            return View(new ReturnDevice { Date = DateTime.Today, SerialNumber = serialNumber ?? string.Empty });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(ReturnDevice device)
+        {
+            if (!ModelState.IsValid) return View(device);
+            device.DeviceStateType = "Return";
+            _context.ReturnDevices.Add(device);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var device = await _context.ReturnDevices.FindAsync(id);
+            if (device == null) return NotFound();
+            return View(device);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(int id, ReturnDevice model)
+        {
+            var device = await _context.ReturnDevices.FindAsync(id);
+            if (device == null) return NotFound();
+            if (!ModelState.IsValid) return View(model);
+
+            device.SerialNumber    = model.SerialNumber;
+            device.DeviceType      = model.DeviceType;
+            device.DeviceStateType = "Return";
+            device.RITM            = model.RITM;
+            device.Date            = model.Date;
+            device.DeviceLocation  = model.DeviceLocation;
+            device.Status          = model.Status;
+            device.WorkOrder       = model.WorkOrder;
+            device.PickupStatus    = model.PickupStatus;
+            device.Location        = model.Location;
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Scan(string serialNumber, string? deviceLocation, string? status,
+            string? workOrder, string? pickupStatus, string? location)
+        {
+            var sn = serialNumber.Trim().ToLower();
+            var device = await _context.ReturnDevices
+                .FirstOrDefaultAsync(d => d.SerialNumber.ToLower() == sn);
+
+            if (device != null)
+            {
+                if (!string.IsNullOrWhiteSpace(deviceLocation)) device.DeviceLocation = deviceLocation;
+                if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<ReturnDeviceStatus>(status, out var s)) device.Status = s;
+                if (!string.IsNullOrWhiteSpace(workOrder)) device.WorkOrder = workOrder;
+                if (!string.IsNullOrWhiteSpace(pickupStatus)) device.PickupStatus = pickupStatus;
+                if (!string.IsNullOrWhiteSpace(location)) device.Location = location;
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                TempData["StatusMessage"] = $"Device not found: {serialNumber.Trim()}. Please create a new record.";
+            }
+
+            return RedirectToAction("Index", "Search", new { serialNumber = serialNumber.Trim() });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Import(IFormFile csvFile)
+        {
+            if (csvFile == null || csvFile.Length == 0)
+            {
+                TempData["StatusMessage"] = "No file selected.";
+                return RedirectToAction("Index");
+            }
+            using var reader = new StreamReader(csvFile.OpenReadStream());
+            await reader.ReadLineAsync();
+            while (!reader.EndOfStream)
+            {
+                var line = await reader.ReadLineAsync();
+                if (line == null) continue;
+                var cols = CsvParser.ParseLine(line).ToArray();
+                if (cols.Length < 7) continue;
+                var sn = cols[0].Trim();
+                if (await _context.ReturnDevices.AnyAsync(d => d.SerialNumber == sn)) continue;
+                _context.ReturnDevices.Add(new ReturnDevice
+                {
+                    SerialNumber    = cols[0].Trim(),
+                    DeviceType      = cols[1].Trim(),
+                    DeviceStateType = cols[2].Trim(),
+                    RITM            = cols[3].Trim(),
+                    Date            = DateTime.TryParse(cols[4].Trim(), out var d) ? d : DateTime.UtcNow,
+                    DeviceLocation  = cols[5].Trim(),
+                    Status          = Enum.TryParse<ReturnDeviceStatus>(cols[6].Trim(), out var s) ? s : ReturnDeviceStatus.PendingPickup,
+                    WorkOrder       = cols.Length > 7 ? cols[7].Trim() : null,
+                    PickupStatus    = cols.Length > 8 ? cols[8].Trim() : null,
+                    Location        = cols.Length > 9 ? cols[9].Trim() : null
+                });
+            }
+            await _context.SaveChangesAsync();
+            TempData["StatusMessage"] = "Import successful.";
+            return RedirectToAction("Index");
+        }
+    }
+}

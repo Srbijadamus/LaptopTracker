@@ -1,0 +1,179 @@
+@{
+    ViewData["Title"] = "Archive";
+    var archivedLoaners = ViewData["ArchivedLoaners"] as List<LaptopTracker.Models.LoanerDevice>   ?? new List<LaptopTracker.Models.LoanerDevice>();
+    var archivedReturns = ViewData["ArchivedReturns"] as List<LaptopTracker.Models.ReturnDevice>   ?? new List<LaptopTracker.Models.ReturnDevice>();
+    var archivedWic     = ViewData["ArchivedWic"]     as List<LaptopTracker.Models.WicStockDevice> ?? new List<LaptopTracker.Models.WicStockDevice>();
+    int DaysRemaining(DateTime? deletedAt) => deletedAt.HasValue
+        ? (int)Math.Max(0, Math.Ceiling(30 - (DateTime.UtcNow - deletedAt.Value).TotalDays))
+        : 30;
+}
+@section Styles {
+<style>
+.content{padding:24px 28px 0}
+.page-title{font-size:20px;font-weight:700;margin-bottom:4px;color:var(--text-primary)}
+.page-sub{font-size:13px;color:var(--text-muted);margin-bottom:24px}
+.section-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-secondary);margin-bottom:10px;margin-top:28px}
+.section-label:first-of-type{margin-top:0}
+.panel{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);overflow:hidden;margin-bottom:8px}
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg-thead);font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+tbody td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:14px;color:var(--text-primary);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--bg-hover)}
+.empty td{padding:40px;text-align:center;color:var(--text-muted);font-size:14px}
+.link{color:var(--accent);font-weight:700;text-decoration:none}
+.muted{color:var(--text-muted);font-size:13px}
+.badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+.b-loaner{background:#d8f6e8;color:#0b633d}
+.b-return{background:#fde2c7;color:#8a4f00}
+.b-wic{background:#dff4ff;color:#0b4a74}
+.days-ok{color:var(--text-muted);font-size:13px;font-weight:600}
+.days-warn{color:#c45000;font-size:13px;font-weight:700}
+.btn-restore{padding:5px 12px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:6px;font-size:12px;font-weight:700;cursor:pointer}
+.btn-restore:hover{background:var(--accent-bg)}
+.empty-archive{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:56px;text-align:center}
+.empty-archive p{color:var(--text-muted);font-size:15px}
+</style>
+}
+  <div class="content">
+    <div class="page-title">Archive</div>
+    <div class="page-sub">Soft-deleted devices are kept for 30 days, then permanently removed. Restore any item before its deadline.</div>
+
+    @{
+      var totalArchived = archivedLoaners.Count + archivedReturns.Count + archivedWic.Count;
+    }
+    @if (totalArchived == 0)
+    {
+      <div class="empty-archive">
+        <p>No archived devices. Deleted items appear here for 30 days before permanent removal.</p>
+      </div>
+    }
+    else
+    {
+      @if (archivedLoaners.Count > 0)
+      {
+        <div class="section-label">Loaner Devices (@archivedLoaners.Count)</div>
+        <div class="panel">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Serial Number</th>
+                <th>Type</th>
+                <th>RITM</th>
+                <th>Original Date</th>
+                <th>Deleted On</th>
+                <th>Days Remaining</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (int i = 0; i < archivedLoaners.Count; i++)
+              {
+                var d = archivedLoaners[i];
+                var days = DaysRemaining(d.DeletedAt);
+                <tr>
+                  <td class="muted">@(i + 1)</td>
+                  <td><span class="badge b-loaner" style="margin-right:6px">Loaner</span>@d.SerialNumber</td>
+                  <td>@d.DeviceType</td>
+                  <td class="muted">@d.RITM</td>
+                  <td class="muted">@d.Date.ToString("dd/MM/yyyy")</td>
+                  <td class="muted">@(d.DeletedAt.HasValue ? d.DeletedAt.Value.ToString("dd/MM/yyyy HH:mm") : "—")</td>
+                  <td><span class="@(days <= 7 ? "days-warn" : "days-ok")">@days day@(days == 1 ? "" : "s")</span></td>
+                  <td>
+                    <form method="post" action="/Archive/RestoreLoaner/@d.Id" style="display:inline">
+                      <button type="submit" class="btn-restore">&#x21A9; Restore</button>
+                    </form>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (archivedReturns.Count > 0)
+      {
+        <div class="section-label">Return Devices (@archivedReturns.Count)</div>
+        <div class="panel">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Serial Number</th>
+                <th>Type</th>
+                <th>RITM</th>
+                <th>Original Date</th>
+                <th>Deleted On</th>
+                <th>Days Remaining</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (int i = 0; i < archivedReturns.Count; i++)
+              {
+                var d = archivedReturns[i];
+                var days = DaysRemaining(d.DeletedAt);
+                <tr>
+                  <td class="muted">@(i + 1)</td>
+                  <td><span class="badge b-return" style="margin-right:6px">Return</span>@d.SerialNumber</td>
+                  <td>@d.DeviceType</td>
+                  <td class="muted">@d.RITM</td>
+                  <td class="muted">@d.Date.ToString("dd/MM/yyyy")</td>
+                  <td class="muted">@(d.DeletedAt.HasValue ? d.DeletedAt.Value.ToString("dd/MM/yyyy HH:mm") : "—")</td>
+                  <td><span class="@(days <= 7 ? "days-warn" : "days-ok")">@days day@(days == 1 ? "" : "s")</span></td>
+                  <td>
+                    <form method="post" action="/Archive/RestoreReturn/@d.Id" style="display:inline">
+                      <button type="submit" class="btn-restore">&#x21A9; Restore</button>
+                    </form>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (archivedWic.Count > 0)
+      {
+        <div class="section-label">WIC Stock (@archivedWic.Count)</div>
+        <div class="panel">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Serial Number</th>
+                <th>Type</th>
+                <th>RITM</th>
+                <th>Original Date</th>
+                <th>Deleted On</th>
+                <th>Days Remaining</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (int i = 0; i < archivedWic.Count; i++)
+              {
+                var d = archivedWic[i];
+                var days = DaysRemaining(d.DeletedAt);
+                <tr>
+                  <td class="muted">@(i + 1)</td>
+                  <td><span class="badge b-wic" style="margin-right:6px">WIC Stock</span>@d.SerialNumber</td>
+                  <td>@d.DeviceType</td>
+                  <td class="muted">@d.RITM</td>
+                  <td class="muted">@d.Date.ToString("dd/MM/yyyy")</td>
+                  <td class="muted">@(d.DeletedAt.HasValue ? d.DeletedAt.Value.ToString("dd/MM/yyyy HH:mm") : "—")</td>
+                  <td><span class="@(days <= 7 ? "days-warn" : "days-ok")">@days day@(days == 1 ? "" : "s")</span></td>
+                  <td>
+                    <form method="post" action="/Archive/RestoreWic/@d.Id" style="display:inline">
+                      <button type="submit" class="btn-restore">&#x21A9; Restore</button>
+                    </form>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+  </div>

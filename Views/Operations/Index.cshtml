@@ -1,0 +1,164 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    ViewData["Title"] = "Operations";
+}
+@section Styles {
+    <link rel="stylesheet" href="/css/operations.css" />
+}
+@section Scripts {
+    @{
+        var i18n = new System.Collections.Generic.Dictionary<string, string>
+        {
+            ["actionSelectPlaceholder"] = Localizer["i18n_actionSelectPlaceholder"].Value,
+            ["actionStatusUpdate"]      = Localizer["i18n_actionStatusUpdate"].Value,
+            ["actionLocationUpdate"]    = Localizer["i18n_actionLocationUpdate"].Value,
+            ["actionAssignmentUpdate"]  = Localizer["i18n_actionAssignmentUpdate"].Value,
+            ["actionReturnMark"]        = Localizer["i18n_actionReturnMark"].Value,
+            ["btnDetails"]              = Localizer["i18n_btnDetails"].Value,
+            ["btnPrepareChange"]        = Localizer["i18n_btnPrepareChange"].Value,
+            ["noChanges"]               = Localizer["i18n_noChanges"].Value,
+            ["validationSelectAction"]  = Localizer["i18n_validationSelectAction"].Value,
+            ["validationFillFields"]    = Localizer["i18n_validationFillFields"].Value,
+            ["preparing"]               = Localizer["i18n_preparing"].Value,
+            ["prepareOk"]               = Localizer["i18n_prepareOk"].Value,
+            ["networkErrorRetry"]       = Localizer["i18n_networkErrorRetry"].Value,
+            ["executing"]               = Localizer["i18n_executing"].Value,
+            ["confirmedOk"]             = Localizer["i18n_confirmedOk"].Value,
+            ["devInfoSerial"]           = Localizer["i18n_devInfoSerial"].Value,
+            ["devInfoStatus"]           = Localizer["i18n_devInfoStatus"].Value,
+            ["networkError"]            = Localizer["i18n_networkError"].Value,
+            ["enterSerial"]             = Localizer["i18n_enterSerial"].Value,
+            ["searching"]               = Localizer["i18n_searching"].Value,
+            ["errorPrefix"]             = Localizer["i18n_errorPrefix"].Value,
+            ["unknownError"]            = Localizer["i18n_unknownError"].Value,
+            ["noResults"]               = Localizer["i18n_noResults"].Value,
+            ["foundPrefix"]             = Localizer["i18n_foundPrefix"].Value,
+            ["multipleHits"]            = Localizer["i18n_multipleHits"].Value,
+            ["noAvailable"]             = Localizer["i18n_noAvailable"].Value,
+            ["availablePrefix"]         = Localizer["i18n_availablePrefix"].Value,
+        };
+    }
+    <script>window.i18n = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(i18n));</script>
+    <script src="/js/operations.js"></script>
+}
+
+  <div class="ops-content">
+
+    <!-- Search block -->
+    <div class="ops-search-block">
+      <div class="ops-search-row">
+        <input type="text" id="identifierInput" class="ops-input" placeholder="@Localizer["Placeholder_SerialRitm"]" />
+        <select id="sourceSelect" class="ops-select">
+          <option value="">@Localizer["AllSources"]</option>
+          <option value="ReturnDevices">ReturnDevices</option>
+          <option value="LoanerDevices">LoanerDevices</option>
+          <option value="WicStock">WicStock</option>
+        </select>
+        <button id="btnFind" class="ops-btn ops-btn-primary" onclick="doSearch()">@Localizer["BtnFind"]</button>
+        <button id="btnAvailable" class="ops-btn ops-btn-secondary" onclick="doShowAvailable()">@Localizer["BtnShowAvailable"]</button>
+        <button id="btnReset" class="ops-btn ops-btn-ghost" onclick="doReset()">@Localizer["BtnReset"]</button>
+      </div>
+      <div id="searchStatus" class="ops-status-area"></div>
+    </div>
+
+    <!-- Results panel -->
+    <div id="resultsPanel" class="ops-panel" style="display:none">
+      <div class="ops-table-scroll">
+        <table class="ops-table">
+          <thead>
+            <tr>
+              <th>@Localizer["ColSource"]</th>
+              <th>@Localizer["ColID"]</th>
+              <th>@Localizer["ColSerial"]</th>
+              <th>@Localizer["ColType"]</th>
+              <th>@Localizer["ColStatus"]</th>
+              <th>@Localizer["ColDeviceLocation"]</th>
+              <th>@Localizer["ColActions"]</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /ops-content -->
+
+  <!-- Overlay -->
+  <div id="drawerOverlay" class="ops-drawer-overlay" onclick="closeDrawer()"></div>
+
+  <!-- Drawer -->
+  <div id="drawer" class="ops-drawer">
+    <div class="ops-drawer-header">
+      <div id="drawerSteps" class="ops-steps">
+        <span id="step1Label" class="ops-step">@Localizer["Step1"]</span>
+        <span class="ops-step-sep">&#8594;</span>
+        <span id="step2Label" class="ops-step">@Localizer["Step2"]</span>
+      </div>
+      <button class="ops-close-btn" onclick="closeDrawer()">&#x2715;</button>
+    </div>
+
+    <div class="ops-drawer-body">
+      <!-- Device summary -->
+      <div class="ops-section-label">@Localizer["SectionDevice"]</div>
+      <div class="ops-detail-grid">
+        <div class="ops-detail-row"><span class="ops-detail-key">@Localizer["FieldSource"]</span><span id="dSource" class="ops-detail-val"></span></div>
+        <div class="ops-detail-row"><span class="ops-detail-key">@Localizer["FieldID"]</span><span id="dId" class="ops-detail-val"></span></div>
+        <div class="ops-detail-row"><span class="ops-detail-key">@Localizer["FieldSerial"]</span><span id="dSerial" class="ops-detail-val"></span></div>
+        <div class="ops-detail-row"><span class="ops-detail-key">@Localizer["FieldType"]</span><span id="dType" class="ops-detail-val"></span></div>
+        <div class="ops-detail-row"><span class="ops-detail-key">@Localizer["FieldStatus"]</span><span id="dStatus" class="ops-detail-val"></span></div>
+        <div class="ops-detail-row"><span class="ops-detail-key">@Localizer["FieldDeviceLocation"]</span><span id="dDeviceLocation" class="ops-detail-val"></span></div>
+      </div>
+
+      <!-- Action form -->
+      <div id="actionForm" style="display:none">
+        <div class="ops-section-label" style="margin-top:16px">@Localizer["SectionAction"]</div>
+        <select id="actionSelect" class="ops-form-select"></select>
+
+        <div id="fieldsStatusUpdate" style="display:none">
+          <div class="ops-form-row">
+            <label class="ops-form-label">@Localizer["FieldNewStatus"]</label>
+            <select id="newStatus" class="ops-form-select"></select>
+          </div>
+        </div>
+
+        <div id="fieldsLocationUpdate" style="display:none">
+          <div class="ops-form-row">
+            <label class="ops-form-label">@Localizer["FieldNewLocation"]</label>
+            <input type="text" id="newLocation" class="ops-form-input" placeholder="@Localizer["Placeholder_Location"]" />
+          </div>
+        </div>
+
+        <div id="fieldsAssignmentUpdate" style="display:none">
+          <div class="ops-form-row">
+            <label class="ops-form-label">@Localizer["FieldKidHandedTo"]</label>
+            <input type="text" id="assignKidHandedTo" class="ops-form-input" />
+          </div>
+          <div class="ops-form-row">
+            <label class="ops-form-label">@Localizer["FieldKID"]</label>
+            <input type="text" id="assignKid" class="ops-form-input" />
+          </div>
+          <div class="ops-form-row">
+            <label class="ops-form-label">@Localizer["FieldDateHandedOver"]</label>
+            <input type="datetime-local" id="assignDateHandedOver" class="ops-form-input" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Proposed changes -->
+      <div id="proposedSection" style="display:none">
+        <div class="ops-section-label" style="margin-top:16px">@Localizer["SectionProposed"]</div>
+        <div id="proposedContent" class="ops-proposed"></div>
+      </div>
+
+      <!-- Validation area -->
+      <div id="validationArea" class="ops-validation" style="display:none"></div>
+    </div><!-- /ops-drawer-body -->
+
+    <!-- Footer -->
+    <div class="ops-drawer-footer">
+      <button id="btnCancel" class="ops-btn ops-btn-ghost" onclick="closeDrawer()">@Localizer["BtnCancel"]</button>
+      <button id="btnPrepare" class="ops-btn ops-btn-secondary" onclick="doPrepare()" style="display:none">@Localizer["BtnPrepare"]</button>
+      <button id="btnConfirm" class="ops-btn ops-btn-primary" onclick="doConfirm()" style="display:none" disabled>@Localizer["BtnConfirm"]</button>
+    </div>
+  </div><!-- /ops-drawer -->

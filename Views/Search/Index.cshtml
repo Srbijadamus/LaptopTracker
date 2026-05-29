@@ -1,0 +1,177 @@
+@{
+    ViewData["Title"] = "Search";
+    var returnResults  = ViewData["ReturnResults"]  as List<LaptopTracker.Models.ReturnDevice>   ?? new List<LaptopTracker.Models.ReturnDevice>();
+    var wicResults     = ViewData["WicResults"]     as List<LaptopTracker.Models.WicStockDevice> ?? new List<LaptopTracker.Models.WicStockDevice>();
+    var loanerResults  = ViewData["LoanerResults"]  as List<LaptopTracker.Models.LoanerDevice>   ?? new List<LaptopTracker.Models.LoanerDevice>();
+    var serialNumber   = ViewData["SerialNumber"]   as string;
+    var searched       = !string.IsNullOrWhiteSpace(serialNumber);
+    var totalFound     = returnResults.Count + wicResults.Count + loanerResults.Count;
+}
+@section Styles {
+<style>
+.content{padding:24px 28px 0}
+.search-bar{display:flex;gap:10px;margin-bottom:24px}
+.search-bar input{flex:1;padding:10px 14px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);outline:none}
+.search-bar input:focus{border-color:var(--accent)}
+.search-bar button{padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+.section-label{font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;margin-top:20px}
+.section-label:first-of-type{margin-top:0}
+.panel{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);overflow:hidden;margin-bottom:16px}
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg-thead);font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+tbody td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:14px;color:var(--text-primary);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--bg-hover)}
+.badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+.b-return{background:#fde2c7;color:#8a4f00}
+.b-wic{background:#dff4ff;color:#0b4a74}
+.b-loaner{background:#d8f6e8;color:#0b633d}
+.b-available{background:#dff4ff;color:#0b4a74}
+.b-notavail{background:#fde2c7;color:#8a4f00}
+.b-pending{background:#fff4d6;color:#755000}
+.b-pickedup{background:#d8f6e8;color:#0b633d}
+.b-inwic{background:#f3f2f1;color:#323130}
+.b-inuse{background:#fff4d6;color:#755000}
+.b-intransit{background:#ede9fe;color:#5b21b6}
+.link{color:var(--accent);font-weight:700;text-decoration:none}
+.not-found{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:48px;text-align:center}
+.not-found p{color:var(--text-muted);font-size:15px;margin-bottom:20px}
+.not-found-links{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.create-link{padding:10px 18px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;border:1px solid var(--accent);color:var(--accent);background:transparent}
+.create-link:hover{background:var(--accent-bg)}
+</style>
+}
+  <div class="content">
+    <form class="search-bar" method="get" action="/Search">
+      <input type="text" name="serialNumber" placeholder="Search serial number across all modules…" value="@serialNumber" />
+      <button type="submit">Search</button>
+    </form>
+
+    @if (searched)
+    {
+      if (totalFound == 0)
+      {
+        <div class="not-found">
+          <p>No device found with serial number <strong>@serialNumber</strong>.</p>
+          <div class="not-found-links">
+            <a href="/ReturnDevices/Create?serialNumber=@Uri.EscapeDataString(serialNumber!)" class="create-link">+ Add to Return Devices</a>
+            <a href="/WicStock/Create?serialNumber=@Uri.EscapeDataString(serialNumber!)" class="create-link">+ Add to WIC Stock</a>
+            <a href="/LoanerDevices/Create?serialNumber=@Uri.EscapeDataString(serialNumber!)" class="create-link">+ Add to Loaner Devices</a>
+          </div>
+        </div>
+      }
+      else
+      {
+        if (returnResults.Count > 0)
+        {
+          <div class="section-label">Return Devices (@returnResults.Count result@(returnResults.Count == 1 ? "" : "s"))</div>
+          <div class="panel">
+            <table>
+              <thead>
+                <tr>
+                  <th>Module</th>
+                  <th>Serial Number</th>
+                  <th>Device Type</th>
+                  <th>RITM</th>
+                  <th>Device Location</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach (var d in returnResults)
+                {
+                  var locClass    = d.DeviceLocation == "In Transit" ? "b-intransit" : "b-inwic";
+                  var statusClass = d.Status == LaptopTracker.Models.ReturnDeviceStatus.PendingPickup ? "b-pending" : "b-pickedup";
+                  var statusLabel = d.Status == LaptopTracker.Models.ReturnDeviceStatus.PendingPickup ? "Pending Pickup" : "Picked Up";
+                  <tr>
+                    <td><span class="badge b-return">Return</span></td>
+                    <td><a class="link" href="/ReturnDevices/Edit/@d.Id">@d.SerialNumber</a></td>
+                    <td>@d.DeviceType</td>
+                    <td>@d.RITM</td>
+                    <td><span class="badge @locClass">@d.DeviceLocation</span></td>
+                    <td><span class="badge @statusClass">@statusLabel</span></td>
+                    <td><a class="link" href="/ReturnDevices/Edit/@d.Id">Edit</a></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        if (wicResults.Count > 0)
+        {
+          <div class="section-label">WIC Stock (@wicResults.Count result@(wicResults.Count == 1 ? "" : "s"))</div>
+          <div class="panel">
+            <table>
+              <thead>
+                <tr>
+                  <th>Module</th>
+                  <th>Serial Number</th>
+                  <th>Device Type</th>
+                  <th>RITM</th>
+                  <th>Device Location</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach (var d in wicResults)
+                {
+                  var locClass    = d.DeviceLocation == "In Use" ? "b-inuse" : "b-inwic";
+                  var statusClass = d.Status == LaptopTracker.Models.WicStockStatus.Available ? "b-available" : "b-notavail";
+                  var statusLabel = d.Status == LaptopTracker.Models.WicStockStatus.Available ? "Available" : "Not Available";
+                  <tr>
+                    <td><span class="badge b-wic">WIC Stock</span></td>
+                    <td><a class="link" href="/WicStock/Edit/@d.Id">@d.SerialNumber</a></td>
+                    <td>@d.DeviceType</td>
+                    <td>@d.RITM</td>
+                    <td><span class="badge @locClass">@d.DeviceLocation</span></td>
+                    <td><span class="badge @statusClass">@statusLabel</span></td>
+                    <td><a class="link" href="/WicStock/Edit/@d.Id">Edit</a></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        if (loanerResults.Count > 0)
+        {
+          <div class="section-label">Loaner Devices (@loanerResults.Count result@(loanerResults.Count == 1 ? "" : "s"))</div>
+          <div class="panel">
+            <table>
+              <thead>
+                <tr>
+                  <th>Module</th>
+                  <th>Serial Number</th>
+                  <th>Device Type</th>
+                  <th>RITM</th>
+                  <th>Device Location</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach (var d in loanerResults)
+                {
+                  var locClass    = d.DeviceLocation == "In Use" ? "b-inuse" : "b-inwic";
+                  var statusClass = d.Status == LaptopTracker.Models.LoanerStatus.Available ? "b-available" : "b-notavail";
+                  var statusLabel = d.Status == LaptopTracker.Models.LoanerStatus.Available ? "Available" : "Not Available";
+                  <tr>
+                    <td><span class="badge b-loaner">Loaner</span></td>
+                    <td><a class="link" href="/LoanerDevices/Edit/@d.Id">@d.SerialNumber</a></td>
+                    <td>@d.DeviceType</td>
+                    <td>@d.RITM</td>
+                    <td><span class="badge @locClass">@d.DeviceLocation</span></td>
+                    <td><span class="badge @statusClass">@statusLabel</span></td>
+                    <td><a class="link" href="/LoanerDevices/Edit/@d.Id">Edit</a></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+    }
+  </div>

@@ -1,0 +1,116 @@
+@model List<LaptopTracker.Models.WicStockDevice>
+@using LaptopTracker.Helpers
+@{
+    ViewData["Title"] = "Bulk Edit WIC Stock";
+    var ids = ViewData["Ids"] as int[] ?? Array.Empty<int>();
+    var eonLocations = LocationList.Locations.OrderBy(l => l).ToList();
+}
+@section Styles {
+<style>
+.back{padding:9px 18px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;border:1px solid var(--accent);color:var(--accent);background:transparent;display:inline-block;margin-bottom:16px}
+.content{padding:24px 28px 0;max-width:960px}
+.page-title{font-size:20px;font-weight:700;margin-bottom:4px;color:var(--text-primary)}
+.page-sub{font-size:13px;color:var(--text-muted);margin-bottom:20px}
+.section-card{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:24px 28px;margin-bottom:16px}
+.section-head{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-secondary);margin-bottom:16px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px}
+.fg{display:flex;flex-direction:column;gap:6px}
+.fg label{font-size:13px;font-weight:600;color:var(--text-primary)}
+.fg input,.fg select{padding:10px 13px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);font-family:inherit;outline:none}
+.fg input:focus,.fg select:focus{border-color:var(--accent)}
+.fg .hint{font-size:12px;color:var(--text-muted)}
+.hint-note{font-size:12px;color:var(--text-muted);background:var(--accent-bg);border:1px solid var(--accent);border-radius:8px;padding:8px 12px;margin-bottom:16px}
+.preview-table{width:100%;border-collapse:collapse;font-size:14px}
+.preview-table th{text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;background:var(--bg-thead)}
+.preview-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-primary)}
+.preview-table tr:last-child td{border-bottom:none}
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;white-space:nowrap}
+.b-available{background:#dff4ff;color:#0b4a74}
+.b-notavail{background:#fde2c7;color:#8a4f00}
+.b-inwic{background:#f3f2f1;color:#323130}
+.b-inuse{background:#fff4d6;color:#755000}
+.muted{color:var(--text-muted);font-size:13px}
+.form-actions{display:flex;gap:12px;align-items:center;padding-top:8px}
+.btn-submit{padding:11px 28px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
+.btn-cancel{padding:11px 20px;background:transparent;color:var(--text-secondary);border:1px solid var(--border-input);border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block}
+</style>
+}
+  <div class="content">
+    <a href="/WicStock" class="back">&larr; Back</a>
+    <div class="page-title">Bulk Edit — @Model.Count WIC Stock Device@(Model.Count == 1 ? "" : "s")</div>
+    <div class="page-sub">Leave a field blank to keep existing values unchanged.</div>
+
+    <!-- Selected devices preview -->
+    <div class="section-card">
+      <div class="section-head">Selected Devices</div>
+      <table class="preview-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Serial Number</th>
+            <th>Type</th>
+            <th>RITM</th>
+            <th>Current Status</th>
+            <th>Current Location</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (int i = 0; i < Model.Count; i++)
+          {
+            var d = Model[i];
+            var sc = d.Status == LaptopTracker.Models.WicStockStatus.Available ? "b-available" : "b-notavail";
+            var lc = d.DeviceLocation == "In Use" ? "b-inuse" : "b-inwic";
+            <tr>
+              <td class="muted">@(i + 1)</td>
+              <td>@d.SerialNumber</td>
+              <td class="muted">@d.DeviceType</td>
+              <td class="muted">@d.RITM</td>
+              <td><span class="badge @sc">@(d.Status == LaptopTracker.Models.WicStockStatus.Available ? "Available" : "Not Available")</span></td>
+              <td><span class="badge @lc">@d.DeviceLocation</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Edit form -->
+    <form method="post" action="/WicStock/BulkEdit">
+      @foreach (var id in ids)
+      {
+        <input type="hidden" name="ids" value="@id" />
+      }
+
+      <div class="section-card">
+        <div class="section-head">Fields to Update</div>
+        <div class="hint-note">Leave any field blank to keep the current value on all selected devices.</div>
+        <div class="form-grid">
+
+          <div class="fg">
+            <label>Status <span class="hint">(optional)</span></label>
+            <select name="status">
+              <option value="">— Keep existing —</option>
+              <option value="Available">Available</option>
+              <option value="NotAvailable">Not Available</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Device Location <span class="hint">(optional)</span></label>
+            <select name="deviceLocation">
+              <option value="">— Keep existing —</option>
+              @foreach (var l in eonLocations)
+              {
+                <option value="@l">@l</option>
+              }
+            </select>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">Apply to @Model.Count Device@(Model.Count == 1 ? "" : "s")</button>
+        <a href="/WicStock" class="btn-cancel">Cancel</a>
+      </div>
+    </form>
+  </div>

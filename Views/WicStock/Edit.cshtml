@@ -1,0 +1,123 @@
+@model LaptopTracker.Models.WicStockDevice
+@using LaptopTracker.Helpers
+@{
+    ViewData["Title"] = "Edit WIC Stock Device";
+    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad" };
+    var eonLocations = LocationList.Locations.OrderBy(l => l).ToList();
+    var curLoc = Model.DeviceLocation ?? "";
+    var locInList = eonLocations.Contains(curLoc);
+    var showOther = !locInList && curLoc != "";
+}
+@section Styles {
+<style>
+.back{padding:9px 18px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;border:1px solid var(--accent);color:var(--accent);background:transparent;display:inline-block;margin-bottom:16px}
+.content{padding:24px 28px 0}
+.page-title{font-size:20px;font-weight:700;margin-bottom:20px;color:var(--text-primary)}
+.form-card{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:28px 32px;max-width:860px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px 24px}
+.form-full{grid-column:1/-1}
+.fg{display:flex;flex-direction:column;gap:6px}
+.fg label{font-size:13px;font-weight:600;color:var(--text-primary)}
+.fg input,.fg select{padding:10px 13px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);font-family:inherit;outline:none}
+.fg input:focus,.fg select:focus{border-color:var(--accent)}
+.fg .hint{font-size:12px;color:var(--text-muted)}
+.form-actions{display:flex;gap:12px;align-items:center;padding-top:8px;flex-wrap:wrap}
+.btn-submit{padding:11px 24px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
+.btn-cancel{padding:11px 20px;background:transparent;color:var(--text-secondary);border:1px solid var(--border-input);border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block}
+.btn-delete{padding:11px 20px;background:#c4314b;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-left:auto}
+</style>
+}
+  <div class="content">
+    <a href="/WicStock" class="back">&larr; Back</a>
+    <div class="page-title">Edit WIC Stock Device — @Model.SerialNumber</div>
+    <div class="form-card">
+      <form method="post" action="/WicStock/Edit/@Model.Id">
+        <input type="hidden" name="Id" value="@Model.Id" />
+        <input type="hidden" name="DeviceStateType" value="WIC Stock" />
+        <div class="form-grid">
+
+          <div class="fg">
+            <label>Serial Number *</label>
+            <input name="SerialNumber" type="text" value="@Model.SerialNumber" required />
+          </div>
+
+          <div class="fg">
+            <label>Device Type</label>
+            <select name="DeviceType">
+              @foreach (var t in deviceTypes)
+              {
+                <option value="@t" selected="@(Model.DeviceType == t ? "selected" : null)">@t</option>
+              }
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>RITM *</label>
+            <input name="RITM" type="text" value="@Model.RITM" required />
+          </div>
+
+          <div class="fg">
+            <label>Date</label>
+            <input name="Date" type="date" value="@Model.Date.ToString("yyyy-MM-dd")" />
+          </div>
+
+          <div class="fg form-full">
+            <label>Device Location</label>
+            <select id="locSelect" onchange="onLocChange(this)">
+              <option value="">— Select location —</option>
+              @foreach (var l in eonLocations)
+              {
+                <option value="@l" selected="@(locInList && curLoc == l ? "selected" : null)">@l</option>
+              }
+              <option value="__other__" selected="@(showOther ? "selected" : null)">Other (type below)</option>
+            </select>
+            <input id="locCustom" type="text" placeholder="Type custom location…"
+                   style="margin-top:6px;@(showOther ? "" : "display:none;")"
+                   value="@(showOther ? curLoc : "")"
+                   oninput="document.getElementById('locHidden').value=this.value" />
+            <input type="hidden" id="locHidden" name="DeviceLocation" value="@curLoc" />
+          </div>
+
+          <div class="fg">
+            <label>Status</label>
+            <select name="Status">
+              <option value="Available" selected="@(Model.Status == LaptopTracker.Models.WicStockStatus.Available ? "selected" : null)">Available</option>
+              <option value="NotAvailable" selected="@(Model.Status == LaptopTracker.Models.WicStockStatus.NotAvailable ? "selected" : null)">Not Available</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Swap RITM <span class="hint">(optional)</span></label>
+            <input name="SwapRITM" type="text" value="@Model.SwapRITM" />
+          </div>
+
+          <div class="form-actions form-full">
+            <button type="submit" class="btn-submit">Save Changes</button>
+            <a href="/WicStock" class="btn-cancel">Cancel</a>
+            <button type="button" class="btn-delete" onclick="deleteDevice()">&#x1F5D1; Delete Device</button>
+          </div>
+
+        </div>
+      </form>
+
+      <form id="deleteForm" method="post" action="/WicStock/Delete/@Model.Id" style="display:none;"></form>
+    </div>
+  </div>
+@section Scripts {
+<script>
+function onLocChange(sel) {
+  var c = document.getElementById('locCustom');
+  var h = document.getElementById('locHidden');
+  if (sel.value === '__other__') {
+    c.style.display = ''; c.value = ''; h.value = ''; c.focus();
+  } else {
+    c.style.display = 'none'; h.value = sel.value;
+  }
+}
+function deleteDevice() {
+  if (confirm('Delete device @Html.Raw(Model.SerialNumber.Replace("'", "\\'"))? This cannot be undone.')) {
+    document.getElementById('deleteForm').submit();
+  }
+}
+</script>
+}

@@ -1,0 +1,129 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    var returnTotal     = (int)ViewData["ReturnTotal"];
+    var returnPending   = (int)ViewData["ReturnPending"];
+    var returnInTransit = (int)ViewData["ReturnInTransit"];
+    var returnWarning   = (bool)ViewData["ReturnWarning"];
+    var wicTotal        = (int)ViewData["WicTotal"];
+    var wicAvailable    = (int)ViewData["WicAvailable"];
+    var wicInUse        = (int)ViewData["WicInUse"];
+    var loanerTotal     = (int)ViewData["LoanerTotal"];
+    var loanerAvailable = (int)ViewData["LoanerAvailable"];
+    var loanerInUse     = (int)ViewData["LoanerInUse"];
+}
+@section Styles {
+<style>
+.topbar-search{display:flex;gap:8px;align-items:center;margin-bottom:20px}
+.topbar-search input{padding:8px 12px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);outline:none;width:210px}
+.topbar-search input:focus{border-color:var(--accent);background:var(--bg-input)}
+.topbar-search button{padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
+.content{padding:24px 28px 0}
+.module{margin-bottom:32px}
+.module-header{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
+.module-title{font-size:16px;font-weight:700;color:var(--text-primary)}
+.module-sub{font-size:13px;color:var(--text-secondary)}
+.cards{display:flex;gap:14px;flex-wrap:wrap}
+.card{flex:1;min-width:140px;padding:18px 20px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18)}
+.card-num{font-size:36px;font-weight:800;line-height:1;margin-bottom:4px}
+.card-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;opacity:0.7}
+.card-white{background:var(--bg-panel);color:var(--text-primary)}
+.card-pending{background:#fff4d6;color:#755000}
+.card-intransit{background:#ede9fe;color:#5b21b6}
+.card-available{background:#dff4ff;color:#0b4a74}
+.card-inuse{background:#fde2c7;color:#8a4f00}
+.warning{background:#fde2c7;border:2px solid #c45000;border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:flex-start;gap:12px}
+.warning-icon{font-size:20px;line-height:1;flex-shrink:0;color:#8a4f00}
+.warning strong{display:block;font-size:15px;font-weight:700;color:#8a4f00;margin-bottom:2px}
+.warning span{font-size:13px;color:#8a4f00}
+.divider{border:none;border-top:1px solid var(--border);margin:8px 0 24px}
+</style>
+}
+  <div class="content">
+    <form class="topbar-search" method="get" action="/Search">
+      <input type="text" name="serialNumber" placeholder="Search serial number…" />
+      <button type="submit">Search</button>
+    </form>
+
+    <!-- Return Devices -->
+    <div class="module">
+      <div class="module-header">
+        <div class="module-title">Return Devices</div>
+        <a href="/ReturnDevices" class="module-sub">View all &rarr;</a>
+      </div>
+
+      @if (returnWarning)
+      {
+        <div class="warning">
+          <div class="warning-icon">&#9888;</div>
+          <div>
+            <strong>Pickup Work Order Required</strong>
+            <span>@returnPending devices are pending pickup — raise an AOIT Pickup Work Order.</span>
+          </div>
+        </div>
+      }
+
+      <div class="cards">
+        <div class="card card-white">
+          <div class="card-num">@returnTotal</div>
+          <div class="card-lbl">Total</div>
+        </div>
+        <div class="card card-pending">
+          <div class="card-num">@returnPending</div>
+          <div class="card-lbl">Pending Pickup</div>
+        </div>
+        <div class="card card-intransit">
+          <div class="card-num">@returnInTransit</div>
+          <div class="card-lbl">In Transit</div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- WIC Stock -->
+    <div class="module">
+      <div class="module-header">
+        <div class="module-title">WIC Stock</div>
+        <a href="/WicStock" class="module-sub">View all &rarr;</a>
+      </div>
+      <div class="cards">
+        <div class="card card-white">
+          <div class="card-num">@wicTotal</div>
+          <div class="card-lbl">Total</div>
+        </div>
+        <div class="card card-available">
+          <div class="card-num">@wicAvailable</div>
+          <div class="card-lbl">Available</div>
+        </div>
+        <div class="card card-inuse">
+          <div class="card-num">@wicInUse</div>
+          <div class="card-lbl">In Use</div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- Loaner Devices -->
+    <div class="module">
+      <div class="module-header">
+        <div class="module-title">Loaner Devices</div>
+        <a href="/LoanerDevices" class="module-sub">View all &rarr;</a>
+      </div>
+      <div class="cards">
+        <div class="card card-white">
+          <div class="card-num">@loanerTotal</div>
+          <div class="card-lbl">Total</div>
+        </div>
+        <div class="card card-available">
+          <div class="card-num">@loanerAvailable</div>
+          <div class="card-lbl">Available</div>
+        </div>
+        <div class="card card-inuse">
+          <div class="card-num">@loanerInUse</div>
+          <div class="card-lbl">In Use</div>
+        </div>
+      </div>
+    </div>
+
+  </div>

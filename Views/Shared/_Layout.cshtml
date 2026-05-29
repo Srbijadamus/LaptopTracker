@@ -1,0 +1,53 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>@(ViewData["Title"] != null ? ViewData["Title"] + " | " : "")WIC Asset Tracker</title>
+<link rel="stylesheet" href="/css/theme.css" />
+@RenderSection("Styles", required: false)
+<script>(function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg-page);color:var(--text-primary)}
+.page{min-height:100vh;padding-bottom:48px}
+.topbar{display:flex;flex-wrap:wrap;align-items:center;gap:0;padding:0 28px;background:var(--bg-topbar);border-bottom:1px solid var(--border);height:60px}
+.brand{font-size:17px;font-weight:800;color:var(--accent);text-decoration:none;margin-right:32px;white-space:nowrap}
+.nav-links{display:flex;gap:2px;align-items:center;flex:1}
+.nav-link{padding:8px 14px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:500;color:var(--text-secondary)}
+.nav-link:hover{background:var(--bg-hover);color:var(--text-primary)}
+.nav-link.active{background:var(--accent-bg);color:var(--accent);font-weight:600}
+.topbar-actions{display:flex;gap:10px;align-items:center}
+</style>
+</head>
+<body>
+<div class="page">
+  <nav class="topbar">
+    <a href="/Dashboard" class="brand">WIC Asset Tracker</a>
+    <div class="nav-links">
+      <a href="/Dashboard" class="nav-link@(ctrl == "Dashboard" ? " active" : "")">@Localizer["Nav_Dashboard"]</a>
+      <a href="/Operations" class="nav-link@(ctrl == "Operations" ? " active" : "")">@Localizer["Nav_Operations"]</a>
+      <a href="/ReturnDevices" class="nav-link@(ctrl == "ReturnDevices" ? " active" : "")">@Localizer["Nav_ReturnDevices"]</a>
+      <a href="/WicStock" class="nav-link@(ctrl == "WicStock" ? " active" : "")">@Localizer["Nav_WicStock"]</a>
+      <a href="/LoanerDevices" class="nav-link@(ctrl == "LoanerDevices" ? " active" : "")">@Localizer["Nav_LoanerDevices"]</a>
+      <a href="/Archive" class="nav-link@(ctrl == "Archive" ? " active" : "")">@Localizer["Nav_Archive"]</a>
+      <a href="/Handovers" class="nav-link@(ctrl == "Handovers" ? " active" : "")">@Localizer["Nav_Handovers"]</a>
+      <a href="@Url.Action("SetLanguage", "Localization", new { culture = "en-US", returnUrl = Context.Request.Path + Context.Request.QueryString })"
+         class="nav-link" aria-label="English">&#127468;&#127463;</a>
+      <a href="@Url.Action("SetLanguage", "Localization", new { culture = "de-DE", returnUrl = Context.Request.Path + Context.Request.QueryString })"
+         class="nav-link" aria-label="Deutsch">&#127465;&#127466;</a>
+    </div>
+    <div class="topbar-actions">
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark/light mode">&#9728;&#65039;</button>
+    </div>
+  </nav>
+  @RenderBody()
+</div>
+<script src="/js/theme.js"></script>
+@RenderSection("Scripts", required: false)
+</body>
+</html>
