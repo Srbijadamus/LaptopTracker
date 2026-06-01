@@ -69,7 +69,11 @@ namespace LaptopTracker.Controllers
             ViewData["DeviceTypeFilter"] = deviceTypeFilter;
             ViewData["HasWorkOrder"]     = hasWorkOrder;
 
-            return View(await query.OrderByDescending(d => d.Date).ToListAsync());
+            var allDevices = await query.OrderByDescending(d => d.Date).ToListAsync();
+            var activeDevices   = allDevices.Where(d => d.Status != ReturnDeviceStatus.PickedUp).ToList();
+            var collectedDevices = allDevices.Where(d => d.Status == ReturnDeviceStatus.PickedUp).ToList();
+            ViewData["CollectedDevices"] = collectedDevices;
+            return View(activeDevices);
         }
 
         [HttpGet]
@@ -312,4 +316,6 @@ namespace LaptopTracker.Controllers
         }
     }
 }
+
+
 

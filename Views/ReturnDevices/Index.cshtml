@@ -7,6 +7,7 @@
     var hasWorkOrder = (bool)(ViewData["HasWorkOrder"] ?? false);
     var allLocations   = ViewData["Locations"]   as List<string> ?? new List<string>();
     var allDeviceTypes = ViewData["DeviceTypes"] as List<string> ?? new List<string>();
+    var collectedDevices = ViewData["CollectedDevices"] as List<LaptopTracker.Models.ReturnDevice> ?? new List<LaptopTracker.Models.ReturnDevice>();
     var anyFilter = !string.IsNullOrWhiteSpace(searchQuery) || !string.IsNullOrWhiteSpace(statusFilter)
         || !string.IsNullOrWhiteSpace(locationFilter) || !string.IsNullOrWhiteSpace(deviceTypeFilter)
         || hasWorkOrder;
@@ -56,6 +57,20 @@ tbody tr:hover{background:var(--bg-hover)}
 .b-yes{background:#d8f6e8;color:#0b633d}
 .b-no{background:#fde2c7;color:#8a4f00}
 .muted{color:var(--text-muted);font-size:13px}
+.tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:2px solid var(--border)}
+.tab-btn{padding:10px 20px;border:none;background:transparent;font-size:14px;font-weight:600;color:var(--text-secondary);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;border-radius:8px 8px 0 0}
+.tab-btn:hover{background:var(--bg-hover);color:var(--text-primary)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--accent-bg)}
+.tab-badge{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:700;margin-left:6px;background:var(--bg-thead);color:var(--text-secondary)}
+.tab-btn.active .tab-badge{background:var(--accent);color:#fff}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:2px solid var(--border);padding-bottom:0}
+.tab-btn{padding:10px 20px;border:none;background:transparent;font-size:14px;font-weight:600;color:var(--text-secondary);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;border-radius:8px 8px 0 0;transition:all 0.15s}
+.tab-btn:hover{background:var(--bg-hover);color:var(--text-primary)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--accent-bg)}
+.tab-badge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:700;margin-left:6px;background:var(--bg-thead);color:var(--text-secondary)}
+.tab-btn.active .tab-badge{background:var(--accent);color:#fff}
+.tab-panel{display:none}.tab-panel.active{display:block}
 .scan-panel{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:20px 24px;margin-bottom:16px}
 .scan-panel h3{font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:14px}
 .scan-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
@@ -99,6 +114,11 @@ tbody tr:hover{background:var(--bg-hover)}
   </div>
 
   <div class="content">
+    <div class="tabs">
+      <button class="tab-btn active" id="btn-active">Active <span class="tab-badge">@Model.Count</span></button>
+      <button class="tab-btn" id="btn-collected">Collected <span class="tab-badge">@collectedDevices.Count</span></button>
+    </div>
+    <div class="tab-panel active" id="tab-active">
     <form method="get" action="/ReturnDevices">
       <div class="search-form">
         <input class="search-input" name="searchQuery" type="text" placeholder="Search by serial, RITM, work order…" value="@searchQuery" />
@@ -263,7 +283,56 @@ function handOverSelected() {
   var url = '/Handovers/Create?source=ReturnDevices&' + Array.from(checks).map(function(c) { return 'ids=' + encodeURIComponent(c.value); }).join('&');
   window.location.href = url;
 }
+document.getElementById("btn-active").addEventListener("click",function(){switchTab("active");});
+document.getElementById("btn-collected").addEventListener("click",function(){switchTab("collected");});
+function switchTab(name){
+  document.querySelectorAll(".tab-panel").forEach(function(p){p.classList.remove("active");});
+  document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active");});
+  document.getElementById("tab-"+name).classList.add("active");
+  document.getElementById("btn-"+name).classList.add("active");
+}
 </script>
+</div>
+<div class="tab-panel" id="tab-collected">
+<div class="panel"><div class="table-scroll"><table>
+<thead><tr><th>#</th><th>Serial Number</th><th>Type</th><th>RITM</th><th>Date</th><th>Location</th><th>Work Order</th><th>Charger</th><th>Cable</th><th></th></tr></thead>
+<tbody>
+@if (!collectedDevices.Any()) {
+<tr class="empty"><td colspan="10">No collected devices.</td></tr>
+} else {
+@for (int i = 0; i < collectedDevices.Count; i++) {
+var d = collectedDevices[i];
+<tr>
+<td class="muted">@(i+1)</td>
+<td><a class="link" href="/ReturnDevices/Edit/@d.Id">@d.SerialNumber</a></td>
+<td class="muted">@d.DeviceType</td>
+<td class="muted">@d.RITM</td>
+<td class="muted">@d.Date.ToString("dd.MM.yyyy")</td>
+<td class="muted">@(d.Location ?? d.DeviceLocation)</td>
+<td class="muted">@(string.IsNullOrWhiteSpace(d.WorkOrder) ? "-" : d.WorkOrder)</td>
+<td>@if(d.ChargerReturned==true){<span class="badge b-yes">YES</span>}else{<span class="badge b-no">NO</span>}</td>
+<td>@if(d.PowerCableReturned==true){<span class="badge b-yes">YES</span>}else{<span class="badge b-no">NO</span>}</td>
+<td><a class="link" href="/ReturnDevices/Edit/@d.Id">Edit</a></td>
+</tr>
+}
+}
+</tbody>
+</table></div></div>
+</div>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
