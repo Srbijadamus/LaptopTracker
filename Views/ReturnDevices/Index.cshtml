@@ -113,13 +113,13 @@ tbody tr:hover{background:var(--bg-hover)}
     </div>
   </div>
 
-  <div class="content">
-    <div class="tabs">
-      <button class="tab-btn active" id="btn-active">Active <span class="tab-badge">@Model.Count</span></button>
-      <button class="tab-btn" id="btn-collected">Collected <span class="tab-badge">@collectedDevices.Count</span></button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="tabs" style="border:none;margin:0">
+        <button class="tab-btn active" id="btn-active">Active <span class="tab-badge">@Model.Count</span></button>
+        <button class="tab-btn" id="btn-collected">Collected <span class="tab-badge">@collectedDevices.Count</span></button>
+      </div>
+      <a href="/ReturnDevices/Create" class="btn btn-primary">+ Add Device</a>
     </div>
-    <div class="tab-panel active" id="tab-active">
-    <form method="get" action="/ReturnDevices">
       <div class="search-form">
         <input class="search-input" name="searchQuery" type="text" placeholder="Search by serial, RITM, work order…" value="@searchQuery" />
         <button type="submit" class="search-btn">Search</button>
@@ -337,6 +337,7 @@ var d = collectedDevices[i];
 </div>
 </body>
 </html>
+
 
 
 
