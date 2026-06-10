@@ -36,6 +36,7 @@ body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg-page);color:var
       <a href="/LoanerDevices" class="nav-link@(ctrl == "LoanerDevices" ? " active" : "")">@Localizer["Nav_LoanerDevices"]</a>
       <a href="/Archive" class="nav-link@(ctrl == "Archive" ? " active" : "")">@Localizer["Nav_Archive"]</a>
       <a href="/Handovers" class="nav-link@(ctrl == "Handovers" ? " active" : "")">@Localizer["Nav_Handovers"]</a>
+      <a href="/Export/ExportAll" class="nav-link" style="color:#14b8c4;font-weight:700">&#x2B07; Export</a>
       <a href="@Url.Action("SetLanguage", "Localization", new { culture = "en-US", returnUrl = Context.Request.Path + Context.Request.QueryString })"
          class="nav-link" aria-label="English">&#127468;&#127463;</a>
       <a href="@Url.Action("SetLanguage", "Localization", new { culture = "de-DE", returnUrl = Context.Request.Path + Context.Request.QueryString })"
@@ -51,3 +52,4 @@ body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg-page);color:var
 @RenderSection("Scripts", required: false)
 </body>
 </html>
+
