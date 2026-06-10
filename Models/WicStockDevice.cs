@@ -16,6 +16,9 @@ namespace LaptopTracker.Models
         public string DeviceLocation { get; set; } = "In WIC";
         public WicStockStatus Status { get; set; } = WicStockStatus.Available;
         public string? SwapRITM { get; set; }
+        public string? SwapSerialNumber { get; set; }
+        public DateTime? SwapDate { get; set; }
+        public string? SwapStatus { get; set; }
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }
     }

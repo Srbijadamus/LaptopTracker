@@ -16,9 +16,9 @@ namespace LaptopTracker.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var returns  = await _context.ReturnDevices.ToListAsync();
-            var wic      = await _context.WicStockDevices.ToListAsync();
-            var loaners  = await _context.LoanerDevices.ToListAsync();
+            var returns  = await _context.ReturnDevices.Where(d => !d.IsDeleted).ToListAsync();
+            var wic      = await _context.WicStockDevices.Where(d => !d.IsDeleted).ToListAsync();
+            var loaners  = await _context.LoanerDevices.Where(d => !d.IsDeleted).ToListAsync();
 
             int returnPending = returns.Count(d => d.Status == ReturnDeviceStatus.PendingPickup);
 
@@ -34,6 +34,9 @@ namespace LaptopTracker.Controllers
             ViewData["LoanerTotal"]       = loaners.Count;
             ViewData["LoanerAvailable"]   = loaners.Count(d => d.Status == LoanerStatus.Available);
             ViewData["LoanerInUse"]       = loaners.Count(d => d.Status == LoanerStatus.NotAvailable);
+
+            ViewData["SwapPending"]       = wic.Count(d => d.SwapStatus == "SwapPending");
+            ViewData["SwapReturnPending"] = wic.Count(d => d.SwapStatus == "SwapReturnPending");
 
             return View();
         }

@@ -246,5 +246,67 @@ namespace LaptopTracker.Controllers
             TempData["StatusMessage"] = "Import successful.";
             return RedirectToAction("Index");
         }
+
+        [HttpGet]
+        public async Task<IActionResult> CreateSwap(int id)
+        {
+            var device = await _context.WicStockDevices.FindAsync(id);
+            if (device == null) return NotFound();
+            return View(device);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateSwap(int id, string swapSerialNumber, string swapRITM, DateTime swapDate, string swapDeviceType, string swapDeviceLocation)
+        {
+            var oldDevice = await _context.WicStockDevices.FindAsync(id);
+            if (oldDevice == null) return NotFound();
+
+            // Mark old device as SwapPending
+            oldDevice.SwapStatus       = "SwapPending";
+            oldDevice.SwapSerialNumber = swapSerialNumber.Trim();
+            oldDevice.SwapRITM         = swapRITM.Trim();
+            oldDevice.SwapDate         = swapDate;
+
+            // Add new device to WicStock as Available
+            var newDevice = new WicStockDevice
+            {
+                SerialNumber    = swapSerialNumber.Trim(),
+                DeviceType      = swapDeviceType.Trim(),
+                RITM            = swapRITM.Trim(),
+                Date            = swapDate,
+                DeviceLocation  = swapDeviceLocation.Trim(),
+                Status          = WicStockStatus.Available,
+                DeviceStateType = "WIC Stock"
+            };
+            _context.WicStockDevices.Add(newDevice);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateReturnFromSwap(int id)
+        {
+            var device = await _context.WicStockDevices.FindAsync(id);
+            if (device == null) return NotFound();
+
+            // Create ReturnDevice entry for defective device
+            var returnDevice = new ReturnDevice
+            {
+                SerialNumber    = device.SerialNumber,
+                DeviceType      = device.DeviceType,
+                RITM            = device.RITM,
+                Date            = DateTime.Today,
+                DeviceLocation  = device.DeviceLocation,
+                Status          = ReturnDeviceStatus.PendingPickup,
+                PickupStatus    = "Swap Return Pending",
+                DeviceStateType = "Return"
+            };
+            _context.ReturnDevices.Add(returnDevice);
+
+            device.SwapStatus = "SwapReturnPending";
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
+

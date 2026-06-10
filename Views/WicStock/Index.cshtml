@@ -158,6 +158,8 @@ tbody tr:hover{background:var(--bg-hover)}
                 <td class="muted">@(string.IsNullOrWhiteSpace(d.SwapRITM) ? "—" : d.SwapRITM)</td>
                 <td style="white-space:nowrap">
                   <a class="link" href="/WicStock/Edit/@d.Id">Edit</a>
+                    &nbsp;
+                    <a class="link" href="/WicStock/CreateSwap/@d.Id" style="color:#f59e0b">SWAP</a>
                   &nbsp;
                   <button type="button" class="btn-row-del" onclick="deleteDevice(@d.Id,'@Html.Raw(d.SerialNumber.Replace("'","\\'"  ))')">&#x1F5D1; Delete</button>
                 </td>
@@ -224,4 +226,5 @@ function handOverSelected() {
 </script>
 </body>
 </html>
+
 

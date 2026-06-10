@@ -1,0 +1,99 @@
+@model LaptopTracker.Models.WicStockDevice
+@using LaptopTracker.Helpers
+@{
+    ViewData["Title"] = "Create SWAP";
+    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad" };
+    var eonLocations = LocationList.Locations.OrderBy(l => l).ToList();
+}
+@section Styles {
+<style>
+.back{padding:9px 18px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;border:1px solid var(--accent);color:var(--accent);background:transparent;display:inline-block;margin-bottom:16px}
+.content{padding:24px 28px 0}
+.page-title{font-size:20px;font-weight:700;margin-bottom:4px;color:var(--text-primary)}
+.page-sub{font-size:13px;color:var(--text-muted);margin-bottom:20px}
+.form-card{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:28px 32px;max-width:860px;margin-bottom:16px}
+.section-head{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-secondary);margin-bottom:16px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px 24px}
+.form-full{grid-column:1/-1}
+.fg{display:flex;flex-direction:column;gap:6px}
+.fg label{font-size:13px;font-weight:600;color:var(--text-primary)}
+.fg input,.fg select{padding:10px 13px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);font-family:inherit;outline:none}
+.fg input:focus,.fg select:focus{border-color:var(--accent)}
+.fg .hint{font-size:12px;color:var(--text-muted)}
+.old-device{background:var(--bg-thead);border-radius:10px;padding:16px 20px;margin-bottom:20px}
+.old-device h4{font-size:13px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;margin-bottom:10px}
+.old-device-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.old-field{display:flex;flex-direction:column;gap:2px}
+.old-label{font-size:11px;color:var(--text-muted);text-transform:uppercase}
+.old-value{font-size:14px;font-weight:600;color:var(--text-primary)}
+.form-actions{display:flex;gap:12px;align-items:center;padding-top:8px}
+.btn-submit{padding:11px 24px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
+.btn-cancel{padding:11px 20px;background:transparent;color:var(--text-secondary);border:1px solid var(--border-input);border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block}
+</style>
+}
+  <div class="content">
+    <a href="/WicStock" class="back">&larr; Back</a>
+    <div class="page-title">Create SWAP for @Model.SerialNumber</div>
+    <div class="page-sub">The defective device will be marked as Swap Pending. The new device will be added to WIC Stock as Available.</div>
+
+    <div class="form-card">
+      <div class="section-head">Defective Device (Current)</div>
+      <div class="old-device">
+        <div class="old-device-grid">
+          <div class="old-field"><span class="old-label">Serial Number</span><span class="old-value">@Model.SerialNumber</span></div>
+          <div class="old-field"><span class="old-label">Type</span><span class="old-value">@Model.DeviceType</span></div>
+          <div class="old-field"><span class="old-label">RITM</span><span class="old-value">@Model.RITM</span></div>
+          <div class="old-field"><span class="old-label">Location</span><span class="old-value">@Model.DeviceLocation</span></div>
+          <div class="old-field"><span class="old-label">Status</span><span class="old-value">@Model.Status</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="section-head">New Replacement Device</div>
+      <form method="post" action="/WicStock/CreateSwap/@Model.Id">
+        <div class="form-grid">
+
+          <div class="fg">
+            <label>Serial Number *</label>
+            <input name="swapSerialNumber" type="text" required placeholder="e.g. SN-123456" />
+          </div>
+
+          <div class="fg">
+            <label>Device Type</label>
+            <select name="swapDeviceType">
+              @foreach (var t in deviceTypes)
+              {
+                <option value="@t" selected="@(Model.DeviceType == t ? "selected" : null)">@t</option>
+              }
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>RITM *</label>
+            <input name="swapRITM" type="text" required placeholder="e.g. RITM0012345" />
+          </div>
+
+          <div class="fg">
+            <label>Swap Date</label>
+            <input name="swapDate" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+          </div>
+
+          <div class="fg form-full">
+            <label>Device Location</label>
+            <select name="swapDeviceLocation">
+              @foreach (var l in eonLocations)
+              {
+                <option value="@l" selected="@(Model.DeviceLocation == l ? "selected" : null)">@l</option>
+              }
+            </select>
+          </div>
+
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-submit">Create SWAP</button>
+          <a href="/WicStock" class="btn-cancel">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
