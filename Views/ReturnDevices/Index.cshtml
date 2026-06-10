@@ -233,6 +233,7 @@ tbody tr:hover{background:var(--bg-hover)}
         <button type="button" class="bulk-apply" onclick="applyBulkWorkOrder()">Apply to Selected</button>
         <button type="button" class="bulk-apply" style="background:var(--bg-panel);color:var(--accent);border:1px solid var(--accent);" onclick="editSelected()">Edit Selected</button>
         <button type="button" class="bulk-apply" style="background:#1a7f37;" onclick="handOverSelected()">Hand Over Devices</button>
+        <button type="button" class="bulk-apply" style="background:#0369a1;" onclick="exportSelected()">&#x2B07; Export</button>
         <button type="button" class="bulk-apply" style="background:#0f6c75;" onclick="copySelectedRitmSerial()">&#x1F4CB; Copy</button>
       </div>
     </form>
@@ -300,6 +301,12 @@ function copySelectedRitmSerial() {
     alert("Copied!\n\n" + text);
   });
 }
+function exportSelected() {
+  var checks = getChecked();
+  if (checks.length === 0) { alert("No devices selected."); return; }
+  var url = "/Export/ExportSelected?" + Array.from(checks).map(function(c) { return "ids=" + encodeURIComponent(c.value); }).join("&");
+  window.location.href = url;
+}
 function handOverSelected() {
   var checks = getChecked();
   if (checks.length === 0) { alert('No devices selected.'); return; }
@@ -344,6 +351,7 @@ var d = collectedDevices[i];
 </div>
 </body>
 </html>
+
 
 
 

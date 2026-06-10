@@ -22,7 +22,6 @@ namespace LaptopTracker.Controllers
 
             using var wb = new XLWorkbook();
 
-            // ReturnDevices sheet
             var ws1 = wb.Worksheets.Add("Return Devices");
             ws1.Cell(1,1).Value = "Serial Number"; ws1.Cell(1,2).Value = "Type"; ws1.Cell(1,3).Value = "RITM";
             ws1.Cell(1,4).Value = "Date"; ws1.Cell(1,5).Value = "Status"; ws1.Cell(1,6).Value = "Device Location";
@@ -41,7 +40,6 @@ namespace LaptopTracker.Controllers
             }
             ws1.Columns().AdjustToContents();
 
-            // WIC Stock sheet
             var ws2 = wb.Worksheets.Add("WIC Stock");
             ws2.Cell(1,1).Value = "Serial Number"; ws2.Cell(1,2).Value = "Type"; ws2.Cell(1,3).Value = "RITM";
             ws2.Cell(1,4).Value = "Date"; ws2.Cell(1,5).Value = "Status"; ws2.Cell(1,6).Value = "Device Location";
@@ -56,7 +54,6 @@ namespace LaptopTracker.Controllers
             }
             ws2.Columns().AdjustToContents();
 
-            // Loaner Devices sheet
             var ws3 = wb.Worksheets.Add("Loaner Devices");
             ws3.Cell(1,1).Value = "Serial Number"; ws3.Cell(1,2).Value = "Type"; ws3.Cell(1,3).Value = "RITM";
             ws3.Cell(1,4).Value = "Date"; ws3.Cell(1,5).Value = "Status"; ws3.Cell(1,6).Value = "Device Location";
@@ -79,6 +76,43 @@ namespace LaptopTracker.Controllers
             wb.SaveAs(stream);
             stream.Position = 0;
             var fileName = $"WIC_Asset_Tracker_Export_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
+            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        public async Task<IActionResult> ExportSelected([FromQuery] int[] ids)
+        {
+            if (ids == null || ids.Length == 0)
+                return RedirectToAction(nameof(ExportAll));
+
+            var idList = ids.ToList();
+            var returns = await _context.ReturnDevices
+                .Where(d => !d.IsDeleted && idList.Contains(d.Id))
+                .OrderByDescending(d => d.Date)
+                .ToListAsync();
+
+            using var wb = new XLWorkbook();
+            var ws1 = wb.Worksheets.Add("Selected Return Devices");
+            ws1.Cell(1,1).Value = "Serial Number"; ws1.Cell(1,2).Value = "Type"; ws1.Cell(1,3).Value = "RITM";
+            ws1.Cell(1,4).Value = "Date"; ws1.Cell(1,5).Value = "Status"; ws1.Cell(1,6).Value = "Device Location";
+            ws1.Cell(1,7).Value = "Work Order"; ws1.Cell(1,8).Value = "Pickup Status"; ws1.Cell(1,9).Value = "Location";
+            ws1.Cell(1,10).Value = "Charger"; ws1.Cell(1,11).Value = "Power Cable";
+            ws1.Row(1).Style.Font.Bold = true;
+            for (int i = 0; i < returns.Count; i++)
+            {
+                var d = returns[i]; var r = i + 2;
+                ws1.Cell(r,1).Value = d.SerialNumber; ws1.Cell(r,2).Value = d.DeviceType; ws1.Cell(r,3).Value = d.RITM;
+                ws1.Cell(r,4).Value = d.Date.ToString("dd.MM.yyyy"); ws1.Cell(r,5).Value = d.Status.ToString();
+                ws1.Cell(r,6).Value = d.DeviceLocation; ws1.Cell(r,7).Value = d.WorkOrder ?? "";
+                ws1.Cell(r,8).Value = d.PickupStatus ?? ""; ws1.Cell(r,9).Value = d.Location ?? "";
+                ws1.Cell(r,10).Value = d.ChargerReturned == true ? "YES" : "NO";
+                ws1.Cell(r,11).Value = d.PowerCableReturned == true ? "YES" : "NO";
+            }
+            ws1.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            wb.SaveAs(stream);
+            stream.Position = 0;
+            var fileName = $"WIC_Export_Selected_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
             return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
     }
