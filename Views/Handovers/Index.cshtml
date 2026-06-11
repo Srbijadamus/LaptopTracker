@@ -52,7 +52,13 @@ tbody tr:hover{background:var(--bg-hover)}
                   <td>@h.Kid</td>
                   <td>@h.Location</td>
                   <td><span class="badge-count">@h.Devices.Count device@(h.Devices.Count == 1 ? "" : "s")</span></td>
-                  <td><a class="link" href="/Handovers/Details/@h.Id">View</a></td>
+                  <td style="white-space:nowrap">
+                    <a class="link" href="/Handovers/Details/@h.Id">View</a>
+                    &nbsp;
+                    <form method="post" action="/Handovers/Delete/@h.Id" style="display:inline" onsubmit="return confirm('Delete this handover record? This cannot be undone.')">
+                      <button type="submit" class="btn-row-del">&#x1F5D1; Delete</button>
+                    </form>
+                  </td>
                 </tr>
               }
             }
@@ -61,3 +67,4 @@ tbody tr:hover{background:var(--bg-hover)}
       </div>
     </div>
   </div>
+

@@ -108,5 +108,18 @@ namespace LaptopTracker.Controllers
             }
             return new List<DeviceSelectionInfo>();
         }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var handover = await _context.Handovers.FindAsync(id);
+            if (handover != null)
+            {
+                _context.Handovers.Remove(handover);
+                await _context.SaveChangesAsync();
+            }
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
+
