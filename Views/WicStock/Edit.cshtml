@@ -62,14 +62,29 @@
           </div>
 
           <div class="fg form-full">
+            <label>Country Filter <span class="hint">(optional — filters locations below)</span></label>
+            <select id="countryFilter" onchange="filterLocations(this.value)">
+              <option value="">— All Countries —</option>
+              <option value="DE">🇩🇪 Germany (DE)</option>
+              <option value="HU">🇭🇺 Hungary (HU)</option>
+              <option value="IT">🇮🇹 Italy (IT)</option>
+              <option value="PL">🇵🇱 Poland (PL)</option>
+              <option value="SE">🇸🇪 Sweden (SE)</option>
+              <option value="NL">🇳🇱 Netherlands (NL)</option>
+              <option value="GB">🇬🇧 Great Britain (GB)</option>
+              <option value="CZ">🇨🇿 Czech Republic (CZ)</option>
+            </select>
+          </div>
+          <div class="fg form-full">
             <label>Device Location</label>
             <select id="locSelect" onchange="onLocChange(this)">
               <option value="">— Select location —</option>
               @foreach (var l in eonLocations)
               {
-                <option value="@l" selected="@(locInList && curLoc == l ? "selected" : null)">@l</option>
+                var country = LaptopTracker.Helpers.LocationList.GetCountry(l);
+                <option value="@l" data-country="@country" selected="@(locInList && curLoc == l ? "selected" : null)">@l</option>
               }
-              <option value="__other__" selected="@(showOther ? "selected" : null)">Other (type below)</option>
+              <option value="__other__" data-country="" selected="@(showOther ? "selected" : null)">Other (type below)</option>
             </select>
             <input id="locCustom" type="text" placeholder="Type custom location…"
                    style="margin-top:6px;@(showOther ? "" : "display:none;")"
@@ -105,6 +120,38 @@
   </div>
 @section Scripts {
 <script>
+function filterLocations(country) {
+  var sel = document.getElementById('locSelect');
+  var opts = sel.querySelectorAll('option');
+  opts.forEach(function(o) {
+    if (!o.value || o.value === '__other__') { o.style.display = ''; return; }
+    var c = o.getAttribute('data-country');
+    o.style.display = (!country || c === country) ? '' : 'none';
+  });
+  // Auto-select first visible if current is hidden
+  var cur = sel.options[sel.selectedIndex];
+  if (cur && cur.style.display === 'none') {
+    sel.value = '';
+    document.getElementById('locHidden').value = '';
+  }
+  // Pre-select country based on current location
+  var curCountry = document.getElementById('countryFilter').value;
+  if (!curCountry) return;
+}
+function initCountryFilter() {
+  var hidden = document.getElementById('locHidden').value;
+  var sel = document.getElementById('locSelect');
+  var opts = sel.querySelectorAll('option');
+  opts.forEach(function(o) {
+    if (o.value === hidden) {
+      var c = o.getAttribute('data-country');
+      if (c) {
+        document.getElementById('countryFilter').value = c;
+        filterLocations(c);
+      }
+    }
+  });
+}
 function onLocChange(sel) {
   var c = document.getElementById('locCustom');
   var h = document.getElementById('locHidden');
@@ -119,5 +166,7 @@ function deleteDevice() {
     document.getElementById('deleteForm').submit();
   }
 }
+initCountryFilter();
 </script>
 }
+

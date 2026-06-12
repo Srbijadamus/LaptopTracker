@@ -15,7 +15,7 @@ namespace LaptopTracker.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(string? searchQuery, string? statusFilter, string? locationFilter, string? deviceTypeFilter)
+        public async Task<IActionResult> Index(string? searchQuery, string? statusFilter, string? locationFilter, string? deviceTypeFilter, string? countryFilter)
         {
             var query = _context.WicStockDevices.Where(d => !d.IsDeleted).AsQueryable();
 
@@ -32,6 +32,15 @@ namespace LaptopTracker.Controllers
 
             if (!string.IsNullOrWhiteSpace(deviceTypeFilter))
                 query = query.Where(d => d.DeviceType == deviceTypeFilter);
+
+            if (!string.IsNullOrWhiteSpace(countryFilter))
+            {
+                var locsInCountry = LaptopTracker.Helpers.LocationList.LocationCountry
+                    .Where(kv => kv.Value == countryFilter)
+                    .Select(kv => kv.Key)
+                    .ToList();
+                query = query.Where(d => locsInCountry.Contains(d.DeviceLocation));
+            }
 
             var dbLocations = await _context.WicStockDevices
                 .Where(d => !d.IsDeleted)
@@ -55,6 +64,7 @@ namespace LaptopTracker.Controllers
             ViewData["StatusFilter"]     = statusFilter;
             ViewData["LocationFilter"]   = locationFilter;
             ViewData["DeviceTypeFilter"] = deviceTypeFilter;
+            ViewData["CountryFilter"]    = countryFilter;
 
             return View(await query.OrderByDescending(d => d.Date).ToListAsync());
         }
@@ -309,4 +319,5 @@ namespace LaptopTracker.Controllers
         }
     }
 }
+
 
