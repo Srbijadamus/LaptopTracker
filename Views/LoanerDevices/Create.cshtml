@@ -62,26 +62,18 @@
             </select>
           </div>
 
-          <div class="fg form-full">
-            <label>Device Location</label>
-            <select id="locSelect" onchange="onLocChange(this)">
-              <option value="">— Select location —</option>
-              @foreach (var l in eonLocations)
-              {
-                <option value="@l" selected="@(locInList && curLoc == l ? "selected" : null)">@l</option>
-              }
-              <option value="__other__" selected="@(showOther ? "selected" : null)">Other (type below)</option>
+          <div class="fg">
+            <label>Device Status</label>
+            <select name="deviceLocation">
+              <option value="In WIC" selected="@(curLoc == "In WIC" ? "selected" : null)">In WIC</option>
+              <option value="In Use" selected="@(curLoc == "In Use" ? "selected" : null)">In Use</option>
+              <option value="In Transit" selected="@(curLoc == "In Transit" ? "selected" : null)">In Transit</option>
             </select>
-            <input id="locCustom" type="text" placeholder="Type custom location…"
-                   style="margin-top:6px;@(showOther ? "" : "display:none;")"
-                   value="@(showOther ? curLoc : "")"
-                   oninput="document.getElementById('locHidden').value=this.value" />
-            <input type="hidden" id="locHidden" name="deviceLocation" value="@curLoc" />
           </div>
 
           <div class="fg">
-            <label>WIC (Office Location) <span class="hint">(optional)</span></label>
-            <select name="wic">
+            <label>WIC (Office Location) *</label>
+            <select name="wic" required>
               <option value="">— Select WIC —</option>
               @foreach (var w in wicOptions)
               {
@@ -184,3 +176,5 @@ function removeRow(btn) {
 }
 </script>
 }
+
+
