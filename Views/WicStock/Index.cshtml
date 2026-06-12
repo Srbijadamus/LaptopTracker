@@ -92,6 +92,17 @@ tbody tr:hover{background:var(--bg-hover)}
         <button type="submit" class="search-btn">Search</button>
       </div>
       <div class="filter-bar">
+        <select name="countryFilter" class="filter-select" onchange="this.form.submit()">
+          <option value="">All Countries</option>
+          <option value="DE" selected="@(ViewData["CountryFilter"] as string == "DE" ? "selected" : null)">DE - Germany</option>
+          <option value="HU" selected="@(ViewData["CountryFilter"] as string == "HU" ? "selected" : null)">HU - Hungary</option>
+          <option value="IT" selected="@(ViewData["CountryFilter"] as string == "IT" ? "selected" : null)">IT - Italy</option>
+          <option value="PL" selected="@(ViewData["CountryFilter"] as string == "PL" ? "selected" : null)">PL - Poland</option>
+          <option value="SE" selected="@(ViewData["CountryFilter"] as string == "SE" ? "selected" : null)">SE - Sweden</option>
+          <option value="NL" selected="@(ViewData["CountryFilter"] as string == "NL" ? "selected" : null)">NL - Netherlands</option>
+          <option value="GB" selected="@(ViewData["CountryFilter"] as string == "GB" ? "selected" : null)">GB - Great Britain</option>
+          <option value="CZ" selected="@(ViewData["CountryFilter"] as string == "CZ" ? "selected" : null)">CZ - Czech Republic</option>
+        </select>
         <select name="statusFilter" class="filter-select" onchange="this.form.submit()">
           <option value="">All Statuses</option>
           <option value="Available" selected="@(statusFilter == "Available" ? "selected" : null)">Available</option>

@@ -16,9 +16,21 @@ namespace LaptopTracker.Controllers
 
         public async Task<IActionResult> ExportAll()
         {
-            var returns  = await _context.ReturnDevices.Where(d => !d.IsDeleted).OrderByDescending(d => d.Date).ToListAsync();
-            var wic      = await _context.WicStockDevices.Where(d => !d.IsDeleted).OrderByDescending(d => d.Date).ToListAsync();
-            var loaners  = await _context.LoanerDevices.Where(d => !d.IsDeleted).OrderByDescending(d => d.Date).ToListAsync();
+            var countryFilter = HttpContext.Session.GetString("CountryFilter");
+            var countryLocations = LaptopTracker.Helpers.LocationList.GetLocationsByCountry(countryFilter);
+
+            var returnsQuery = _context.ReturnDevices.Where(d => !d.IsDeleted);
+            var wicQuery     = _context.WicStockDevices.Where(d => !d.IsDeleted);
+            var loanersQuery = _context.LoanerDevices.Where(d => !d.IsDeleted);
+            if (countryLocations != null)
+            {
+                returnsQuery = returnsQuery.Where(d => d.Location != null && countryLocations.Contains(d.Location));
+                wicQuery     = wicQuery.Where(d => countryLocations.Contains(d.DeviceLocation));
+                loanersQuery = loanersQuery.Where(d => countryLocations.Contains(d.DeviceLocation));
+            }
+            var returns  = await returnsQuery.OrderByDescending(d => d.Date).ToListAsync();
+            var wic      = await wicQuery.OrderByDescending(d => d.Date).ToListAsync();
+            var loaners  = await loanersQuery.OrderByDescending(d => d.Date).ToListAsync();
 
             using var wb = new XLWorkbook();
 
@@ -85,10 +97,12 @@ namespace LaptopTracker.Controllers
                 return RedirectToAction(nameof(ExportAll));
 
             var idList = ids.ToList();
-            var returns = await _context.ReturnDevices
-                .Where(d => !d.IsDeleted && idList.Contains(d.Id))
-                .OrderByDescending(d => d.Date)
-                .ToListAsync();
+            var countryFilter = HttpContext.Session.GetString("CountryFilter");
+            var countryLocations = LaptopTracker.Helpers.LocationList.GetLocationsByCountry(countryFilter);
+            var selQuery = _context.ReturnDevices.Where(d => !d.IsDeleted && idList.Contains(d.Id));
+            if (countryLocations != null)
+                selQuery = selQuery.Where(d => d.Location != null && countryLocations.Contains(d.Location));
+            var returns = await selQuery.OrderByDescending(d => d.Date).ToListAsync();
 
             using var wb = new XLWorkbook();
             var ws1 = wb.Worksheets.Add("Selected Return Devices");
@@ -117,3 +131,5 @@ namespace LaptopTracker.Controllers
         }
     }
 }
+
+

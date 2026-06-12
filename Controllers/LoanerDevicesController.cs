@@ -38,6 +38,11 @@ namespace LaptopTracker.Controllers
             if (!string.IsNullOrWhiteSpace(wicFilter))
                 query = query.Where(d => d.WIC == wicFilter);
 
+            var countryFilter = HttpContext.Session.GetString("CountryFilter");
+            var countryLocations = LaptopTracker.Helpers.LocationList.GetLocationsByCountry(countryFilter);
+            if (countryLocations != null)
+                query = query.Where(d => countryLocations.Contains(d.DeviceLocation));
+
             var dbLocations = await _context.LoanerDevices
                 .Where(d => !d.IsDeleted)
                 .Select(d => d.DeviceLocation)
@@ -284,3 +289,4 @@ namespace LaptopTracker.Controllers
         }
     }
 }
+

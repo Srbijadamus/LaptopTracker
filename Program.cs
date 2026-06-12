@@ -12,6 +12,13 @@ builder.Services.AddDbContext<LaptopTrackerDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IAgentDeviceRepository, AgentDeviceRepository>();
 builder.Services.AddScoped<IIdempotencyService, IdempotencyService>();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(8);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 var app = builder.Build();
 
@@ -30,6 +37,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseSession();
 app.UseRequestLocalization(new RequestLocalizationOptions()
     .SetDefaultCulture("en-US")
     .AddSupportedCultures("en-US", "de-DE")
@@ -42,3 +50,4 @@ app.MapControllerRoute(
     pattern: "{controller=Dashboard}/{action=Index}/{id?}");
 
 app.Run();
+

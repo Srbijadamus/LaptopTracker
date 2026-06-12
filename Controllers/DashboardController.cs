@@ -16,9 +16,23 @@ namespace LaptopTracker.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var returns  = await _context.ReturnDevices.Where(d => !d.IsDeleted).ToListAsync();
-            var wic      = await _context.WicStockDevices.Where(d => !d.IsDeleted).ToListAsync();
-            var loaners  = await _context.LoanerDevices.Where(d => !d.IsDeleted).ToListAsync();
+            var countryFilter = HttpContext.Session.GetString("CountryFilter");
+            var countryLocations = LaptopTracker.Helpers.LocationList.GetLocationsByCountry(countryFilter);
+
+            var returnsQuery  = _context.ReturnDevices.Where(d => !d.IsDeleted);
+            var wicQuery      = _context.WicStockDevices.Where(d => !d.IsDeleted);
+            var loanersQuery  = _context.LoanerDevices.Where(d => !d.IsDeleted);
+
+            if (countryLocations != null)
+            {
+                returnsQuery = returnsQuery.Where(d => d.Location != null && countryLocations.Contains(d.Location));
+                wicQuery     = wicQuery.Where(d => countryLocations.Contains(d.DeviceLocation));
+                loanersQuery = loanersQuery.Where(d => countryLocations.Contains(d.DeviceLocation));
+            }
+
+            var returns  = await returnsQuery.ToListAsync();
+            var wic      = await wicQuery.ToListAsync();
+            var loaners  = await loanersQuery.ToListAsync();
 
             int returnPending = returns.Count(d => d.Status == ReturnDeviceStatus.PendingPickup);
 
@@ -42,3 +56,5 @@ namespace LaptopTracker.Controllers
         }
     }
 }
+
+

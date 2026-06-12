@@ -33,14 +33,11 @@ namespace LaptopTracker.Controllers
             if (!string.IsNullOrWhiteSpace(deviceTypeFilter))
                 query = query.Where(d => d.DeviceType == deviceTypeFilter);
 
-            if (!string.IsNullOrWhiteSpace(countryFilter))
-            {
-                var locsInCountry = LaptopTracker.Helpers.LocationList.LocationCountry
-                    .Where(kv => kv.Value == countryFilter)
-                    .Select(kv => kv.Key)
-                    .ToList();
+            if (string.IsNullOrWhiteSpace(countryFilter))
+                countryFilter = HttpContext.Session.GetString("CountryFilter");
+            var locsInCountry = LaptopTracker.Helpers.LocationList.GetLocationsByCountry(countryFilter);
+            if (locsInCountry != null)
                 query = query.Where(d => locsInCountry.Contains(d.DeviceLocation));
-            }
 
             var dbLocations = await _context.WicStockDevices
                 .Where(d => !d.IsDeleted)
@@ -319,5 +316,6 @@ namespace LaptopTracker.Controllers
         }
     }
 }
+
 
 

@@ -39,6 +39,11 @@ namespace LaptopTracker.Controllers
             if (hasWorkOrder)
                 query = query.Where(d => d.WorkOrder != null && d.WorkOrder != "" && d.WorkOrder != "NA");
 
+            var countryFilter = HttpContext.Session.GetString("CountryFilter");
+            var countryLocations = LaptopTracker.Helpers.LocationList.GetLocationsByCountry(countryFilter);
+            if (countryLocations != null)
+                query = query.Where(d => d.Location != null && countryLocations.Contains(d.Location));
+
             var dbLocations = await _context.ReturnDevices
                 .Where(d => !d.IsDeleted)
                 .Select(d => d.DeviceLocation)
@@ -316,6 +321,8 @@ namespace LaptopTracker.Controllers
         }
     }
 }
+
+
 
 
 

@@ -136,5 +136,16 @@ namespace LaptopTracker.Helpers
 
         public static string GetCountry(string location) =>
             LocationCountry.TryGetValue(location, out var c) ? c : "";
+
+        public static List<string>? GetLocationsByCountry(string? countryCode)
+        {
+            if (string.IsNullOrWhiteSpace(countryCode))
+                return null;
+            return LocationCountry
+                .Where(kv => kv.Value == countryCode)
+                .Select(kv => kv.Key)
+                .ToList();
+        }
     }
 }
+

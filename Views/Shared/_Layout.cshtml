@@ -37,6 +37,18 @@ body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg-page);color:var
       <a href="/Archive" class="nav-link@(ctrl == "Archive" ? " active" : "")">@Localizer["Nav_Archive"]</a>
       <a href="/Handovers" class="nav-link@(ctrl == "Handovers" ? " active" : "")">@Localizer["Nav_Handovers"]</a>
       <a href="/Export/ExportAll" class="nav-link" style="color:#14b8c4;font-weight:700">&#x2B07; Export</a>
+      <select onchange="if(this.value!==undefined){window.location.href='/Country/Set?code='+encodeURIComponent(this.value)+'&returnUrl='+encodeURIComponent(window.location.pathname);}"
+              style="padding:6px 10px;border-radius:8px;background:var(--bg-input);color:var(--text-primary);border:1px solid var(--border-input);font-size:13px;font-weight:600;margin-left:8px;cursor:pointer">
+        @{
+          var curCountry = Context.Session.GetString("CountryFilter") ?? "";
+          var countryCodes = LaptopTracker.Helpers.LocationList.LocationCountry.Values.Distinct().OrderBy(c => c).ToList();
+        }
+        <option value="" selected="@(curCountry == "" ? "selected" : null)">🌍 All Countries</option>
+        @foreach (var c in countryCodes)
+        {
+          <option value="@c" selected="@(curCountry == c ? "selected" : null)">@c</option>
+        }
+      </select>
       <a href="@Url.Action("SetLanguage", "Localization", new { culture = "en-US", returnUrl = Context.Request.Path + Context.Request.QueryString })"
          class="nav-link" aria-label="English">&#127468;&#127463;</a>
       <a href="@Url.Action("SetLanguage", "Localization", new { culture = "de-DE", returnUrl = Context.Request.Path + Context.Request.QueryString })"
@@ -52,4 +64,5 @@ body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg-page);color:var
 @RenderSection("Scripts", required: false)
 </body>
 </html>
+
 

@@ -17,8 +17,14 @@ namespace LaptopTracker.Controllers
         // GET /Handovers
         public async Task<IActionResult> Index()
         {
-            var handovers = await _context.Handovers
-                .Include(h => h.Devices)
+            var countryFilter = HttpContext.Session.GetString("CountryFilter");
+            var countryLocations = LaptopTracker.Helpers.LocationList.GetLocationsByCountry(countryFilter);
+
+            var query = _context.Handovers.Include(h => h.Devices).AsQueryable();
+            if (countryLocations != null)
+                query = query.Where(h => countryLocations.Contains(h.Location));
+
+            var handovers = await query
                 .OrderByDescending(h => h.Date)
                 .ToListAsync();
             return View(handovers);
@@ -122,4 +128,5 @@ namespace LaptopTracker.Controllers
         }
     }
 }
+
 
