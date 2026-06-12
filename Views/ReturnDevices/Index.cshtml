@@ -210,6 +210,8 @@ tbody tr:hover{background:var(--bg-hover)}
                   <td class="muted">@(string.IsNullOrWhiteSpace(d.WorkOrder) ? "—" : d.WorkOrder)</td>
                   <td class="muted">@(string.IsNullOrWhiteSpace(d.PickupStatus) ? "—" : d.PickupStatus)</td>
                   <td class="muted">@(string.IsNullOrWhiteSpace(d.Location) ? "—" : d.Location)</td>
+                  <td class="muted">@(string.IsNullOrWhiteSpace(d.KID) ? "—" : d.KID)</td>
+                  <td class="muted">@(string.IsNullOrWhiteSpace(d.UserAddress) ? "—" : d.UserAddress)</td>
                   <td>@if (d.ChargerReturned != null) { <span class="@ChargerClass(d.ChargerReturned)">@ChargerLabel(d.ChargerReturned)</span> } else { <span class="muted">—</span> }</td>
                   <td>@if (d.PowerCableReturned != null) { <span class="@ChargerClass(d.PowerCableReturned)">@ChargerLabel(d.PowerCableReturned)</span> } else { <span class="muted">—</span> }</td>
                   <td style="white-space:nowrap">
@@ -351,6 +353,7 @@ var d = collectedDevices[i];
 </div>
 </body>
 </html>
+
 
 
 

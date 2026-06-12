@@ -101,6 +101,10 @@
               <button type="button" class="btn-clear-kid" onclick="clearKid()" title="Clear KID">&#x2715; Clear KID</button>
             </div>
           </div>
+          <div class="fg form-full">
+            <label>User Address <span class="hint">(where it is)</span></label>
+            <input name="UserAddress" type="text" value="@Model.UserAddress" placeholder="e.g. Helmstedt, Schillerstr. 3 (38350)" />
+          </div>
 
           <div class="fg">
             <label>Handed To <span class="hint">(optional)</span></label>
@@ -146,5 +150,6 @@ function deleteDevice() {
 }
 </script>
 }
+
 
 

@@ -97,7 +97,7 @@ namespace LaptopTracker.Controllers
         public async Task<IActionResult> BulkCreate(
             string[] serials, string[] types, string[] ritms,
             DateTime date, string deviceLocation, string status,
-            string? wic, string? kid, string? kidHandedTo, DateTime? dateHandedOver)
+            string? wic, string? kid, string? kidHandedTo, DateTime? dateHandedOver, string? userAddress)
         {
             var count = Math.Min(serials?.Length ?? 0, Math.Min(types?.Length ?? 0, ritms?.Length ?? 0));
             var statusEnum = Enum.TryParse<LoanerStatus>(status, out var s) ? s : LoanerStatus.Available;
@@ -116,6 +116,7 @@ namespace LaptopTracker.Controllers
                     Status          = statusEnum,
                     WIC             = string.IsNullOrWhiteSpace(wic) ? null : wic,
                     KID             = string.IsNullOrWhiteSpace(kid) ? null : kid,
+                    UserAddress     = string.IsNullOrWhiteSpace(userAddress) ? null : userAddress,
                     KidHandedTo     = string.IsNullOrWhiteSpace(kidHandedTo) ? null : kidHandedTo,
                     DateHandedOver  = dateHandedOver,
                     DeviceStateType = "Loaner Device"
@@ -187,6 +188,7 @@ namespace LaptopTracker.Controllers
             device.DateHandedOver  = model.DateHandedOver;
             device.WIC             = model.WIC;
             device.KID             = model.KID;
+            device.UserAddress     = model.UserAddress;
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
@@ -289,4 +291,6 @@ namespace LaptopTracker.Controllers
         }
     }
 }
+
+
 

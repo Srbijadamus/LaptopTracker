@@ -212,6 +212,8 @@ namespace LaptopTracker.Controllers
             device.WorkOrder          = model.WorkOrder;
             device.PickupStatus       = model.PickupStatus;
             device.Location           = model.Location;
+            device.KID                = model.KID;
+            device.UserAddress        = model.UserAddress;
             device.ChargerReturned    = model.ChargerReturned;
             device.PowerCableReturned = model.PowerCableReturned;
 
@@ -321,6 +323,7 @@ namespace LaptopTracker.Controllers
         }
     }
 }
+
 
 
 

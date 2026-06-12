@@ -18,9 +18,12 @@ namespace LaptopTracker.Models
         public string? WorkOrder { get; set; }
         public string? PickupStatus { get; set; }
         public string? Location { get; set; }
+        public string? KID { get; set; }
+        public string? UserAddress { get; set; }
         public bool? ChargerReturned { get; set; }
         public bool? PowerCableReturned { get; set; }
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }
     }
 }
+

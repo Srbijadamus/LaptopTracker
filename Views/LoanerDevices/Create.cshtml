@@ -86,6 +86,10 @@
             <label>KID (Konzern-ID) <span class="hint">(optional)</span></label>
             <input name="kid" type="text" value="@Model.KID" placeholder="e.g. K12345" />
           </div>
+          <div class="fg">
+            <label>User Address <span class="hint">(where it is)</span></label>
+            <input name="userAddress" type="text" value="@Model.UserAddress" placeholder="e.g. Helmstedt, Schillerstr. 3 (38350)" />
+          </div>
 
           <div class="fg">
             <label>Handed To <span class="hint">(optional)</span></label>
@@ -176,5 +180,6 @@ function removeRow(btn) {
 }
 </script>
 }
+
 
 

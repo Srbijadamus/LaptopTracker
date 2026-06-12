@@ -19,7 +19,9 @@ namespace LaptopTracker.Models
         public DateTime? DateHandedOver { get; set; }
         public string? WIC { get; set; }
         public string? KID { get; set; }
+        public string? UserAddress { get; set; }
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }
     }
 }
+

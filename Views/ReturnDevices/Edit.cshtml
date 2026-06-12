@@ -90,6 +90,14 @@
             <label>Pickup Status <span class="hint">(optional)</span></label>
             <input name="PickupStatus" type="text" value="@Model.PickupStatus" />
           </div>
+          <div class="fg">
+            <label>KID <span class="hint">(who uses it)</span></label>
+            <input name="KID" type="text" value="@Model.KID" placeholder="e.g. A57253" />
+          </div>
+          <div class="fg">
+            <label>User Address <span class="hint">(where it is)</span></label>
+            <input name="UserAddress" type="text" value="@Model.UserAddress" placeholder="e.g. Saarbrücken, Hohenzollernstraße 75 (66117)" />
+          </div>
 
           <!-- Accessories returned section -->
           <div class="section-divider">
@@ -161,3 +169,4 @@ function deleteDevice() {
 }
 </script>
 }
+
