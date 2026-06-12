@@ -44,6 +44,29 @@ namespace LaptopTracker.Helpers
             "Pfaffenhofen - Draht 7",
             "Halle (Saale) - Magdeburger Str. 51",
             "Markkleeberg - Friedrich-Ebert-Str. 26",
+            // Hungary
+            "Pécs - Búza tér 8/a",
+            "Győr - Kandó Kálmán u. 11-13.",
+            "Pécs - Malomvölgyi út 2.",
+            "Budapest - Hengermalom út 18.",
+            // Italy
+            "Milano (MI) - Via Dell'Unione, 1",
+            "San Daniele del Friuli (UD) - Via Mons. Romero, 59",
+            // Poland
+            "Warszawa - ul. Wybrzeze Kosciuszkowskie 41",
+            // Sweden
+            "Malmö - Carlsgatan 22",
+            // Netherlands
+            "s-Hertogenbosch - Willemsplein 4",
+            "Zwolle - Grote Voort 247",
+            // Great Britain
+            "Solihull - 2 Princes Way",
+            "Nottingham - 2 Burton Street",
+            // Czech Republic
+            "České Budějovice - F.A. Gerstnera 2151/6",
+            "Brno - Lidická 1873/36",
+            "Brno - Cejl 524/42,44",
+            "České Budějovice - Vrbenská 2",
         };
 
         public static readonly List<string> Locations = SiteLocations
@@ -51,3 +74,4 @@ namespace LaptopTracker.Helpers
             .ToList();
     }
 }
+
