@@ -179,6 +179,8 @@ tbody tr:hover{background:var(--bg-hover)}
               <th>Work Order</th>
               <th>Pickup Status</th>
               <th>Location</th>
+              <th>KID</th>
+              <th>User Address</th>
               <th>Charger</th>
               <th>Power Cable</th>
               <th></th>
@@ -239,6 +241,33 @@ tbody tr:hover{background:var(--bg-hover)}
         <button type="button" class="bulk-apply" style="background:#0f6c75;" onclick="copySelectedRitmSerial()">&#x1F4CB; Copy</button>
       </div>
     </form>
+  </div>
+
+  <div class="tab-panel" id="tab-collected">
+  <div class="panel"><div class="table-scroll"><table>
+<thead><tr><th>#</th><th>Serial Number</th><th>Type</th><th>RITM</th><th>Date</th><th>Location</th><th>Work Order</th><th>Charger</th><th>Cable</th><th></th></tr></thead>
+<tbody>
+@if (!collectedDevices.Any()) {
+<tr class="empty"><td colspan="10">No collected devices.</td></tr>
+} else {
+@for (int i = 0; i < collectedDevices.Count; i++) {
+var d = collectedDevices[i];
+<tr>
+<td class="muted">@(i+1)</td>
+<td><a class="link" href="/ReturnDevices/Edit/@d.Id">@d.SerialNumber</a></td>
+<td class="muted">@d.DeviceType</td>
+<td class="muted">@d.RITM</td>
+<td class="muted">@d.Date.ToString("dd.MM.yyyy")</td>
+<td class="muted">@(d.Location ?? d.DeviceLocation)</td>
+<td class="muted">@(string.IsNullOrWhiteSpace(d.WorkOrder) ? "-" : d.WorkOrder)</td>
+<td>@if(d.ChargerReturned==true){<span class="badge b-yes">YES</span>}else{<span class="badge b-no">NO</span>}</td>
+<td>@if(d.PowerCableReturned==true){<span class="badge b-yes">YES</span>}else{<span class="badge b-no">NO</span>}</td>
+<td><a class="link" href="/ReturnDevices/Edit/@d.Id">Edit</a></td>
+</tr>
+}
+}
+</tbody>
+</table></div></div>
   </div>
 </div>
 <script src="/js/theme.js"></script>
@@ -324,32 +353,6 @@ function switchTab(name){
   document.getElementById("btn-"+name).classList.add("active");
 }
 </script>
-</div>
-<div class="tab-panel" id="tab-collected">
-<div class="panel"><div class="table-scroll"><table>
-<thead><tr><th>#</th><th>Serial Number</th><th>Type</th><th>RITM</th><th>Date</th><th>Location</th><th>Work Order</th><th>Charger</th><th>Cable</th><th></th></tr></thead>
-<tbody>
-@if (!collectedDevices.Any()) {
-<tr class="empty"><td colspan="10">No collected devices.</td></tr>
-} else {
-@for (int i = 0; i < collectedDevices.Count; i++) {
-var d = collectedDevices[i];
-<tr>
-<td class="muted">@(i+1)</td>
-<td><a class="link" href="/ReturnDevices/Edit/@d.Id">@d.SerialNumber</a></td>
-<td class="muted">@d.DeviceType</td>
-<td class="muted">@d.RITM</td>
-<td class="muted">@d.Date.ToString("dd.MM.yyyy")</td>
-<td class="muted">@(d.Location ?? d.DeviceLocation)</td>
-<td class="muted">@(string.IsNullOrWhiteSpace(d.WorkOrder) ? "-" : d.WorkOrder)</td>
-<td>@if(d.ChargerReturned==true){<span class="badge b-yes">YES</span>}else{<span class="badge b-no">NO</span>}</td>
-<td>@if(d.PowerCableReturned==true){<span class="badge b-yes">YES</span>}else{<span class="badge b-no">NO</span>}</td>
-<td><a class="link" href="/ReturnDevices/Edit/@d.Id">Edit</a></td>
-</tr>
-}
-}
-</tbody>
-</table></div></div>
 </div>
 </body>
 </html>
