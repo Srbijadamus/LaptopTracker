@@ -27,7 +27,7 @@ namespace LaptopTracker.Controllers
             {
                 returnsQuery = returnsQuery.Where(d => d.Location != null && countryLocations.Contains(d.Location));
                 wicQuery     = wicQuery.Where(d => countryLocations.Contains(d.DeviceLocation));
-                loanersQuery = loanersQuery.Where(d => countryLocations.Contains(d.DeviceLocation));
+                loanersQuery = loanersQuery.Where(d => d.WIC != null && countryLocations.Contains(d.WIC));
             }
 
             var returns  = await returnsQuery.ToListAsync();
@@ -56,5 +56,6 @@ namespace LaptopTracker.Controllers
         }
     }
 }
+
 
 

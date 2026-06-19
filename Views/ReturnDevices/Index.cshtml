@@ -245,14 +245,18 @@ tbody tr:hover{background:var(--bg-hover)}
 
   <div class="tab-panel" id="tab-collected">
   <div class="panel"><div class="table-scroll"><table>
-<thead><tr><th>#</th><th>Serial Number</th><th>Type</th><th>RITM</th><th>Date</th><th>Location</th><th>Work Order</th><th>Charger</th><th>Cable</th><th></th></tr></thead>
+<thead><tr>
+  <th><input type="checkbox" id="selectAllCollected" class="row-checkbox" title="Select all" /></th>
+  <th>#</th><th>Serial Number</th><th>Type</th><th>RITM</th><th>Date</th><th>Location</th><th>Work Order</th><th>Charger</th><th>Cable</th><th></th>
+</tr></thead>
 <tbody>
 @if (!collectedDevices.Any()) {
-<tr class="empty"><td colspan="10">No collected devices.</td></tr>
+<tr class="empty"><td colspan="11">No collected devices.</td></tr>
 } else {
 @for (int i = 0; i < collectedDevices.Count; i++) {
 var d = collectedDevices[i];
 <tr>
+<td><input type="checkbox" value="@d.Id" class="row-check-collected row-checkbox" /></td>
 <td class="muted">@(i+1)</td>
 <td><a class="link" href="/ReturnDevices/Edit/@d.Id">@d.SerialNumber</a></td>
 <td class="muted">@d.DeviceType</td>
@@ -268,6 +272,14 @@ var d = collectedDevices[i];
 }
 </tbody>
 </table></div></div>
+
+  <!-- Collected bulk action bar -->
+  <div class="bulk-bar" id="bulkBarCollected">
+    <span class="bulk-count" id="bulkCountCollected">0 items selected</span>
+    <button type="button" class="bulk-apply" style="background:#1a7f37;" onclick="handOverCollected()">Hand Over Devices</button>
+    <button type="button" class="bulk-apply" style="background:#0369a1;" onclick="exportCollected()">&#x2B07; Export</button>
+    <button type="button" class="bulk-apply" style="background:#0f6c75;" onclick="copyCollectedRitmSerial()">&#x1F4CB; Copy</button>
+  </div>
   </div>
 </div>
 <script src="/js/theme.js"></script>
@@ -351,6 +363,59 @@ function switchTab(name){
   document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active");});
   document.getElementById("tab-"+name).classList.add("active");
   document.getElementById("btn-"+name).classList.add("active");
+}
+
+// ── Collected tab bulk selection ──────────────────────────────────────────────
+var selectAllCollected = document.getElementById('selectAllCollected');
+var bulkBarCollected   = document.getElementById('bulkBarCollected');
+var bulkCountCollected = document.getElementById('bulkCountCollected');
+
+function getCheckedCollected() { return document.querySelectorAll('.row-check-collected:checked'); }
+function getAllChecksCollected() { return document.querySelectorAll('.row-check-collected'); }
+
+function updateBulkBarCollected() {
+  var n = getCheckedCollected().length;
+  var total = getAllChecksCollected().length;
+  bulkBarCollected.style.display = n > 0 ? 'flex' : 'none';
+  bulkCountCollected.textContent = n + ' item' + (n === 1 ? '' : 's') + ' selected';
+  selectAllCollected.indeterminate = n > 0 && n < total;
+  selectAllCollected.checked = total > 0 && n === total;
+}
+
+selectAllCollected.addEventListener('change', function() {
+  getAllChecksCollected().forEach(function(c) { c.checked = selectAllCollected.checked; });
+  updateBulkBarCollected();
+});
+
+getAllChecksCollected().forEach(function(c) { c.addEventListener('change', updateBulkBarCollected); });
+
+function handOverCollected() {
+  var checks = getCheckedCollected();
+  if (checks.length === 0) { alert('No devices selected.'); return; }
+  var url = '/Handovers/Create?source=ReturnDevices&' + Array.from(checks).map(function(c) { return 'ids=' + encodeURIComponent(c.value); }).join('&');
+  window.location.href = url;
+}
+function exportCollected() {
+  var checks = getCheckedCollected();
+  if (checks.length === 0) { alert('No devices selected.'); return; }
+  var url = '/Export/ExportSelected?' + Array.from(checks).map(function(c) { return 'ids=' + encodeURIComponent(c.value); }).join('&');
+  window.location.href = url;
+}
+function copyCollectedRitmSerial() {
+  var checks = getCheckedCollected();
+  if (checks.length === 0) { alert('No devices selected.'); return; }
+  // After adding checkbox column: cells[2]=Serial Number, cells[4]=RITM
+  var rows = Array.from(checks).map(function(c) {
+    var row = c.closest('tr');
+    var cells = row.querySelectorAll('td');
+    var serial = cells[2] ? cells[2].innerText.trim() : '';
+    var ritm   = cells[4] ? cells[4].innerText.trim() : '';
+    return ritm + '  ' + serial;
+  });
+  var text = rows.join('\n');
+  navigator.clipboard.writeText(text).then(function() {
+    alert('Copied!\n\n' + text);
+  });
 }
 </script>
 </div>

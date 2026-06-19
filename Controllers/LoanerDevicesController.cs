@@ -41,7 +41,7 @@ namespace LaptopTracker.Controllers
             var countryFilter = HttpContext.Session.GetString("CountryFilter");
             var countryLocations = LaptopTracker.Helpers.LocationList.GetLocationsByCountry(countryFilter);
             if (countryLocations != null)
-                query = query.Where(d => countryLocations.Contains(d.DeviceLocation));
+                query = query.Where(d => d.WIC != null && countryLocations.Contains(d.WIC));
 
             var dbLocations = await _context.LoanerDevices
                 .Where(d => !d.IsDeleted)
@@ -291,6 +291,7 @@ namespace LaptopTracker.Controllers
         }
     }
 }
+
 
 
 
