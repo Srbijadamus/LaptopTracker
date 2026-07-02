@@ -31,6 +31,8 @@ tbody tr:hover{background:var(--bg-hover)}
 .days-warn{color:#c45000;font-size:13px;font-weight:700}
 .btn-restore{padding:5px 12px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:6px;font-size:12px;font-weight:700;cursor:pointer}
 .btn-restore:hover{background:var(--accent-bg)}
+.btn-purge{padding:8px 16px;background:#c4314b;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:20px}
+.btn-purge:hover{background:#a52a3f}
 .empty-archive{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:56px;text-align:center}
 .empty-archive p{color:var(--text-muted);font-size:15px}
 </style>
@@ -38,6 +40,9 @@ tbody tr:hover{background:var(--bg-hover)}
   <div class="content">
     <div class="page-title">Archive</div>
     <div class="page-sub">Soft-deleted devices are kept for 30 days, then permanently removed. Restore any item before its deadline.</div>
+    <form method="post" action="/Archive/PurgeOld" onsubmit="return confirm('Permanently delete ALL items older than 30 days? This cannot be undone.');">
+      <button type="submit" class="btn-purge">&#x1F5D1; Purge items older than 30 days</button>
+    </form>
 
     @{
       var totalArchived = archivedLoaners.Count + archivedReturns.Count + archivedWic.Count;
@@ -177,3 +182,5 @@ tbody tr:hover{background:var(--bg-hover)}
       }
     }
   </div>
+
+

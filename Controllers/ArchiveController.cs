@@ -15,15 +15,6 @@ namespace LaptopTracker.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var cutoff = DateTime.UtcNow.AddDays(-30);
-
-            var oldLoaner = _context.LoanerDevices.Where(d => d.IsDeleted && d.DeletedAt < cutoff);
-            var oldReturn = _context.ReturnDevices.Where(d => d.IsDeleted && d.DeletedAt < cutoff);
-            var oldWic    = _context.WicStockDevices.Where(d => d.IsDeleted && d.DeletedAt < cutoff);
-            _context.LoanerDevices.RemoveRange(oldLoaner);
-            _context.ReturnDevices.RemoveRange(oldReturn);
-            _context.WicStockDevices.RemoveRange(oldWic);
-            await _context.SaveChangesAsync();
 
             ViewData["ArchivedLoaners"] = await _context.LoanerDevices
                 .Where(d => d.IsDeleted)
@@ -83,3 +74,5 @@ namespace LaptopTracker.Controllers
         }
     }
 }
+
+
