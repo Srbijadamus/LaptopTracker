@@ -4,6 +4,7 @@ using LaptopTracker.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LaptopTracker.Migrations
 {
     [DbContext(typeof(LaptopTrackerDbContext))]
-    partial class LaptopTrackerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260701062421_AddReturnInspectionAndPhotos")]
+    partial class AddReturnInspectionAndPhotos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -310,9 +313,6 @@ namespace LaptopTracker.Migrations
                     b.Property<string>("FilePath")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsSignature")
-                        .HasColumnType("bit");
 
                     b.Property<string>("OriginalFileName")
                         .HasColumnType("nvarchar(max)");

@@ -33,7 +33,7 @@
     <a href="/ReturnDevices" class="back">&larr; Back</a>
     <div class="page-title">Edit Return Device — @Model.SerialNumber</div>
     <div class="form-card">
-      <form method="post" action="/ReturnDevices/Edit/@Model.Id">
+      <form method="post" action="/ReturnDevices/Edit/@Model.Id" enctype="multipart/form-data">
         <input type="hidden" name="Id" value="@Model.Id" />
         <input type="hidden" name="DeviceStateType" value="Return" />
         <div class="form-grid">
@@ -139,6 +139,109 @@
             <input type="hidden" id="locHidden" name="Location" value="@curLoc" />
           </div>
 
+          <!-- Inspection section -->
+          <div class="section-divider">
+            <div class="section-label-sm">Inspection / Zustandsprüfung</div>
+          </div>
+
+          <div class="fg">
+            <label>Damage Status <span class="hint">(optional)</span></label>
+            <input name="DamageStatus" type="text" value="@Model.DamageStatus" placeholder="e.g. Screen cracked" />
+          </div>
+
+          <div class="fg">
+            <label>Acknowledgement</label>
+            <select name="Acknowledgement">
+              <option value="" selected="@(string.IsNullOrEmpty(Model.Acknowledgement) ? "selected" : null)">— Not specified —</option>
+              <option value="Signed by user" selected="@(Model.Acknowledgement == "Signed by user" ? "selected" : null)">Signed by user</option>
+              <option value="Signed by manager" selected="@(Model.Acknowledgement == "Signed by manager" ? "selected" : null)">Signed by manager</option>
+              <option value="Declined" selected="@(Model.Acknowledgement == "Declined" ? "selected" : null)">Declined</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Customer Induced Damage?</label>
+            <select name="IsCustomerInducedDamage">
+              <option value="false" selected="@(!Model.IsCustomerInducedDamage ? "selected" : null)">No</option>
+              <option value="true" selected="@(Model.IsCustomerInducedDamage ? "selected" : null)">Yes</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Battery Swollen?</label>
+            <select name="IsBatterySwollen">
+              <option value="false" selected="@(!Model.IsBatterySwollen ? "selected" : null)">No</option>
+              <option value="true" selected="@(Model.IsBatterySwollen ? "selected" : null)">Yes</option>
+            </select>
+          </div>
+
+          <!-- Photos section -->
+          <div class="section-divider">
+            <div class="section-label-sm">Photos / Fotos</div>
+          </div>
+
+          <div class="fg form-full">
+            <label>Upload Photos <span class="hint">(jpg/png, max 10 MB each)</span></label>
+            <input name="photos" type="file" accept=".jpg,.jpeg,.png" multiple />
+          </div>
+
+          @{
+            var regularPhotos = Model.Photos?.Where(p => !p.IsSignature).ToList() ?? new();
+            var signatures    = Model.Photos?.Where(p => p.IsSignature).ToList() ?? new();
+          }
+
+          @if (regularPhotos.Count > 0)
+          {
+            <div class="form-full" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;">
+              @foreach (var photo in regularPhotos)
+              {
+                <div style="position:relative;display:inline-block;" id="photo-@photo.Id">
+                  <a href="@photo.FilePath" download="@(photo.OriginalFileName ?? "photo")">
+                    <img src="@photo.FilePath" alt="@photo.OriginalFileName"
+                         style="width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--border-input);display:block;" />
+                  </a>
+                  <button type="button" onclick="deletePhoto(@photo.Id)"
+                          style="position:absolute;top:4px;right:4px;background:#c4314b;color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;line-height:1;cursor:pointer;padding:0;">✕</button>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Signature section -->
+          <div class="section-divider">
+            <div class="section-label-sm">Signature / Unterschrift</div>
+          </div>
+
+          @if (signatures.Count > 0)
+          {
+            <div class="form-full" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px;">
+              @foreach (var sig in signatures)
+              {
+                <div style="position:relative;display:inline-block;" id="photo-@sig.Id">
+                  <a href="@sig.FilePath" download="signature.png" title="Download signature">
+                    <img src="@sig.FilePath" alt="Signature"
+                         style="height:80px;max-width:320px;object-fit:contain;border-radius:8px;border:2px solid var(--accent);background:#fff;display:block;padding:4px;" />
+                  </a>
+                  <span style="font-size:11px;color:var(--text-muted);display:block;margin-top:2px;">@sig.UploadedAt.ToString("dd.MM.yyyy HH:mm")</span>
+                  <button type="button" onclick="deletePhoto(@sig.Id)"
+                          style="position:absolute;top:4px;right:4px;background:#c4314b;color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;line-height:1;cursor:pointer;padding:0;">✕</button>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="fg form-full">
+            <label>Draw new signature <span class="hint">(finger/stylus/mouse — draw here, then Save)</span></label>
+            <div style="position:relative;display:inline-block;width:100%;">
+              <canvas id="sigPad"
+                      style="display:block;width:100%;height:200px;border:2px dashed var(--border-input);border-radius:8px;background:#fff;touch-action:none;cursor:crosshair;box-sizing:border-box;"></canvas>
+              <button type="button" id="sigClear"
+                      style="position:absolute;top:8px;right:8px;padding:5px 12px;background:var(--bg-panel);border:1px solid var(--border-input);border-radius:6px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer;">Clear</button>
+            </div>
+            <span class="hint" style="margin-top:4px;">Leave blank to keep existing signature(s). Draw only if a new signature is needed.</span>
+            <input type="hidden" name="signatureData" id="sigData" />
+          </div>
+
           <div class="form-actions form-full">
             <button type="submit" class="btn-submit">Save Changes</button>
             <a href="/ReturnDevices" class="btn-cancel">Cancel</a>
@@ -167,6 +270,87 @@ function deleteDevice() {
     document.getElementById('deleteForm').submit();
   }
 }
+async function deletePhoto(photoId) {
+  if (!confirm('Delete this photo? This cannot be undone.')) return;
+  const resp = await fetch('/ReturnDevices/DeletePhoto/' + photoId, { method: 'POST', headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '' } });
+  if (resp.ok) {
+    var el = document.getElementById('photo-' + photoId);
+    if (el) el.remove();
+  } else {
+    alert('Failed to delete photo.');
+  }
+}
+
+(function () {
+  var canvas = document.getElementById('sigPad');
+  var ctx = canvas.getContext('2d');
+  var drawing = false;
+  var hasDrawn = false;
+
+  function resize() {
+    var rect = canvas.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    // preserve existing drawing during resize
+    var img = canvas.toDataURL();
+    canvas.width  = Math.round(rect.width  * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+    ctx.scale(dpr, dpr);
+    ctx.lineCap   = 'round';
+    ctx.lineJoin  = 'round';
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#000';
+    if (hasDrawn) {
+      var i = new Image();
+      i.onload = function() { ctx.drawImage(i, 0, 0, rect.width, rect.height); };
+      i.src = img;
+    }
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function pos(e) {
+    var r = canvas.getBoundingClientRect();
+    if (e.touches) {
+      return { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
+    }
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+
+  canvas.addEventListener('pointerdown', function(e) {
+    e.preventDefault();
+    drawing = true;
+    var p = pos(e);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    canvas.setPointerCapture(e.pointerId);
+  });
+
+  canvas.addEventListener('pointermove', function(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    var p = pos(e);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    hasDrawn = true;
+  });
+
+  canvas.addEventListener('pointerup',     function(e) { drawing = false; });
+  canvas.addEventListener('pointercancel', function(e) { drawing = false; });
+
+  document.getElementById('sigClear').addEventListener('click', function() {
+    var r = canvas.getBoundingClientRect();
+    ctx.clearRect(0, 0, r.width, r.height);
+    hasDrawn = false;
+    document.getElementById('sigData').value = '';
+  });
+
+  // On submit, serialize canvas only if the user actually drew something
+  canvas.closest('form').addEventListener('submit', function() {
+    if (hasDrawn) {
+      document.getElementById('sigData').value = canvas.toDataURL('image/png');
+    }
+  });
+})();
 </script>
 }
 

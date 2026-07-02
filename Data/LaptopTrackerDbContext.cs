@@ -11,6 +11,7 @@ namespace LaptopTracker.Data
         public LaptopTrackerDbContext(DbContextOptions<LaptopTrackerDbContext> options) : base(options) { }
 
         public DbSet<ReturnDevice> ReturnDevices { get; set; } = null!;
+        public DbSet<ReturnDevicePhoto> ReturnDevicePhotos { get; set; } = null!;
         public DbSet<WicStockDevice> WicStockDevices { get; set; } = null!;
         public DbSet<LoanerDevice> LoanerDevices { get; set; } = null!;
         public DbSet<Handover> Handovers { get; set; } = null!;
@@ -35,6 +36,11 @@ namespace LaptopTracker.Data
                 .HasOne(hd => hd.Handover)
                 .WithMany(h => h.Devices)
                 .HasForeignKey(hd => hd.HandoverId);
+
+            modelBuilder.Entity<ReturnDevicePhoto>()
+                .HasOne(p => p.ReturnDevice)
+                .WithMany(d => d.Photos)
+                .HasForeignKey(p => p.ReturnDeviceId);
 
             modelBuilder.Entity<IdempotencyRecord>()
                 .Property(r => r.RequestId).HasMaxLength(128).IsRequired();

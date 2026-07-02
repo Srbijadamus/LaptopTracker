@@ -190,35 +190,103 @@ namespace LaptopTracker.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var device = await _context.ReturnDevices.FindAsync(id);
+            var device = await _context.ReturnDevices
+                .Include(d => d.Photos)
+                .FirstOrDefaultAsync(d => d.Id == id);
             if (device == null) return NotFound();
             return View(device);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(int id, ReturnDevice model)
+        public async Task<IActionResult> Edit(int id, ReturnDevice model, List<IFormFile>? photos, string? signatureData)
         {
-            var device = await _context.ReturnDevices.FindAsync(id);
+            var device = await _context.ReturnDevices
+                .Include(d => d.Photos)
+                .FirstOrDefaultAsync(d => d.Id == id);
             if (device == null) return NotFound();
-            if (!ModelState.IsValid) return View(model);
+            if (!ModelState.IsValid) return View(device);
 
-            device.SerialNumber       = model.SerialNumber;
-            device.DeviceType         = model.DeviceType;
-            device.DeviceStateType    = "Return";
-            device.RITM               = model.RITM;
-            device.Date               = model.Date;
-            device.DeviceLocation     = model.DeviceLocation;
-            device.Status             = model.Status;
-            device.WorkOrder          = model.WorkOrder;
-            device.PickupStatus       = model.PickupStatus;
-            device.Location           = model.Location;
-            device.KID                = model.KID;
-            device.UserAddress        = model.UserAddress;
-            device.ChargerReturned    = model.ChargerReturned;
-            device.PowerCableReturned = model.PowerCableReturned;
+            device.SerialNumber              = model.SerialNumber;
+            device.DeviceType                = model.DeviceType;
+            device.DeviceStateType           = "Return";
+            device.RITM                      = model.RITM;
+            device.Date                      = model.Date;
+            device.DeviceLocation            = model.DeviceLocation;
+            device.Status                    = model.Status;
+            device.WorkOrder                 = model.WorkOrder;
+            device.PickupStatus              = model.PickupStatus;
+            device.Location                  = model.Location;
+            device.KID                       = model.KID;
+            device.UserAddress               = model.UserAddress;
+            device.ChargerReturned           = model.ChargerReturned;
+            device.PowerCableReturned        = model.PowerCableReturned;
+            device.DamageStatus              = model.DamageStatus;
+            device.IsCustomerInducedDamage   = model.IsCustomerInducedDamage;
+            device.IsBatterySwollen          = model.IsBatterySwollen;
+            device.Acknowledgement           = model.Acknowledgement;
+
+            var uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            Directory.CreateDirectory(uploadDir);
+
+            if (photos != null && photos.Count > 0)
+            {
+                var allowed = new[] { ".jpg", ".jpeg", ".png" };
+
+                foreach (var file in photos)
+                {
+                    if (file.Length == 0 || file.Length > 10 * 1024 * 1024) continue;
+                    var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+                    if (!allowed.Contains(ext)) continue;
+
+                    var uniqueName = $"{Guid.NewGuid()}{ext}";
+                    var savePath = Path.Combine(uploadDir, uniqueName);
+                    using var fs = new FileStream(savePath, FileMode.Create);
+                    await file.CopyToAsync(fs);
+
+                    device.Photos.Add(new LaptopTracker.Models.ReturnDevicePhoto
+                    {
+                        FilePath         = $"/uploads/{uniqueName}",
+                        OriginalFileName = file.FileName,
+                        UploadedAt       = DateTime.UtcNow,
+                        IsSignature      = false
+                    });
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(signatureData) && signatureData.StartsWith("data:image/png;base64,"))
+            {
+                var base64 = signatureData["data:image/png;base64,".Length..];
+                var bytes = Convert.FromBase64String(base64);
+                var uniqueName = $"{Guid.NewGuid()}.png";
+                var savePath = Path.Combine(uploadDir, uniqueName);
+                await System.IO.File.WriteAllBytesAsync(savePath, bytes);
+
+                device.Photos.Add(new LaptopTracker.Models.ReturnDevicePhoto
+                {
+                    FilePath         = $"/uploads/{uniqueName}",
+                    OriginalFileName = "signature.png",
+                    UploadedAt       = DateTime.UtcNow,
+                    IsSignature      = true
+                });
+            }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeletePhoto(int id)
+        {
+            var photo = await _context.ReturnDevicePhotos.FindAsync(id);
+            if (photo == null) return NotFound();
+
+            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", photo.FilePath.TrimStart('/'));
+            if (System.IO.File.Exists(fullPath))
+                System.IO.File.Delete(fullPath);
+
+            _context.ReturnDevicePhotos.Remove(photo);
+            await _context.SaveChangesAsync();
+            return Ok();
         }
 
         [HttpPost]

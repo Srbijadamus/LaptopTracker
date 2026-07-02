@@ -22,8 +22,13 @@ namespace LaptopTracker.Models
         public string? UserAddress { get; set; }
         public bool? ChargerReturned { get; set; }
         public bool? PowerCableReturned { get; set; }
+        public string? DamageStatus { get; set; }
+        public bool IsCustomerInducedDamage { get; set; } = false;
+        public bool IsBatterySwollen { get; set; } = false;
+        public string? Acknowledgement { get; set; }
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }
+        public List<ReturnDevicePhoto> Photos { get; set; } = new();
     }
 }
 

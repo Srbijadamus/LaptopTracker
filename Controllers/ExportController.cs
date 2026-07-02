@@ -39,6 +39,7 @@ namespace LaptopTracker.Controllers
             ws1.Cell(1,4).Value = "Date"; ws1.Cell(1,5).Value = "Status"; ws1.Cell(1,6).Value = "Device Location";
             ws1.Cell(1,7).Value = "Work Order"; ws1.Cell(1,8).Value = "Pickup Status"; ws1.Cell(1,9).Value = "Location";
             ws1.Cell(1,10).Value = "Charger"; ws1.Cell(1,11).Value = "Power Cable";
+            ws1.Cell(1,12).Value = "Damage"; ws1.Cell(1,13).Value = "CID"; ws1.Cell(1,14).Value = "Battery Swollen"; ws1.Cell(1,15).Value = "Acknowledgement";
             ws1.Row(1).Style.Font.Bold = true;
             for (int i = 0; i < returns.Count; i++)
             {
@@ -49,6 +50,10 @@ namespace LaptopTracker.Controllers
                 ws1.Cell(r,8).Value = d.PickupStatus ?? ""; ws1.Cell(r,9).Value = d.Location ?? "";
                 ws1.Cell(r,10).Value = d.ChargerReturned == true ? "YES" : "NO";
                 ws1.Cell(r,11).Value = d.PowerCableReturned == true ? "YES" : "NO";
+                ws1.Cell(r,12).Value = d.DamageStatus ?? "";
+                ws1.Cell(r,13).Value = d.IsCustomerInducedDamage ? "YES" : "NO";
+                ws1.Cell(r,14).Value = d.IsBatterySwollen ? "YES" : "NO";
+                ws1.Cell(r,15).Value = d.Acknowledgement ?? "";
             }
             ws1.Columns().AdjustToContents();
 
@@ -110,6 +115,7 @@ namespace LaptopTracker.Controllers
             ws1.Cell(1,4).Value = "Date"; ws1.Cell(1,5).Value = "Status"; ws1.Cell(1,6).Value = "Device Location";
             ws1.Cell(1,7).Value = "Work Order"; ws1.Cell(1,8).Value = "Pickup Status"; ws1.Cell(1,9).Value = "Location";
             ws1.Cell(1,10).Value = "Charger"; ws1.Cell(1,11).Value = "Power Cable";
+            ws1.Cell(1,12).Value = "Damage"; ws1.Cell(1,13).Value = "CID"; ws1.Cell(1,14).Value = "Battery Swollen"; ws1.Cell(1,15).Value = "Acknowledgement";
             ws1.Row(1).Style.Font.Bold = true;
             for (int i = 0; i < returns.Count; i++)
             {
@@ -120,6 +126,10 @@ namespace LaptopTracker.Controllers
                 ws1.Cell(r,8).Value = d.PickupStatus ?? ""; ws1.Cell(r,9).Value = d.Location ?? "";
                 ws1.Cell(r,10).Value = d.ChargerReturned == true ? "YES" : "NO";
                 ws1.Cell(r,11).Value = d.PowerCableReturned == true ? "YES" : "NO";
+                ws1.Cell(r,12).Value = d.DamageStatus ?? "";
+                ws1.Cell(r,13).Value = d.IsCustomerInducedDamage ? "YES" : "NO";
+                ws1.Cell(r,14).Value = d.IsBatterySwollen ? "YES" : "NO";
+                ws1.Cell(r,15).Value = d.Acknowledgement ?? "";
             }
             ws1.Columns().AdjustToContents();
 
