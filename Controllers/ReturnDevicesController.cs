@@ -15,7 +15,7 @@ namespace LaptopTracker.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(string? searchQuery, string? statusFilter, string? locationFilter, string? deviceTypeFilter, bool hasWorkOrder)
+        public async Task<IActionResult> Index(string? searchQuery, string? statusFilter, string? locationFilter, string? deviceTypeFilter, string? hasWorkOrder)
         {
             var query = _context.ReturnDevices.Where(d => !d.IsDeleted).AsQueryable();
 
@@ -36,8 +36,10 @@ namespace LaptopTracker.Controllers
             if (!string.IsNullOrWhiteSpace(deviceTypeFilter))
                 query = query.Where(d => d.DeviceType == deviceTypeFilter);
 
-            if (hasWorkOrder)
+            if (hasWorkOrder == "true")
                 query = query.Where(d => d.WorkOrder != null && d.WorkOrder != "" && d.WorkOrder != "NA");
+            else if (hasWorkOrder == "false")
+                query = query.Where(d => string.IsNullOrEmpty(d.WorkOrder) || d.WorkOrder == "NA");
 
             var countryFilter = HttpContext.Session.GetString("CountryFilter");
             var countryLocations = LaptopTracker.Helpers.LocationList.GetLocationsByCountry(countryFilter);
@@ -64,7 +66,7 @@ namespace LaptopTracker.Controllers
                 .Distinct()
                 .ToListAsync();
 
-            var knownTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad" };
+            var knownTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Mini Desktop" };
 
             ViewData["Locations"]        = dbLocations.Concat(locationFieldValues).Distinct().OrderBy(l => l).ToList();
             ViewData["DeviceTypes"]      = dbDeviceTypes.Concat(knownTypes).Distinct().OrderBy(t => t).ToList();
@@ -88,12 +90,80 @@ namespace LaptopTracker.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(ReturnDevice device)
+        public async Task<IActionResult> Create(ReturnDevice device, List<IFormFile>? damagePhotos, string? signatureData, string? statusChoice)
         {
+            if (statusChoice == "WicStock")
+            {
+                _context.WicStockDevices.Add(new WicStockDevice
+                {
+                    SerialNumber    = device.SerialNumber,
+                    DeviceType      = device.DeviceType,
+                    DeviceStateType = "WIC Stock",
+                    RITM            = device.RITM,
+                    Date            = device.Date,
+                    DeviceLocation  = device.DeviceLocation,
+                    Status          = WicStockStatus.Available
+                });
+                await _context.SaveChangesAsync();
+                return RedirectToAction("Index", "WicStockDevices");
+            }
+
+            if (string.IsNullOrWhiteSpace(device.Location)) ModelState.AddModelError("Location", "Location is required.");
             if (!ModelState.IsValid) return View(device);
+            device.Status          = Enum.TryParse<ReturnDeviceStatus>(statusChoice, out var sc) ? sc : ReturnDeviceStatus.PendingPickup;
             device.DeviceStateType = "Return";
             _context.ReturnDevices.Add(device);
             await _context.SaveChangesAsync();
+
+            var uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            Directory.CreateDirectory(uploadDir);
+            var allowed = new[] { ".jpg", ".jpeg", ".png" };
+            var photoAdded = false;
+
+            if (damagePhotos != null && damagePhotos.Count > 0)
+            {
+                foreach (var file in damagePhotos)
+                {
+                    if (file.Length == 0 || file.Length > 10 * 1024 * 1024) continue;
+                    var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+                    if (!allowed.Contains(ext)) continue;
+                    var uniqueName = $"{Guid.NewGuid()}{ext}";
+                    var savePath = Path.Combine(uploadDir, uniqueName);
+                    using var fs = new FileStream(savePath, FileMode.Create);
+                    await file.CopyToAsync(fs);
+                    _context.ReturnDevicePhotos.Add(new ReturnDevicePhoto
+                    {
+                        ReturnDeviceId   = device.Id,
+                        FilePath         = $"/uploads/{uniqueName}",
+                        OriginalFileName = $"damage-{file.FileName}",
+                        UploadedAt       = DateTime.UtcNow,
+                        IsSignature      = false
+                    });
+                    photoAdded = true;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(signatureData) && signatureData.StartsWith("data:image/png;base64,"))
+            {
+                var base64 = signatureData["data:image/png;base64,".Length..];
+                var bytes = Convert.FromBase64String(base64);
+                var uniqueName = $"{Guid.NewGuid()}.png";
+                var savePath = Path.Combine(uploadDir, uniqueName);
+                await System.IO.File.WriteAllBytesAsync(savePath, bytes);
+                _context.ReturnDevicePhotos.Add(new ReturnDevicePhoto
+                {
+                    ReturnDeviceId   = device.Id,
+                    FilePath         = $"/uploads/{uniqueName}",
+                    OriginalFileName = "signature.png",
+                    UploadedAt       = DateTime.UtcNow,
+                    IsSignature      = true
+                });
+                photoAdded = true;
+            }
+
+            if (photoAdded)
+                await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -102,12 +172,38 @@ namespace LaptopTracker.Controllers
             string[] serials, string[] types, string[] ritms,
             DateTime date, string deviceLocation, string status,
             string? workOrder, string? pickupStatus, string? location,
-            string? chargerReturned, string? powerCableReturned)
+            string? chargerReturned, string? powerCableReturned,
+            string? kid,
+            string? damageStatus, string? damageComment,
+            DateTime? leaseEndDatePlanned)
         {
             var count = Math.Min(serials?.Length ?? 0, Math.Min(types?.Length ?? 0, ritms?.Length ?? 0));
-            var statusEnum = Enum.TryParse<ReturnDeviceStatus>(status, out var s) ? s : ReturnDeviceStatus.PendingPickup;
             bool? charger = string.IsNullOrEmpty(chargerReturned) ? null : bool.TryParse(chargerReturned, out var cr) ? cr : (bool?)null;
             bool? power   = string.IsNullOrEmpty(powerCableReturned) ? null : bool.TryParse(powerCableReturned, out var pcr) ? pcr : (bool?)null;
+
+            // WIC Stock: create directly in WicStockDevices, redirect to WicStock index
+            if (status == "WicStock")
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    var sn = serials![i]?.Trim();
+                    if (string.IsNullOrWhiteSpace(sn)) continue;
+                    _context.WicStockDevices.Add(new WicStockDevice
+                    {
+                        SerialNumber    = sn,
+                        DeviceType      = types![i]?.Trim() ?? "Lenovo",
+                        DeviceStateType = "WIC Stock",
+                        RITM            = ritms![i]?.Trim() ?? "",
+                        Date            = date == default ? DateTime.Today : date,
+                        DeviceLocation  = deviceLocation ?? "In WIC",
+                        Status          = WicStockStatus.Available
+                    });
+                }
+                await _context.SaveChangesAsync();
+                return RedirectToAction("Index", "WicStockDevices");
+            }
+
+            var statusEnum = Enum.TryParse<ReturnDeviceStatus>(status, out var s) ? s : ReturnDeviceStatus.PendingPickup;
 
             for (int i = 0; i < count; i++)
             {
@@ -126,6 +222,10 @@ namespace LaptopTracker.Controllers
                     Location           = string.IsNullOrWhiteSpace(location) ? null : location,
                     ChargerReturned    = charger,
                     PowerCableReturned = power,
+                    KID                = string.IsNullOrWhiteSpace(kid) ? null : kid,
+                    DamageStatus       = string.IsNullOrWhiteSpace(damageStatus) ? null : damageStatus,
+                    DamageComment      = string.IsNullOrWhiteSpace(damageComment) ? null : damageComment,
+                    LeaseEndDatePlanned = leaseEndDatePlanned,
                     DeviceStateType    = "Return"
                 });
             }
@@ -198,12 +298,34 @@ namespace LaptopTracker.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(int id, ReturnDevice model, List<IFormFile>? photos, string? signatureData)
+        public async Task<IActionResult> Edit(int id, ReturnDevice model, List<IFormFile>? photos, string? signatureData,
+            string? statusChoice, List<IFormFile>? damagePhotos)
         {
             var device = await _context.ReturnDevices
                 .Include(d => d.Photos)
                 .FirstOrDefaultAsync(d => d.Id == id);
             if (device == null) return NotFound();
+
+            // WIC Stock: move device before any normal update
+            if (statusChoice == "WicStock")
+            {
+                _context.WicStockDevices.Add(new WicStockDevice
+                {
+                    SerialNumber   = device.SerialNumber,
+                    DeviceType     = device.DeviceType,
+                    DeviceStateType = "WIC Stock",
+                    RITM           = device.RITM,
+                    Date           = device.Date,
+                    DeviceLocation = device.DeviceLocation,
+                    Status         = WicStockStatus.Available
+                });
+                device.IsDeleted = true;
+                device.DeletedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Location)) ModelState.AddModelError("Location", "Location is required.");
             if (!ModelState.IsValid) return View(device);
 
             device.SerialNumber              = model.SerialNumber;
@@ -212,15 +334,16 @@ namespace LaptopTracker.Controllers
             device.RITM                      = model.RITM;
             device.Date                      = model.Date;
             device.DeviceLocation            = model.DeviceLocation;
-            device.Status                    = model.Status;
+            device.Status                    = Enum.TryParse<ReturnDeviceStatus>(statusChoice, out var sc) ? sc : device.Status;
             device.WorkOrder                 = model.WorkOrder;
             device.PickupStatus              = model.PickupStatus;
             device.Location                  = model.Location;
             device.KID                       = model.KID;
-            device.UserAddress               = model.UserAddress;
             device.ChargerReturned           = model.ChargerReturned;
             device.PowerCableReturned        = model.PowerCableReturned;
             device.DamageStatus              = model.DamageStatus;
+            device.DamageComment             = model.DamageComment;
+            device.LeaseEndDatePlanned       = model.LeaseEndDatePlanned;
             device.IsCustomerInducedDamage   = model.IsCustomerInducedDamage;
             device.IsBatterySwollen          = model.IsBatterySwollen;
             device.Acknowledgement           = model.Acknowledgement;
@@ -228,10 +351,10 @@ namespace LaptopTracker.Controllers
             var uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
             Directory.CreateDirectory(uploadDir);
 
+            var allowed = new[] { ".jpg", ".jpeg", ".png" };
+
             if (photos != null && photos.Count > 0)
             {
-                var allowed = new[] { ".jpg", ".jpeg", ".png" };
-
                 foreach (var file in photos)
                 {
                     if (file.Length == 0 || file.Length > 10 * 1024 * 1024) continue;
@@ -247,6 +370,29 @@ namespace LaptopTracker.Controllers
                     {
                         FilePath         = $"/uploads/{uniqueName}",
                         OriginalFileName = file.FileName,
+                        UploadedAt       = DateTime.UtcNow,
+                        IsSignature      = false
+                    });
+                }
+            }
+
+            if (damagePhotos != null && damagePhotos.Count > 0)
+            {
+                foreach (var file in damagePhotos)
+                {
+                    if (file.Length == 0 || file.Length > 10 * 1024 * 1024) continue;
+                    var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+                    if (!allowed.Contains(ext)) continue;
+
+                    var uniqueName = $"{Guid.NewGuid()}{ext}";
+                    var savePath = Path.Combine(uploadDir, uniqueName);
+                    using var fs = new FileStream(savePath, FileMode.Create);
+                    await file.CopyToAsync(fs);
+
+                    device.Photos.Add(new LaptopTracker.Models.ReturnDevicePhoto
+                    {
+                        FilePath         = $"/uploads/{uniqueName}",
+                        OriginalFileName = $"damage-{file.FileName}",
                         UploadedAt       = DateTime.UtcNow,
                         IsSignature      = false
                     });

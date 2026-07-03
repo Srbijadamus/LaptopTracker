@@ -4,13 +4,13 @@
     var statusFilter     = ViewData["StatusFilter"]     as string;
     var locationFilter   = ViewData["LocationFilter"]   as string;
     var deviceTypeFilter = ViewData["DeviceTypeFilter"] as string;
-    var hasWorkOrder = (bool)(ViewData["HasWorkOrder"] ?? false);
+    var workOrderFilter = ViewData["HasWorkOrder"] as string ?? "";
     var allLocations   = ViewData["Locations"]   as List<string> ?? new List<string>();
     var allDeviceTypes = ViewData["DeviceTypes"] as List<string> ?? new List<string>();
     var collectedDevices = ViewData["CollectedDevices"] as List<LaptopTracker.Models.ReturnDevice> ?? new List<LaptopTracker.Models.ReturnDevice>();
     var anyFilter = !string.IsNullOrWhiteSpace(searchQuery) || !string.IsNullOrWhiteSpace(statusFilter)
         || !string.IsNullOrWhiteSpace(locationFilter) || !string.IsNullOrWhiteSpace(deviceTypeFilter)
-        || hasWorkOrder;
+        || !string.IsNullOrEmpty(workOrderFilter);
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -151,10 +151,11 @@ tbody tr:hover{background:var(--bg-hover)}
             <option value="@t" selected="@(deviceTypeFilter == t ? "selected" : null)">@t</option>
           }
         </select>
-        <a href="?hasWorkOrder=@(!hasWorkOrder)&searchQuery=@Uri.EscapeDataString(searchQuery ?? "")&statusFilter=@Uri.EscapeDataString(statusFilter ?? "")&locationFilter=@Uri.EscapeDataString(locationFilter ?? "")&deviceTypeFilter=@Uri.EscapeDataString(deviceTypeFilter ?? "")"
-           class="filter-toggle @(hasWorkOrder ? "filter-toggle-on" : "filter-toggle-off")">
-          Has Work Order
-        </a>
+        <select name="hasWorkOrder" class="filter-select" onchange="this.form.submit()">
+          <option value="" selected="@(workOrderFilter == "" ? "selected" : null)">All / Alle</option>
+          <option value="true" selected="@(workOrderFilter == "true" ? "selected" : null)">Has Work Order / Mit Work Order</option>
+          <option value="false" selected="@(workOrderFilter == "false" ? "selected" : null)">No Work Order / Ohne Work Order</option>
+        </select>
         @if (anyFilter)
         {
           <a href="/ReturnDevices" class="clear-link">&#x2715; Clear Filters</a>
@@ -180,7 +181,6 @@ tbody tr:hover{background:var(--bg-hover)}
               <th>Pickup Status</th>
               <th>Location</th>
               <th>KID</th>
-              <th>User Address</th>
               <th>Charger</th>
               <th>Power Cable</th>
               <th></th>
@@ -189,7 +189,7 @@ tbody tr:hover{background:var(--bg-hover)}
           <tbody>
             @if (!Model.Any())
             {
-              <tr class="empty"><td colspan="14">No return devices found.@(anyFilter ? " Try clearing the filters." : "")</td></tr>
+              <tr class="empty"><td colspan="15">No return devices found.@(anyFilter ? " Try clearing the filters." : "")</td></tr>
             }
             else
             {
@@ -213,7 +213,6 @@ tbody tr:hover{background:var(--bg-hover)}
                   <td class="muted">@(string.IsNullOrWhiteSpace(d.PickupStatus) ? "—" : d.PickupStatus)</td>
                   <td class="muted">@(string.IsNullOrWhiteSpace(d.Location) ? "—" : d.Location)</td>
                   <td class="muted">@(string.IsNullOrWhiteSpace(d.KID) ? "—" : d.KID)</td>
-                  <td class="muted">@(string.IsNullOrWhiteSpace(d.UserAddress) ? "—" : d.UserAddress)</td>
                   <td>@if (d.ChargerReturned != null) { <span class="@ChargerClass(d.ChargerReturned)">@ChargerLabel(d.ChargerReturned)</span> } else { <span class="muted">—</span> }</td>
                   <td>@if (d.PowerCableReturned != null) { <span class="@ChargerClass(d.PowerCableReturned)">@ChargerLabel(d.PowerCableReturned)</span> } else { <span class="muted">—</span> }</td>
                   <td style="white-space:nowrap">

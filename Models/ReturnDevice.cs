@@ -19,10 +19,11 @@ namespace LaptopTracker.Models
         public string? PickupStatus { get; set; }
         public string? Location { get; set; }
         public string? KID { get; set; }
-        public string? UserAddress { get; set; }
         public bool? ChargerReturned { get; set; }
         public bool? PowerCableReturned { get; set; }
         public string? DamageStatus { get; set; }
+        public string? DamageComment { get; set; }
+        public DateTime? LeaseEndDatePlanned { get; set; }
         public bool IsCustomerInducedDamage { get; set; } = false;
         public bool IsBatterySwollen { get; set; } = false;
         public string? Acknowledgement { get; set; }

@@ -2,7 +2,7 @@
 @using LaptopTracker.Helpers
 @{
     ViewData["Title"] = "Edit Return Device";
-    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad" };
+    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Mini Desktop" };
     var eonLocations = LocationList.Locations.OrderBy(l => l).ToList();
     var curLoc = Model.Location ?? "";
     var locInList = eonLocations.Contains(curLoc);
@@ -75,9 +75,10 @@
 
           <div class="fg">
             <label>Status</label>
-            <select name="Status">
+            <select name="statusChoice">
               <option value="PendingPickup" selected="@(Model.Status == LaptopTracker.Models.ReturnDeviceStatus.PendingPickup ? "selected" : null)">Pending Pickup</option>
               <option value="PickedUp" selected="@(Model.Status == LaptopTracker.Models.ReturnDeviceStatus.PickedUp ? "selected" : null)">Picked Up</option>
+              <option value="WicStock">WIC Stock</option>
             </select>
           </div>
 
@@ -90,15 +91,6 @@
             <label>Pickup Status <span class="hint">(optional)</span></label>
             <input name="PickupStatus" type="text" value="@Model.PickupStatus" />
           </div>
-          <div class="fg">
-            <label>KID <span class="hint">(who uses it)</span></label>
-            <input name="KID" type="text" value="@Model.KID" placeholder="e.g. A57253" />
-          </div>
-          <div class="fg">
-            <label>User Address <span class="hint">(where it is)</span></label>
-            <input name="UserAddress" type="text" value="@Model.UserAddress" placeholder="e.g. Saarbrücken, Hohenzollernstraße 75 (66117)" />
-          </div>
-
           <!-- Accessories returned section -->
           <div class="section-divider">
             <div class="section-label-sm">Accessories Returned</div>
@@ -123,7 +115,10 @@
           </div>
 
           <div class="fg form-full">
-            <label>Location <span class="hint">(optional)</span></label>
+            <label>Location *</label>
+            @if (ViewData.ModelState["Location"]?.Errors.Count > 0) {
+              <span style="color:#e05;font-size:12px;">@ViewData.ModelState["Location"].Errors[0].ErrorMessage</span>
+            }
             <select id="locSelect" onchange="onLocChange(this)">
               <option value="">— Select location —</option>
               @foreach (var l in eonLocations)
@@ -145,8 +140,31 @@
           </div>
 
           <div class="fg">
-            <label>Damage Status <span class="hint">(optional)</span></label>
-            <input name="DamageStatus" type="text" value="@Model.DamageStatus" placeholder="e.g. Screen cracked" />
+            <label>Damage Status</label>
+            <select name="DamageStatus" id="damageStatusSelect" onchange="onDamageChange(this)">
+              <option value="" selected="@(string.IsNullOrEmpty(Model.DamageStatus) ? "selected" : null)">— Not specified —</option>
+              <option value="No" selected="@(Model.DamageStatus == "No" ? "selected" : null)">No</option>
+              <option value="Yes" selected="@(Model.DamageStatus == "Yes" ? "selected" : null)">Yes</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Lease/DaaS End Date Planned <span class="hint">(dd.MM.yyyy HH:mm:ss)</span></label>
+            <input type="datetime-local" name="LeaseEndDatePlanned"
+                   value="@(Model.LeaseEndDatePlanned?.ToString("yyyy-MM-ddTHH:mm:ss"))" />
+          </div>
+
+          <div id="damageDetails" class="form-full" style="@(Model.DamageStatus == "Yes" ? "" : "display:none;")">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;margin-top:4px;">
+              <div class="fg">
+                <label>Damage Comment</label>
+                <textarea name="DamageComment" rows="3" style="padding:10px 13px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);font-family:inherit;outline:none;resize:vertical;">@Model.DamageComment</textarea>
+              </div>
+              <div class="fg">
+                <label>Damage Photos <span class="hint">(jpg/png, max 10 MB each)</span></label>
+                <input name="damagePhotos" type="file" accept=".jpg,.jpeg,.png" multiple />
+              </div>
+            </div>
           </div>
 
           <div class="fg">
@@ -173,16 +191,6 @@
               <option value="false" selected="@(!Model.IsBatterySwollen ? "selected" : null)">No</option>
               <option value="true" selected="@(Model.IsBatterySwollen ? "selected" : null)">Yes</option>
             </select>
-          </div>
-
-          <!-- Photos section -->
-          <div class="section-divider">
-            <div class="section-label-sm">Photos / Fotos</div>
-          </div>
-
-          <div class="fg form-full">
-            <label>Upload Photos <span class="hint">(jpg/png, max 10 MB each)</span></label>
-            <input name="photos" type="file" accept=".jpg,.jpeg,.png" multiple />
           </div>
 
           @{
@@ -231,6 +239,11 @@
           }
 
           <div class="fg form-full">
+            <label>User KID</label>
+            <input name="KID" type="text" value="@Model.KID" placeholder="e.g. A57253" />
+          </div>
+
+          <div class="fg form-full">
             <label>Draw new signature <span class="hint">(finger/stylus/mouse — draw here, then Save)</span></label>
             <div style="position:relative;display:inline-block;width:100%;">
               <canvas id="sigPad"
@@ -256,6 +269,10 @@
   </div>
 @section Scripts {
 <script>
+function onDamageChange(sel) {
+  var d = document.getElementById('damageDetails');
+  d.style.display = sel.value === 'Yes' ? '' : 'none';
+}
 function onLocChange(sel) {
   var c = document.getElementById('locCustom');
   var h = document.getElementById('locHidden');

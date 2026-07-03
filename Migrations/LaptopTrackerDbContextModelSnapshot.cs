@@ -233,6 +233,9 @@ namespace LaptopTracker.Migrations
                     b.Property<bool?>("ChargerReturned")
                         .HasColumnType("bit");
 
+                    b.Property<string>("DamageComment")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("DamageStatus")
                         .HasColumnType("nvarchar(max)");
 
@@ -266,6 +269,9 @@ namespace LaptopTracker.Migrations
                     b.Property<string>("KID")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("LeaseEndDatePlanned")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Location")
                         .HasColumnType("nvarchar(max)");
 
@@ -287,9 +293,6 @@ namespace LaptopTracker.Migrations
                         .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
-
-                    b.Property<string>("UserAddress")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("WorkOrder")
                         .HasColumnType("nvarchar(max)");

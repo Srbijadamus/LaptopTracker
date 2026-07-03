@@ -2,7 +2,7 @@
 @using LaptopTracker.Helpers
 @{
     ViewData["Title"] = "Add Return Device";
-    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad" };
+    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Mini Desktop" };
     var eonLocations = LocationList.Locations.OrderBy(l => l).ToList();
     var curLoc = Model.Location ?? "";
     var locInList = eonLocations.Contains(curLoc);
@@ -13,90 +13,90 @@
 .back{padding:9px 18px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;border:1px solid var(--accent);color:var(--accent);background:transparent;display:inline-block;margin-bottom:16px}
 .content{padding:24px 28px 0}
 .page-title{font-size:20px;font-weight:700;margin-bottom:20px;color:var(--text-primary)}
-.section-card{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:24px 28px;margin-bottom:16px;max-width:960px}
-.section-head{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-secondary);margin-bottom:16px}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px}
+.form-card{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:28px 32px;max-width:860px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px 24px}
 .form-full{grid-column:1/-1}
 .fg{display:flex;flex-direction:column;gap:6px}
 .fg label{font-size:13px;font-weight:600;color:var(--text-primary)}
 .fg input,.fg select{padding:10px 13px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);font-family:inherit;outline:none}
 .fg input:focus,.fg select:focus{border-color:var(--accent)}
 .fg .hint{font-size:12px;color:var(--text-muted)}
+.form-actions{display:flex;gap:12px;align-items:center;padding-top:8px;flex-wrap:wrap}
+.btn-submit{padding:11px 24px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
+.btn-cancel{padding:11px 20px;background:transparent;color:var(--text-secondary);border:1px solid var(--border-input);border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block}
 .section-divider{grid-column:1/-1;border-top:1px solid var(--border);margin-top:4px;padding-top:4px}
 .section-label-sm{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-secondary);margin-bottom:-8px}
-.devices-table{width:100%;border-collapse:collapse;font-size:14px}
-.devices-table th{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;background:var(--bg-thead)}
-.devices-table td{padding:7px 6px;border-bottom:1px solid var(--border);vertical-align:middle}
-.devices-table tr:last-child td{border-bottom:none}
-.devices-table input,.devices-table select{padding:8px 10px;border:1px solid var(--border-input);border-radius:7px;font-size:14px;color:var(--text-primary);background:var(--bg-input);font-family:inherit;outline:none;width:100%}
-.devices-table input:focus,.devices-table select:focus{border-color:var(--accent)}
-.btn-add-row{padding:9px 18px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-top:12px}
-.btn-add-row:hover{background:var(--accent-bg)}
-.btn-remove-row{padding:5px 10px;background:transparent;color:#c4314b;border:1px solid #c4314b;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
-.btn-remove-row:hover{background:#c4314b;color:#fff}
-.form-actions{display:flex;gap:12px;align-items:center;padding-top:8px;max-width:960px}
-.btn-submit{padding:11px 28px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
-.btn-cancel{padding:11px 20px;background:transparent;color:var(--text-secondary);border:1px solid var(--border-input);border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block}
 </style>
 }
   <div class="content">
     <a href="/ReturnDevices" class="back">&larr; Back</a>
-    <div class="page-title">Add Return Device(s)</div>
-
-    <form method="post" action="/ReturnDevices/BulkCreate">
-
-      <!-- Shared settings -->
-      <div class="section-card">
-        <div class="section-head">Shared Settings (apply to all devices)</div>
+    <div class="page-title">Add Return Device</div>
+    <div class="form-card">
+      <form method="post" action="/ReturnDevices/Create" enctype="multipart/form-data">
         <div class="form-grid">
 
           <div class="fg">
+            <label>Serial Number *</label>
+            <input name="SerialNumber" type="text" value="@Model.SerialNumber" required />
+          </div>
+
+          <div class="fg">
+            <label>Device Type</label>
+            <select name="DeviceType">
+              @foreach (var t in deviceTypes)
+              {
+                <option value="@t" selected="@(Model.DeviceType == t ? "selected" : null)">@t</option>
+              }
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>RITM *</label>
+            <input name="RITM" type="text" value="@Model.RITM" required />
+          </div>
+
+          <div class="fg">
             <label>Date</label>
-            <input name="date" type="date" value="@Model.Date.ToString("yyyy-MM-dd")" />
+            <input name="Date" type="date" value="@Model.Date.ToString("yyyy-MM-dd")" />
           </div>
 
           <div class="fg">
             <label>Device Location</label>
-            <select name="deviceLocation">
-              <option value="In WIC" selected="@(Model.DeviceLocation == "In WIC" ? "selected" : null)">In WIC</option>
-              <option value="In Transit" selected="@(Model.DeviceLocation == "In Transit" ? "selected" : null)">In Transit</option>
+            <select name="DeviceLocation">
+              @foreach (var loc in new[] { "In WIC", "In Transit" })
+              {
+                <option value="@loc" selected="@(Model.DeviceLocation == loc ? "selected" : null)">@loc</option>
+              }
             </select>
           </div>
 
           <div class="fg">
             <label>Status</label>
-            <select name="status">
+            <select name="statusChoice">
               <option value="PendingPickup" selected="@(Model.Status == LaptopTracker.Models.ReturnDeviceStatus.PendingPickup ? "selected" : null)">Pending Pickup</option>
               <option value="PickedUp" selected="@(Model.Status == LaptopTracker.Models.ReturnDeviceStatus.PickedUp ? "selected" : null)">Picked Up</option>
+              <option value="WicStock">WIC Stock</option>
             </select>
           </div>
 
           <div class="fg">
             <label>Work Order <span class="hint">(optional)</span></label>
-            <input name="workOrder" type="text" value="@Model.WorkOrder" placeholder="e.g. WO-789" />
+            <input name="WorkOrder" type="text" value="@Model.WorkOrder" />
           </div>
 
           <div class="fg">
             <label>Pickup Status <span class="hint">(optional)</span></label>
-            <input name="pickupStatus" type="text" value="@Model.PickupStatus" placeholder="e.g. Scheduled" />
-          </div>
-          <div class="fg">
-            <label>KID <span class="hint">(who uses it)</span></label>
-            <input name="kid" type="text" value="@Model.KID" placeholder="e.g. A57253" />
-          </div>
-          <div class="fg">
-            <label>User Address <span class="hint">(where it is)</span></label>
-            <input name="userAddress" type="text" value="@Model.UserAddress" placeholder="e.g. Saarbrücken, Hohenzollernstraße 75 (66117)" />
+            <input name="PickupStatus" type="text" value="@Model.PickupStatus" />
           </div>
 
-          <!-- Accessories section -->
+          <!-- Accessories returned section -->
           <div class="section-divider">
             <div class="section-label-sm">Accessories Returned</div>
           </div>
 
           <div class="fg">
             <label>Charger returned? (Ladegerät zurückgegeben?)</label>
-            <select name="chargerReturned">
+            <select name="ChargerReturned">
               <option value="" selected="@(Model.ChargerReturned == null ? "selected" : null)">— Not specified —</option>
               <option value="true" selected="@(Model.ChargerReturned == true ? "selected" : null)">Yes</option>
               <option value="false" selected="@(Model.ChargerReturned == false ? "selected" : null)">No</option>
@@ -105,7 +105,7 @@
 
           <div class="fg">
             <label>Power cable returned? (Netzkabel zurückgegeben?)</label>
-            <select name="powerCableReturned">
+            <select name="PowerCableReturned">
               <option value="" selected="@(Model.PowerCableReturned == null ? "selected" : null)">— Not specified —</option>
               <option value="true" selected="@(Model.PowerCableReturned == true ? "selected" : null)">Yes</option>
               <option value="false" selected="@(Model.PowerCableReturned == false ? "selected" : null)">No</option>
@@ -113,7 +113,10 @@
           </div>
 
           <div class="fg form-full">
-            <label>Location <span class="hint">(optional)</span></label>
+            <label>Location *</label>
+            @if (ViewData.ModelState["Location"]?.Errors.Count > 0) {
+              <span style="color:#e05;font-size:12px;">@ViewData.ModelState["Location"].Errors[0].ErrorMessage</span>
+            }
             <select id="locSelect" onchange="onLocChange(this)">
               <option value="">— Select location —</option>
               @foreach (var l in eonLocations)
@@ -126,69 +129,105 @@
                    style="margin-top:6px;@(showOther ? "" : "display:none;")"
                    value="@(showOther ? curLoc : "")"
                    oninput="document.getElementById('locHidden').value=this.value" />
-            <input type="hidden" id="locHidden" name="location" value="@curLoc" />
+            <input type="hidden" id="locHidden" name="Location" value="@curLoc" />
+          </div>
+
+          <!-- Inspection section -->
+          <div class="section-divider">
+            <div class="section-label-sm">Inspection / Zustandsprüfung</div>
+          </div>
+
+          <div class="fg">
+            <label>Damage Status</label>
+            <select name="DamageStatus" id="damageStatusSelect" onchange="onDamageChange(this)">
+              <option value="" selected="@(string.IsNullOrEmpty(Model.DamageStatus) ? "selected" : null)">— Not specified —</option>
+              <option value="No" selected="@(Model.DamageStatus == "No" ? "selected" : null)">No</option>
+              <option value="Yes" selected="@(Model.DamageStatus == "Yes" ? "selected" : null)">Yes</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Lease/DaaS End Date Planned <span class="hint">(dd.MM.yyyy HH:mm:ss)</span></label>
+            <input type="datetime-local" name="LeaseEndDatePlanned"
+                   value="@(Model.LeaseEndDatePlanned?.ToString("yyyy-MM-ddTHH:mm:ss"))" />
+          </div>
+
+          <div id="damageDetails" class="form-full" style="@(Model.DamageStatus == "Yes" ? "" : "display:none;")">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;margin-top:4px;">
+              <div class="fg">
+                <label>Damage Comment</label>
+                <textarea name="DamageComment" rows="3" style="padding:10px 13px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);font-family:inherit;outline:none;resize:vertical;">@Model.DamageComment</textarea>
+              </div>
+              <div class="fg">
+                <label>Damage Photos <span class="hint">(jpg/png, max 10 MB each)</span></label>
+                <input name="damagePhotos" type="file" accept=".jpg,.jpeg,.png" multiple />
+              </div>
+            </div>
+          </div>
+
+          <div class="fg">
+            <label>Acknowledgement</label>
+            <select name="Acknowledgement">
+              <option value="" selected="@(string.IsNullOrEmpty(Model.Acknowledgement) ? "selected" : null)">— Not specified —</option>
+              <option value="Signed by user" selected="@(Model.Acknowledgement == "Signed by user" ? "selected" : null)">Signed by user</option>
+              <option value="Signed by manager" selected="@(Model.Acknowledgement == "Signed by manager" ? "selected" : null)">Signed by manager</option>
+              <option value="Declined" selected="@(Model.Acknowledgement == "Declined" ? "selected" : null)">Declined</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Customer Induced Damage?</label>
+            <select name="IsCustomerInducedDamage">
+              <option value="false" selected="@(!Model.IsCustomerInducedDamage ? "selected" : null)">No</option>
+              <option value="true" selected="@(Model.IsCustomerInducedDamage ? "selected" : null)">Yes</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Battery Swollen?</label>
+            <select name="IsBatterySwollen">
+              <option value="false" selected="@(!Model.IsBatterySwollen ? "selected" : null)">No</option>
+              <option value="true" selected="@(Model.IsBatterySwollen ? "selected" : null)">Yes</option>
+            </select>
+          </div>
+
+          <!-- Signature section -->
+          <div class="section-divider">
+            <div class="section-label-sm">Signature / Unterschrift</div>
+          </div>
+
+          <div class="fg form-full">
+            <label>User KID</label>
+            <input name="KID" type="text" value="@Model.KID" placeholder="e.g. A57253" />
+          </div>
+
+          <div class="fg form-full">
+            <label>Draw signature <span class="hint">(finger/stylus/mouse — draw here, then Save)</span></label>
+            <div style="position:relative;display:inline-block;width:100%;">
+              <canvas id="sigPad"
+                      style="display:block;width:100%;height:200px;border:2px dashed var(--border-input);border-radius:8px;background:#fff;touch-action:none;cursor:crosshair;box-sizing:border-box;"></canvas>
+              <button type="button" id="sigClear"
+                      style="position:absolute;top:8px;right:8px;padding:5px 12px;background:var(--bg-panel);border:1px solid var(--border-input);border-radius:6px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer;">Clear</button>
+            </div>
+            <span class="hint" style="margin-top:4px;">Leave blank to skip signature. Draw only if signing is needed.</span>
+            <input type="hidden" name="signatureData" id="sigData" />
+          </div>
+
+          <div class="form-actions form-full">
+            <button type="submit" class="btn-submit">Save</button>
+            <a href="/ReturnDevices" class="btn-cancel">Cancel</a>
           </div>
 
         </div>
-      </div>
-
-      <!-- Device rows -->
-      <div class="section-card">
-        <div class="section-head">Devices to Add</div>
-        <table class="devices-table">
-          <thead>
-            <tr>
-              <th style="width:38%">Serial Number *</th>
-              <th style="width:24%">Device Type</th>
-              <th style="width:30%">RITM *</th>
-              <th style="width:8%"></th>
-            </tr>
-          </thead>
-          <tbody id="deviceRows">
-            <tr class="device-row">
-              <td><input type="text" name="serials" value="@Model.SerialNumber" placeholder="e.g. SN-123456" /></td>
-              <td>
-                <select name="types">
-                  @foreach (var t in deviceTypes)
-                  {
-                    <option value="@t">@t</option>
-                  }
-                </select>
-              </td>
-              <td><input type="text" name="ritms" placeholder="e.g. RITM0012345" /></td>
-              <td></td>
-            </tr>
-          </tbody>
-        </table>
-        <button type="button" class="btn-add-row" onclick="addRow()">+ Add Another Device</button>
-      </div>
-
-      <div class="form-actions">
-        <button type="submit" class="btn-submit">Save All</button>
-        <a href="/ReturnDevices" class="btn-cancel">Cancel</a>
-      </div>
-
-    </form>
+      </form>
+    </div>
   </div>
-
-<template id="rowTemplate">
-  <tr class="device-row">
-    <td><input type="text" name="serials" placeholder="e.g. SN-123456" /></td>
-    <td>
-      <select name="types">
-        <option value="Lenovo">Lenovo</option>
-        <option value="HP">HP</option>
-        <option value="Dell">Dell</option>
-        <option value="Apple iPad">Apple iPad</option>
-      </select>
-    </td>
-    <td><input type="text" name="ritms" placeholder="e.g. RITM0012345" /></td>
-    <td><button type="button" class="btn-remove-row" onclick="removeRow(this)">&#x2715; Remove</button></td>
-  </tr>
-</template>
-
 @section Scripts {
 <script>
+function onDamageChange(sel) {
+  var d = document.getElementById('damageDetails');
+  d.style.display = sel.value === 'Yes' ? '' : 'none';
+}
 function onLocChange(sel) {
   var c = document.getElementById('locCustom');
   var h = document.getElementById('locHidden');
@@ -198,14 +237,74 @@ function onLocChange(sel) {
     c.style.display = 'none'; h.value = sel.value;
   }
 }
-function addRow() {
-  var template = document.getElementById('rowTemplate');
-  var clone = template.content.cloneNode(true);
-  document.getElementById('deviceRows').appendChild(clone);
-}
-function removeRow(btn) {
-  btn.closest('tr').remove();
-}
+
+(function () {
+  var canvas = document.getElementById('sigPad');
+  var ctx = canvas.getContext('2d');
+  var drawing = false;
+  var hasDrawn = false;
+
+  function resize() {
+    var rect = canvas.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    var img = canvas.toDataURL();
+    canvas.width  = Math.round(rect.width  * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+    ctx.scale(dpr, dpr);
+    ctx.lineCap   = 'round';
+    ctx.lineJoin  = 'round';
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#000';
+    if (hasDrawn) {
+      var i = new Image();
+      i.onload = function() { ctx.drawImage(i, 0, 0, rect.width, rect.height); };
+      i.src = img;
+    }
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function pos(e) {
+    var r = canvas.getBoundingClientRect();
+    if (e.touches) {
+      return { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
+    }
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+
+  canvas.addEventListener('pointerdown', function(e) {
+    e.preventDefault();
+    drawing = true;
+    var p = pos(e);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    canvas.setPointerCapture(e.pointerId);
+  });
+
+  canvas.addEventListener('pointermove', function(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    var p = pos(e);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    hasDrawn = true;
+  });
+
+  canvas.addEventListener('pointerup',     function(e) { drawing = false; });
+  canvas.addEventListener('pointercancel', function(e) { drawing = false; });
+
+  document.getElementById('sigClear').addEventListener('click', function() {
+    var r = canvas.getBoundingClientRect();
+    ctx.clearRect(0, 0, r.width, r.height);
+    hasDrawn = false;
+    document.getElementById('sigData').value = '';
+  });
+
+  canvas.closest('form').addEventListener('submit', function() {
+    if (hasDrawn) {
+      document.getElementById('sigData').value = canvas.toDataURL('image/png');
+    }
+  });
+})();
 </script>
 }
-

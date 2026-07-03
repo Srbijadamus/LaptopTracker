@@ -2,7 +2,7 @@
 @using LaptopTracker.Helpers
 @{
     ViewData["Title"] = "Create SWAP";
-    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad" };
+    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Mini Desktop" };
     var eonLocations = LocationList.Locations.OrderBy(l => l).ToList();
 }
 @section Styles {

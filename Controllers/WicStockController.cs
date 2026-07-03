@@ -53,7 +53,7 @@ namespace LaptopTracker.Controllers
                 .Distinct()
                 .ToListAsync();
 
-            var knownTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad" };
+            var knownTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Mini Desktop" };
 
             ViewData["Locations"]        = dbLocations.OrderBy(l => l).ToList();
             ViewData["DeviceTypes"]      = dbDeviceTypes.Concat(knownTypes).Distinct().OrderBy(t => t).ToList();
