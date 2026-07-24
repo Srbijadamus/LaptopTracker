@@ -3,8 +3,53 @@
    Default (dark). Switch to light via data-theme="light" on <html>.
    ============================================================ */
 
+/* Inter — vendored from fontsource (no CDN at runtime) */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/lib/fonts/inter/inter-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/lib/fonts/inter/inter-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/lib/fonts/inter/inter-700.woff2') format('woff2');
+}
+
 /* Dark mode — default */
 :root {
+  /* ---- V2 Dashboard design tokens ---- */
+  --bg-app:        #0B0F14;
+  --bg-sidebar:    #0E1319;
+  --bg-card:       #121821;
+  --bg-elevated:   #161D28;
+  --v2-border:     rgba(255,255,255,0.07);
+  --border-strong: rgba(255,255,255,0.12);
+  --v2-accent:     #38BDF8;
+  --accent-soft:   rgba(56,189,248,0.12);
+  --purple:        #A78BFA;
+  --purple-soft:   rgba(167,139,250,0.12);
+  --green:         #34D399;
+  --green-soft:    rgba(52,211,153,0.12);
+  --amber:         #FBBF24;
+  --amber-soft:    rgba(251,191,36,0.12);
+  --radius-card:   12px;
+  --radius-tile:   10px;
+  --radius-pill:   999px;
+  --space-card:    24px;
+  --sidebar-w:     280px;
+  /* ---- end V2 tokens ---- */
+
   --bg-page:        #0d1117;
   --bg-panel:       #161b22;
   --bg-topbar:      #13161f;
@@ -27,6 +72,24 @@
 
 /* Light mode */
 [data-theme="light"] {
+  /* ---- V2 Dashboard design tokens (light equivalents) ---- */
+  --bg-app:        #F0F2F5;
+  --bg-sidebar:    #FFFFFF;
+  --bg-card:       #FFFFFF;
+  --bg-elevated:   #F8F9FB;
+  --v2-border:     rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.14);
+  --v2-accent:     #0284C7;
+  --accent-soft:   rgba(2,132,199,0.10);
+  --purple:        #7C3AED;
+  --purple-soft:   rgba(124,58,237,0.10);
+  --green:         #059669;
+  --green-soft:    rgba(5,150,105,0.10);
+  --amber:         #D97706;
+  --amber-soft:    rgba(217,119,6,0.10);
+  /* radius/spacing same in both themes */
+  /* ---- end V2 tokens ---- */
+
   --bg-page:        #f3f2f1;
   --bg-panel:       #ffffff;
   --bg-topbar:      #ffffff;
