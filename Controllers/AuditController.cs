@@ -1,4 +1,6 @@
 using LaptopTracker.Data;
+using LaptopTracker.Models;
+using LaptopTracker.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,14 +10,31 @@ namespace LaptopTracker.Controllers
     {
         private const int PageSize = 50;
         private readonly LaptopTrackerDbContext _context;
+        private readonly ICurrentUser _currentUser;
 
-        public AuditController(LaptopTrackerDbContext context) => _context = context;
+        public AuditController(LaptopTrackerDbContext context, ICurrentUser currentUser)
+        {
+            _context     = context;
+            _currentUser = currentUser;
+        }
 
         public async Task<IActionResult> Index(
             string? kid, string? action, string? entityName,
             string? entityId, string? entityLabel, string? from, string? to,
             int page = 1)
         {
+            _context.AuditLogs.Add(new AuditLog
+            {
+                Kid        = _currentUser.Kid ?? "ANONYMOUS",
+                Action     = "AuditPageView",
+                EntityName = "AuditLog",
+                EntityId   = "",
+                Source     = "Web",
+                IpAddress  = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                Route      = HttpContext.Request.Path.Value + HttpContext.Request.QueryString,
+                RequestId  = HttpContext.TraceIdentifier
+            });
+            await _context.SaveChangesAsync();
             var q = _context.AuditLogs.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(kid))

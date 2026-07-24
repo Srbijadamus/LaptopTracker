@@ -1,4 +1,36 @@
 @model IEnumerable<LaptopTracker.Models.AuditLog>
+@using System.Text.Json
+@functions {
+    static string FormatChanges(string? changes)
+    {
+        if (string.IsNullOrEmpty(changes)) return "";
+        try
+        {
+            using var doc = JsonDocument.Parse(changes);
+            var root = doc.RootElement;
+            if (root.ValueKind != JsonValueKind.Object) return changes;
+            var first = root.EnumerateObject().FirstOrDefault();
+            bool isOldNew = first.Value.ValueKind == JsonValueKind.Object &&
+                            (first.Value.TryGetProperty("old", out _) || first.Value.TryGetProperty("new", out _));
+            if (!isOldNew) return changes;
+            var lines = new System.Text.StringBuilder();
+            foreach (var prop in root.EnumerateObject())
+            {
+                string? oldStr = prop.Value.TryGetProperty("old", out var ov) && ov.ValueKind != JsonValueKind.Null
+                    ? ov.ToString() : null;
+                string? newStr = prop.Value.TryGetProperty("new", out var nv) && nv.ValueKind != JsonValueKind.Null
+                    ? nv.ToString() : null;
+                if (lines.Length > 0) lines.Append('\n');
+                if (oldStr == null)
+                    lines.Append($"{prop.Name}: {newStr}");
+                else
+                    lines.Append($"{prop.Name}: {oldStr} → {newStr}");
+            }
+            return lines.ToString();
+        }
+        catch { return changes ?? ""; }
+    }
+}
 @{
     ViewData["Title"] = "Audit Log";
     var page       = (int)(ViewData["Page"] ?? 1);
@@ -83,11 +115,12 @@
         <th>Changes</th>
         <th>Source</th>
         <th>IP</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
     @if (!Model.Any()) {
-      <tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-muted)">No audit entries match the current filters.</td></tr>
+      <tr><td colspan="10" style="text-align:center;padding:32px;color:var(--text-muted)">No audit entries match the current filters.</td></tr>
     }
     @foreach (var row in Model) {
       var badgeClass = row.Action switch {
@@ -124,9 +157,21 @@
             @row.EntityLabel
           }
         </td>
-        <td class="changes-cell" title="@row.Changes">@(row.Changes?.Length > 80 ? row.Changes[..80] + "…" : row.Changes)</td>
+        <td class="changes-cell">
+          @{ var diff = FormatChanges(row.Changes); }
+          @if (!string.IsNullOrEmpty(diff)) {
+            <pre style="margin:0;white-space:pre-wrap;font-size:11px;font-family:monospace;color:var(--text-secondary)">@diff</pre>
+          }
+        </td>
         <td style="font-size:12px">@row.Source</td>
         <td style="font-size:12px">@row.IpAddress</td>
+        <td style="font-size:11px;white-space:nowrap">
+          @if (!string.IsNullOrWhiteSpace(row.EntityName) && !string.IsNullOrWhiteSpace(row.EntityId)) {
+            <a href="/Audit?entityName=@row.EntityName&entityId=@row.EntityId"
+               title="Verlauf für @row.EntityName #@row.EntityId"
+               style="color:var(--text-muted);text-decoration:none">&#x1F4CB;</a>
+          }
+        </td>
       </tr>
     }
     </tbody>
