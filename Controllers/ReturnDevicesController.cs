@@ -22,7 +22,8 @@ namespace LaptopTracker.Controllers
             _currentUser = currentUser;
         }
 
-        public async Task<IActionResult> Index(string? searchQuery, string? statusFilter, string? locationFilter, string? deviceTypeFilter, string? hasWorkOrder)
+        public async Task<IActionResult> Index(string? searchQuery, string? statusFilter, string? locationFilter,
+            string? deviceTypeFilter, string? hasWorkOrder, string? dateFrom, string? dateTo)
         {
             var query = _context.ReturnDevices.Where(d => !d.IsDeleted).AsQueryable();
 
@@ -47,6 +48,11 @@ namespace LaptopTracker.Controllers
                 query = query.Where(d => d.WorkOrder != null && d.WorkOrder != "" && d.WorkOrder != "NA");
             else if (hasWorkOrder == "false")
                 query = query.Where(d => string.IsNullOrEmpty(d.WorkOrder) || d.WorkOrder == "NA");
+
+            if (DateTime.TryParse(dateFrom, out var dfrom))
+                query = query.Where(d => d.Date >= dfrom.Date);
+            if (DateTime.TryParse(dateTo, out var dto))
+                query = query.Where(d => d.Date < dto.Date.AddDays(1));
 
             var countryFilter = HttpContext.Session.GetString("CountryFilter");
             var countryLocations = LaptopTracker.Helpers.LocationList.GetLocationsByCountry(countryFilter);
@@ -82,6 +88,8 @@ namespace LaptopTracker.Controllers
             ViewData["LocationFilter"]   = locationFilter;
             ViewData["DeviceTypeFilter"] = deviceTypeFilter;
             ViewData["HasWorkOrder"]     = hasWorkOrder;
+            ViewData["DateFrom"]         = dateFrom;
+            ViewData["DateTo"]           = dateTo;
 
             var allDevices = await query.OrderByDescending(d => d.Date).ToListAsync();
             var activeDevices   = allDevices.Where(d => d.Status != ReturnDeviceStatus.PickedUp).ToList();

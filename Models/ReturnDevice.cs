@@ -1,9 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace LaptopTracker.Models
 {
     public enum ReturnDeviceStatus { PendingPickup, PickedUp }
 
+    [Index(nameof(Date))]
     public class ReturnDevice
     {
         public int Id { get; set; }

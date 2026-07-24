@@ -370,6 +370,8 @@ namespace LaptopTracker.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Date");
+
                     b.ToTable("ReturnDevices");
                 });
 

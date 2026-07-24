@@ -4,13 +4,15 @@
     var statusFilter     = ViewData["StatusFilter"]     as string;
     var locationFilter   = ViewData["LocationFilter"]   as string;
     var deviceTypeFilter = ViewData["DeviceTypeFilter"] as string;
-    var workOrderFilter = ViewData["HasWorkOrder"] as string ?? "";
+    var workOrderFilter  = ViewData["HasWorkOrder"]     as string ?? "";
+    var dateFrom         = ViewData["DateFrom"]         as string ?? "";
+    var dateTo           = ViewData["DateTo"]           as string ?? "";
     var allLocations   = ViewData["Locations"]   as List<string> ?? new List<string>();
     var allDeviceTypes = ViewData["DeviceTypes"] as List<string> ?? new List<string>();
     var collectedDevices = ViewData["CollectedDevices"] as List<LaptopTracker.Models.ReturnDevice> ?? new List<LaptopTracker.Models.ReturnDevice>();
     var anyFilter = !string.IsNullOrWhiteSpace(searchQuery) || !string.IsNullOrWhiteSpace(statusFilter)
         || !string.IsNullOrWhiteSpace(locationFilter) || !string.IsNullOrWhiteSpace(deviceTypeFilter)
-        || !string.IsNullOrEmpty(workOrderFilter);
+        || !string.IsNullOrEmpty(workOrderFilter) || !string.IsNullOrEmpty(dateFrom) || !string.IsNullOrEmpty(dateTo);
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -156,6 +158,10 @@ tbody tr:hover{background:var(--bg-hover)}
           <option value="true" selected="@(workOrderFilter == "true" ? "selected" : null)">Has Work Order / Mit Work Order</option>
           <option value="false" selected="@(workOrderFilter == "false" ? "selected" : null)">No Work Order / Ohne Work Order</option>
         </select>
+        <input name="dateFrom" type="date" class="filter-select" value="@dateFrom" title="Von Datum"
+               style="min-width:130px" onchange="this.form.submit()" />
+        <input name="dateTo"   type="date" class="filter-select" value="@dateTo"   title="Bis Datum"
+               style="min-width:130px" onchange="this.form.submit()" />
         @if (anyFilter)
         {
           <a href="/ReturnDevices" class="clear-link">&#x2715; Clear Filters</a>
