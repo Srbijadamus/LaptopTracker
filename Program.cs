@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddLocalization(opts => opts.ResourcesPath = "Resources");
-builder.Services.AddControllersWithViews()
+builder.Services.AddControllersWithViews(o => o.Filters.Add<RequireKidFilter>())
     .AddViewLocalization();
 builder.Services.AddDbContext<LaptopTrackerDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -15,6 +15,7 @@ builder.Services.AddScoped<IIdempotencyService, IdempotencyService>();
 builder.Services.AddScoped<ReturnDocumentService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, SessionCurrentUser>();
+builder.Services.AddScoped<RequireKidFilter>();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -46,7 +47,6 @@ app.UseRequestLocalization(new RequestLocalizationOptions()
     .SetDefaultCulture("en-US")
     .AddSupportedCultures("en-US", "de-DE")
     .AddSupportedUICultures("en-US", "de-DE"));
-app.UseMiddleware<KidEntryMiddleware>();
 
 app.MapControllers();
 app.MapControllerRoute(
