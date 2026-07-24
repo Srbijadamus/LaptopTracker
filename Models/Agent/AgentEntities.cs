@@ -17,6 +17,7 @@ namespace LaptopTracker.Models.Agent
         [Required, MaxLength(128)] public string RequestId { get; set; } = string.Empty;
         [Required, MaxLength(128)] public string Endpoint { get; set; } = string.Empty;
         [Required, MaxLength(64)] public string Source { get; set; } = string.Empty;
+        [MaxLength(32)] public string Kid { get; set; } = "";
         public int TargetId { get; set; }
         [Required] public string ActionJson { get; set; } = string.Empty;
         [Required] public string Result { get; set; } = string.Empty;

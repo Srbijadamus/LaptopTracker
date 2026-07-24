@@ -18,6 +18,7 @@ namespace LaptopTracker.Data
         public DbSet<HandoverDevice> HandoverDevices { get; set; } = null!;
         public DbSet<IdempotencyRecord> IdempotencyRecords { get; set; } = null!;
         public DbSet<AgentActionAudit> AgentActionAudits { get; set; } = null!;
+        public DbSet<AuditLog> AuditLogs { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -63,6 +64,24 @@ namespace LaptopTracker.Data
                 .Property(a => a.Endpoint).HasMaxLength(128).IsRequired();
             modelBuilder.Entity<AgentActionAudit>()
                 .Property(a => a.Source).HasMaxLength(64).IsRequired();
+            modelBuilder.Entity<AgentActionAudit>()
+                .Property(a => a.Kid).HasMaxLength(32);
+
+            modelBuilder.Entity<AuditLog>(e =>
+            {
+                e.Property(x => x.Kid).HasMaxLength(32).IsRequired();
+                e.Property(x => x.Action).HasMaxLength(32).IsRequired();
+                e.Property(x => x.EntityName).HasMaxLength(64);
+                e.Property(x => x.EntityId).HasMaxLength(64);
+                e.Property(x => x.EntityLabel).HasMaxLength(128);
+                e.Property(x => x.IpAddress).HasMaxLength(64);
+                e.Property(x => x.Route).HasMaxLength(256);
+                e.Property(x => x.Source).HasMaxLength(16).IsRequired();
+                e.Property(x => x.RequestId).HasMaxLength(128);
+                e.HasIndex(x => x.TimestampUtc);
+                e.HasIndex(x => x.Kid);
+                e.HasIndex(x => new { x.EntityName, x.EntityId });
+            });
         }
     }
 
