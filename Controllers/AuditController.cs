@@ -19,7 +19,9 @@ namespace LaptopTracker.Controllers
         }
 
         public async Task<IActionResult> Index(
-            string? kid, string? action, string? entityName,
+            string? kid,
+            [FromQuery(Name = "action")] string? actionFilter,
+            string? entityName,
             string? entityId, string? entityLabel, string? from, string? to,
             int page = 1)
         {
@@ -39,8 +41,8 @@ namespace LaptopTracker.Controllers
 
             if (!string.IsNullOrWhiteSpace(kid))
                 q = q.Where(a => a.Kid == kid);
-            if (!string.IsNullOrWhiteSpace(action))
-                q = q.Where(a => a.Action == action);
+            if (!string.IsNullOrWhiteSpace(actionFilter))
+                q = q.Where(a => a.Action == actionFilter);
             if (!string.IsNullOrWhiteSpace(entityName))
                 q = q.Where(a => a.EntityName == entityName);
             if (!string.IsNullOrWhiteSpace(entityId))
@@ -60,7 +62,7 @@ namespace LaptopTracker.Controllers
                 .ToListAsync();
 
             ViewData["Kid"]         = kid;
-            ViewData["Action"]      = action;
+            ViewData["Action"]      = actionFilter;
             ViewData["EntityName"]  = entityName;
             ViewData["EntityId"]    = entityId;
             ViewData["EntityLabel"] = entityLabel;
