@@ -1,130 +1,302 @@
+@model LaptopTracker.Models.DashboardViewModel
+@using System.Globalization
 @{
     ViewData["Title"] = "Dashboard";
-    var returnTotal     = (int)ViewData["ReturnTotal"];
-    var returnPending   = (int)ViewData["ReturnPending"];
-    var returnInTransit = (int)ViewData["ReturnInTransit"];
-    var returnWarning   = (bool)ViewData["ReturnWarning"];
-    var wicTotal        = (int)ViewData["WicTotal"];
-    var wicAvailable    = (int)ViewData["WicAvailable"];
-    var wicInUse        = (int)ViewData["WicInUse"];
-    var loanerTotal     = (int)ViewData["LoanerTotal"];
-    var loanerAvailable = (int)ViewData["LoanerAvailable"];
-    var loanerInUse     = (int)ViewData["LoanerInUse"];
+    Layout = "_LayoutV2";
+    var ci = CultureInfo.CurrentUICulture;
+    var today = DateTime.Now;
+    var dateLine = today.ToString("dddd, d. MMMM yyyy", ci);
+    var actionColors = new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase){
+        {"Create","#34D399"},{"Update","#38BDF8"},{"SoftDelete","#F87171"},
+        {"HardDelete","#A78BFA"},{"Login","#67E8F9"},{"Export","#2DD4BF"},
+        {"PurgeOld","#C084FC"},{"AuthCheck","#FCD34D"},{"EmailDraft","#F472B6"},
+        {"Document","#94A3B8"}
+    };
 }
 @section Styles {
 <style>
-.topbar-search{display:flex;gap:8px;align-items:center;margin-bottom:20px}
-.topbar-search input{padding:8px 12px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);outline:none;width:210px}
-.topbar-search input:focus{border-color:var(--accent);background:var(--bg-input)}
-.topbar-search button{padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
-.content{padding:24px 28px 0}
-.module{margin-bottom:32px}
-.module-header{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
-.module-title{font-size:16px;font-weight:700;color:var(--text-primary)}
-.module-sub{font-size:13px;color:var(--text-secondary)}
-.cards{display:flex;gap:14px;flex-wrap:wrap}
-.card{flex:1;min-width:140px;padding:18px 20px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18)}
-.card-num{font-size:36px;font-weight:800;line-height:1;margin-bottom:4px}
-.card-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;opacity:0.7}
-.card-white{background:var(--bg-panel);color:var(--text-primary)}
-.card-pending{background:#fff4d6;color:#755000}
-.card-intransit{background:#ede9fe;color:#5b21b6}
-.card-available{background:#dff4ff;color:#0b4a74}
-.card-inuse{background:#fde2c7;color:#8a4f00}
-.warning{background:#fde2c7;border:2px solid #c45000;border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:flex-start;gap:12px}
-.warning-icon{font-size:20px;line-height:1;flex-shrink:0;color:#8a4f00}
-.warning strong{display:block;font-size:15px;font-weight:700;color:#8a4f00;margin-bottom:2px}
-.warning span{font-size:13px;color:#8a4f00}
-.divider{border:none;border-top:1px solid var(--border);margin:8px 0 24px}
+/* ── Page chrome ─────────────────────────────────────────────────── */
+.db-header{margin-bottom:32px}
+.db-title{font-size:30px;font-weight:700;color:var(--text-primary);letter-spacing:-.02em;line-height:1.1}
+.db-sub{font-size:14px;color:var(--text-muted);margin-top:4px}
+
+/* ── KPI cards ───────────────────────────────────────────────────── */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.kpi-card{
+  background:var(--bg-card);border:1px solid var(--v2-border);border-radius:var(--radius-card);
+  padding:var(--space-card);text-decoration:none;display:block;transition:border-color .15s;
+}
+.kpi-card:hover{border-color:var(--border-strong)}
+.kpi-tile{
+  width:44px;height:44px;border-radius:var(--radius-tile);
+  display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:16px;
+}
+.kpi-num{font-size:32px;font-weight:700;color:var(--text-primary);line-height:1;margin-bottom:6px}
+.kpi-label{font-size:14px;font-weight:500;color:var(--text-primary);margin-bottom:2px}
+.kpi-sub{font-size:13px;color:var(--text-muted)}
+
+/* ── Charts row ──────────────────────────────────────────────────── */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+.panel{
+  background:var(--bg-card);border:1px solid var(--v2-border);
+  border-radius:var(--radius-card);padding:var(--space-card);
+}
+.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.panel-title{font-size:14px;font-weight:700;color:var(--text-primary)}
+.panel-link{font-size:13px;color:var(--v2-accent);text-decoration:none;font-weight:500}
+.panel-link:hover{text-decoration:underline}
+.panel-empty{font-size:13px;color:var(--text-muted);padding:16px 0;text-align:center}
+
+/* Doughnut layout */
+.donut-wrap{display:flex;gap:20px;align-items:center}
+.donut-canvas-wrap{flex-shrink:0;width:160px;height:160px}
+.donut-legend{flex:1;display:flex;flex-direction:column;gap:6px}
+.legend-row{display:flex;align-items:center;gap:8px;font-size:13px}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-lbl{flex:1;color:var(--text-secondary)}
+.legend-cnt{font-weight:600;color:var(--text-primary);font-variant-numeric:tabular-nums}
+
+/* ── Activity row ────────────────────────────────────────────────── */
+.activity-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+
+/* Device list */
+.device-row{
+  display:flex;align-items:center;gap:12px;padding:10px 0;
+  border-bottom:1px solid var(--v2-border);
+}
+.device-row:last-child{border-bottom:none}
+.device-icon{
+  width:36px;height:36px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:16px;flex-shrink:0;
+}
+.device-info{flex:1;min-width:0}
+.device-name{font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.device-meta{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.device-pills{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.pill{padding:3px 9px;border-radius:var(--radius-pill);font-size:11px;font-weight:600;white-space:nowrap}
+
+/* Audit list */
+.audit-row{
+  display:flex;align-items:center;gap:10px;padding:10px 0;
+  border-bottom:1px solid var(--v2-border);
+}
+.audit-row:last-child{border-bottom:none}
+.audit-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.audit-info{flex:1;min-width:0}
+.audit-serial{font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.audit-meta{font-size:12px;color:var(--text-muted)}
+.audit-time{font-size:12px;color:var(--text-muted);flex-shrink:0;font-variant-numeric:tabular-nums}
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@@media(max-width:1199px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+@@media(max-width:900px){.charts-row,.activity-row{grid-template-columns:1fr}}
+@@media(max-width:600px){.kpi-row{grid-template-columns:1fr}}
 </style>
 }
-  <div class="content">
-    <form class="topbar-search" method="get" action="/Search">
-      <input type="text" name="serialNumber" placeholder="Search serial number…" />
-      <button type="submit">Search</button>
-    </form>
 
-    <!-- Return Devices -->
-    <div class="module">
-      <div class="module-header">
-        <div class="module-title">Return Devices</div>
-        <a href="/ReturnDevices" class="module-sub">View all &rarr;</a>
-      </div>
+<div class="db-header">
+  <div class="db-title">Dashboard</div>
+  <div class="db-sub">GSD-Übersicht &mdash; @dateLine</div>
+</div>
 
-      @if (returnWarning)
-      {
-        <div class="warning">
-          <div class="warning-icon">&#9888;</div>
-          <div>
-            <strong>Pickup Work Order Required</strong>
-            <span>@returnPending devices are pending pickup — raise an AOIT Pickup Work Order.</span>
-          </div>
-        </div>
-      }
+<!-- ── KPI Cards ───────────────────────────────────────────────────── -->
+<div class="kpi-row">
+  <a href="/ReturnDevices" class="kpi-card">
+    <div class="kpi-tile" style="background:var(--accent-soft)">&#x1F4E6;</div>
+    <div class="kpi-num" style="color:var(--v2-accent)">@Model.ReturnCount</div>
+    <div class="kpi-label">Rückgaben</div>
+    <div class="kpi-sub">Alle Standorte</div>
+  </a>
+  <a href="/WicStock" class="kpi-card">
+    <div class="kpi-tile" style="background:var(--purple-soft)">&#x1F5C4;&#xFE0F;</div>
+    <div class="kpi-num" style="color:var(--purple)">@Model.WicStockCount</div>
+    <div class="kpi-label">WIC-Bestand</div>
+    <div class="kpi-sub">Tauschpool</div>
+  </a>
+  <a href="/LoanerDevices" class="kpi-card">
+    <div class="kpi-tile" style="background:var(--green-soft)">&#x1F4BB;</div>
+    <div class="kpi-num" style="color:var(--green)">@Model.LoanerCount</div>
+    <div class="kpi-label">Leihgeräte</div>
+    <div class="kpi-sub">Aktive Leihen</div>
+  </a>
+  <a href="/ReturnDevices?status=PendingPickup" class="kpi-card">
+    <div class="kpi-tile" style="background:var(--amber-soft)">&#x23F3;</div>
+    <div class="kpi-num" style="color:var(--amber)">@Model.PendingCount</div>
+    <div class="kpi-label">Ausstehend</div>
+    <div class="kpi-sub">Abholung / Transit</div>
+  </a>
+</div>
 
-      <div class="cards">
-        <div class="card card-white">
-          <div class="card-num">@returnTotal</div>
-          <div class="card-lbl">Total</div>
-        </div>
-        <div class="card card-pending">
-          <div class="card-num">@returnPending</div>
-          <div class="card-lbl">Pending Pickup</div>
-        </div>
-        <div class="card card-intransit">
-          <div class="card-num">@returnInTransit</div>
-          <div class="card-lbl">In Transit</div>
-        </div>
-      </div>
+<!-- ── Charts Row ──────────────────────────────────────────────────── -->
+<div class="charts-row">
+  <!-- Doughnut: status distribution -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Status-Verteilung</span>
     </div>
-
-    <hr class="divider" />
-
-    <!-- WIC Stock -->
-    <div class="module">
-      <div class="module-header">
-        <div class="module-title">WIC Stock</div>
-        <a href="/WicStock" class="module-sub">View all &rarr;</a>
-      </div>
-      <div class="cards">
-        <div class="card card-white">
-          <div class="card-num">@wicTotal</div>
-          <div class="card-lbl">Total</div>
+    @if (Model.StatusDistribution.Any(s => s.Count > 0)) {
+      <div class="donut-wrap">
+        <div class="donut-canvas-wrap">
+          <canvas id="donutChart"></canvas>
         </div>
-        <div class="card card-available">
-          <div class="card-num">@wicAvailable</div>
-          <div class="card-lbl">Available</div>
-        </div>
-        <div class="card card-inuse">
-          <div class="card-num">@wicInUse</div>
-          <div class="card-lbl">In Use</div>
+        <div class="donut-legend">
+          @foreach (var s in Model.StatusDistribution.Where(s => s.Count > 0)) {
+            <div class="legend-row">
+              <span class="legend-dot" style="background:@s.Color"></span>
+              <span class="legend-lbl">@s.Label</span>
+              <span class="legend-cnt">@s.Count</span>
+            </div>
+          }
         </div>
       </div>
-    </div>
-
-    <hr class="divider" />
-
-    <!-- Loaner Devices -->
-    <div class="module">
-      <div class="module-header">
-        <div class="module-title">Loaner Devices</div>
-        <a href="/LoanerDevices" class="module-sub">View all &rarr;</a>
-      </div>
-      <div class="cards">
-        <div class="card card-white">
-          <div class="card-num">@loanerTotal</div>
-          <div class="card-lbl">Total</div>
-        </div>
-        <div class="card card-available">
-          <div class="card-num">@loanerAvailable</div>
-          <div class="card-lbl">Available</div>
-        </div>
-        <div class="card card-inuse">
-          <div class="card-num">@loanerInUse</div>
-          <div class="card-lbl">In Use</div>
-        </div>
-      </div>
-    </div>
-
+    } else {
+      <div class="panel-empty">Keine Einträge</div>
+    }
   </div>
 
+  <!-- Bar: devices by kind -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Geräte nach Typ</span>
+    </div>
+    @if (Model.DevicesByKind.Any(k => k.Count > 0)) {
+      <canvas id="barChart" style="max-height:200px"></canvas>
+    } else {
+      <div class="panel-empty">Keine Einträge</div>
+    }
+  </div>
+</div>
+
+<!-- ── Activity Row ────────────────────────────────────────────────── -->
+<div class="activity-row">
+  <!-- Recent devices -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Neueste Geräte</span>
+      <a href="/ReturnDevices" class="panel-link">Alle &rarr;</a>
+    </div>
+    @if (Model.RecentDevices.Any()) {
+      @foreach (var d in Model.RecentDevices) {
+        var kindColor = d.Kind == "Rückgaben" ? "var(--v2-accent)" : d.Kind == "WIC-Bestand" ? "var(--purple)" : "var(--green)";
+        var kindBg    = d.Kind == "Rückgaben" ? "var(--accent-soft)" : d.Kind == "WIC-Bestand" ? "var(--purple-soft)" : "var(--green-soft)";
+        var devIcon   = d.Kind == "Leihgeräte" ? "&#x1F4BB;" : d.Kind == "WIC-Bestand" ? "&#x1F5C4;&#xFE0F;" : "&#x1F4E6;";
+        var listUrl   = d.Kind == "Rückgaben" ? "/ReturnDevices" : d.Kind == "WIC-Bestand" ? "/WicStock" : "/LoanerDevices";
+        <a href="@listUrl" style="text-decoration:none;display:block">
+          <div class="device-row">
+            <div class="device-icon" style="background:@kindBg;color:@kindColor">@Html.Raw(devIcon)</div>
+            <div class="device-info">
+              <div class="device-name">@d.DeviceType</div>
+              <div class="device-meta">@d.SerialNumber &middot; @d.RITM</div>
+            </div>
+            <div class="device-pills">
+              <span class="pill" style="background:@kindBg;color:@kindColor">@d.Kind</span>
+              <span class="pill" style="background:rgba(255,255,255,0.05);color:@d.StatusColor">@d.StatusLabel</span>
+            </div>
+          </div>
+        </a>
+      }
+    } else {
+      <div class="panel-empty">Keine Einträge</div>
+    }
+  </div>
+
+  <!-- Recent audit -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Letzte Audit-Einträge</span>
+      @if (Model.AuditAvailable) {
+        <a href="/Audit" class="panel-link">Audit-Log &rarr;</a>
+      }
+    </div>
+    @if (!Model.AuditAvailable) {
+      <div class="panel-empty">Audit-Log nicht verfügbar</div>
+    } else if (!Model.RecentAudits.Any()) {
+      <div class="panel-empty">Keine Einträge</div>
+    } else {
+      @foreach (var a in Model.RecentAudits) {
+        var dotColor = actionColors.TryGetValue(a.Action, out var ac) ? ac : "#8B949E";
+        var tsNow = DateTime.UtcNow;
+        var isToday = a.TimestampUtc.Date == tsNow.Date;
+        var timeStr = isToday
+            ? a.TimestampUtc.ToLocalTime().ToString("HH:mm")
+            : a.TimestampUtc.ToLocalTime().ToString("dd.MM. HH:mm");
+        <div class="audit-row">
+          <span class="audit-dot" style="background:@dotColor"></span>
+          <div class="audit-info">
+            <div class="audit-serial">@(a.EntityLabel ?? a.Action)</div>
+            <div class="audit-meta">@a.Action &middot; @a.Kid</div>
+          </div>
+          <span class="audit-time">@timeStr</span>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+@section Scripts {
+<script src="/lib/chartjs/chart.umd.min.js"></script>
+<script>
+(function(){
+  var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  var gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)';
+  var tickColor = isDark ? '#6E7681' : '#605e5c';
+
+  // Doughnut
+  var donutEl = document.getElementById('donutChart');
+  if(donutEl){
+    var slices = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        Model.StatusDistribution.Where(s => s.Count > 0)
+            .Select(s => new { label = s.Label, count = s.Count, color = s.Color })
+            .ToList()));
+    if(slices && slices.length){
+      new Chart(donutEl, {
+        type: 'doughnut',
+        data: {
+          labels: slices.map(function(s){return s.label;}),
+          datasets:[{
+            data: slices.map(function(s){return s.count;}),
+            backgroundColor: slices.map(function(s){return s.color;}),
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options:{
+          cutout:'55%',
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ' '+ctx.label+': '+ctx.parsed;}}}},
+          animation:{duration:400}
+        }
+      });
+    }
+  }
+
+  // Bar
+  var barEl = document.getElementById('barChart');
+  if(barEl){
+    var kinds = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        Model.DevicesByKind.Select(k => new { kind = k.Kind, count = k.Count }).ToList()));
+    if(kinds && kinds.length){
+      new Chart(barEl, {
+        type: 'bar',
+        data: {
+          labels: kinds.map(function(k){return k.kind;}),
+          datasets:[{
+            data: kinds.map(function(k){return k.count;}),
+            backgroundColor: ['#38BDF8','#A78BFA','#34D399'],
+            borderRadius: 6,
+            borderSkipped: false
+          }]
+        },
+        options:{
+          plugins:{legend:{display:false}},
+          scales:{
+            x:{grid:{color:gridColor},ticks:{color:tickColor}},
+            y:{grid:{color:gridColor},ticks:{color:tickColor,precision:0,stepSize:1}}
+          },
+          animation:{duration:400}
+        }
+      });
+    }
+  }
+})();
+</script>
+}
