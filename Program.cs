@@ -43,6 +43,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseSession();
+app.UseMiddleware<LaptopTracker.Services.AgentApiKeyMiddleware>();
 app.UseRequestLocalization(new RequestLocalizationOptions()
     .SetDefaultCulture("en-US")
     .AddSupportedCultures("en-US", "de-DE")
