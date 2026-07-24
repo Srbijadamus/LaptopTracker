@@ -486,6 +486,42 @@ namespace LaptopTracker.Controllers
             return Ok();
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Photo(int id)
+        {
+            var photo = await _context.ReturnDevicePhotos.FindAsync(id);
+            if (photo == null) return NotFound();
+
+            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", photo.FilePath.TrimStart('/'));
+            if (!System.IO.File.Exists(fullPath)) return NotFound();
+
+            _context.AuditLogs.Add(new AuditLog
+            {
+                Kid        = _currentUser.Kid ?? "ANONYMOUS",
+                Action     = "AttachmentView",
+                EntityName = "ReturnDevicePhoto",
+                EntityId   = id.ToString(),
+                EntityLabel = photo.OriginalFileName ?? photo.FilePath,
+                Source     = "Web",
+                IpAddress  = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                Route      = HttpContext.Request.Path.Value,
+                RequestId  = HttpContext.TraceIdentifier
+            });
+            await _context.SaveChangesAsync();
+
+            var ext = Path.GetExtension(photo.FilePath).ToLowerInvariant();
+            var mime = ext switch
+            {
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png"            => "image/png",
+                ".gif"            => "image/gif",
+                ".webp"           => "image/webp",
+                _                 => "application/octet-stream"
+            };
+            var fileName = photo.OriginalFileName ?? Path.GetFileName(photo.FilePath);
+            return PhysicalFile(fullPath, mime, fileName);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {

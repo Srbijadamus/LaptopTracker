@@ -204,7 +204,7 @@
               @foreach (var photo in regularPhotos)
               {
                 <div style="position:relative;display:inline-block;" id="photo-@photo.Id">
-                  <a href="@photo.FilePath" download="@(photo.OriginalFileName ?? "photo")">
+                  <a href="/ReturnDevices/Photo/@photo.Id" download="@(photo.OriginalFileName ?? "photo")">
                     <img src="@photo.FilePath" alt="@photo.OriginalFileName"
                          style="width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--border-input);display:block;" />
                   </a>
@@ -226,7 +226,7 @@
               @foreach (var sig in signatures)
               {
                 <div style="position:relative;display:inline-block;" id="photo-@sig.Id">
-                  <a href="@sig.FilePath" download="signature.png" title="Download signature">
+                  <a href="/ReturnDevices/Photo/@sig.Id" download="signature.png" title="Download signature">
                     <img src="@sig.FilePath" alt="Signature"
                          style="height:80px;max-width:320px;object-fit:contain;border-radius:8px;border:2px solid var(--accent);background:#fff;display:block;padding:4px;" />
                   </a>
