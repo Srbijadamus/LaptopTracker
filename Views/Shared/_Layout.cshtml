@@ -1,5 +1,7 @@
 @using Microsoft.AspNetCore.Mvc.Localization
+@using LaptopTracker.Services
 @inject IViewLocalizer Localizer
+@inject ICurrentUser CurrentUser
 @{
     var ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
 }
@@ -56,6 +58,8 @@ body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg-page);color:var
          class="nav-link" aria-label="Deutsch">&#127465;&#127466;</a>
     </div>
     <div class="topbar-actions">
+      <span style="font-size:13px;color:var(--text-secondary);padding:0 4px">@(CurrentUser.Kid ?? "–")</span>
+      <a href="/KidEntry" style="font-size:12px;color:var(--accent);text-decoration:none;padding:0 4px" title="KID wechseln">Wechseln</a>
       <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark/light mode">&#9728;&#65039;</button>
     </div>
   </nav>
