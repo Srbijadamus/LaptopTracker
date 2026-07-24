@@ -24,7 +24,7 @@ body{font-family:'Inter',-apple-system,"Segoe UI",Roboto,sans-serif;background:v
 
 /* ── Sidebar ───────────────────────────────────────────────────── */
 .v2-sidebar{
-  position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);
+  position:fixed;top:0;left:0;bottom:0;width:280px;width:var(--sidebar-w,280px);
   background:var(--bg-sidebar);border-right:1px solid var(--v2-border);
   display:flex;flex-direction:column;z-index:200;transition:width .2s ease,transform .2s ease;
   overflow:hidden;
@@ -103,7 +103,7 @@ body{font-family:'Inter',-apple-system,"Segoe UI",Roboto,sans-serif;background:v
 .v2-theme-btn:hover{background:var(--bg-hover);border-color:var(--v2-accent)}
 
 /* ── Main content ───────────────────────────────────────────────── */
-.v2-main{margin-left:var(--sidebar-w);min-height:100vh;padding:32px;transition:margin-left .2s ease}
+.v2-main{margin-left:280px;margin-left:var(--sidebar-w,280px);min-height:100vh;padding:32px;transition:margin-left .2s ease}
 
 /* ── Hamburger (hidden above 768px) ─────────────────────────────── */
 .v2-hamburger{
@@ -128,7 +128,7 @@ body{font-family:'Inter',-apple-system,"Segoe UI",Roboto,sans-serif;background:v
 
 /* ── Responsive: ≤768px — slide-over ───────────────────────────── */
 @@media(max-width:768px){
-  .v2-sidebar{transform:translateX(-100%);width:var(--sidebar-w)}
+  .v2-sidebar{transform:translateX(-100%);width:280px;width:var(--sidebar-w,280px)}
   .v2-sidebar.open{transform:translateX(0)}
   .v2-hamburger{display:flex}
   .v2-overlay.open{display:block}
