@@ -19,43 +19,130 @@ namespace LaptopTracker.Controllers
             var countryFilter = HttpContext.Session.GetString("CountryFilter");
             var countryLocations = LaptopTracker.Helpers.LocationList.GetLocationsByCountry(countryFilter);
 
-            var returnsQuery  = _context.ReturnDevices.Where(d => !d.IsDeleted);
-            var wicQuery      = _context.WicStockDevices.Where(d => !d.IsDeleted);
-            var loanersQuery  = _context.LoanerDevices.Where(d => !d.IsDeleted);
+            var returnsQ  = _context.ReturnDevices.Where(d => !d.IsDeleted);
+            var wicQ      = _context.WicStockDevices.Where(d => !d.IsDeleted);
+            var loanersQ  = _context.LoanerDevices.Where(d => !d.IsDeleted);
 
             if (countryLocations != null)
             {
-                returnsQuery = returnsQuery.Where(d => d.Location != null && countryLocations.Contains(d.Location));
-                wicQuery     = wicQuery.Where(d => countryLocations.Contains(d.DeviceLocation));
-                loanersQuery = loanersQuery.Where(d => d.WIC != null && countryLocations.Contains(d.WIC));
+                returnsQ  = returnsQ.Where(d  => d.Location != null && countryLocations.Contains(d.Location));
+                wicQ      = wicQ.Where(d      => countryLocations.Contains(d.DeviceLocation));
+                loanersQ  = loanersQ.Where(d  => d.WIC != null && countryLocations.Contains(d.WIC));
             }
 
-            var returns  = await returnsQuery.ToListAsync();
-            var wic      = await wicQuery.ToListAsync();
-            var loaners  = await loanersQuery.ToListAsync();
+            var returnCount  = await returnsQ.CountAsync();
+            var wicCount     = await wicQ.CountAsync();
+            var loanerCount  = await loanersQ.CountAsync();
 
-            int returnPending = returns.Count(d => d.Status == ReturnDeviceStatus.PendingPickup);
+            // PendingPickup status + "In Transit" device location
+            var pendingCount = await returnsQ.CountAsync(d =>
+                d.Status == ReturnDeviceStatus.PendingPickup ||
+                d.DeviceLocation == "In Transit");
 
-            ViewData["ReturnTotal"]       = returns.Count;
-            ViewData["ReturnPending"]     = returnPending;
-            ViewData["ReturnInTransit"]   = returns.Count(d => d.DeviceLocation == "In Transit");
-            ViewData["ReturnWarning"]     = returnPending >= 5;
+            // Status distribution for doughnut chart
+            var returnByStatus = await returnsQ
+                .GroupBy(d => d.Status)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .ToListAsync();
 
-            ViewData["WicTotal"]          = wic.Count;
-            ViewData["WicAvailable"]      = wic.Count(d => d.Status == WicStockStatus.Available);
-            ViewData["WicInUse"]          = wic.Count(d => d.Status == WicStockStatus.NotAvailable);
+            var wicByStatus = await wicQ
+                .GroupBy(d => d.Status)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .ToListAsync();
 
-            ViewData["LoanerTotal"]       = loaners.Count;
-            ViewData["LoanerAvailable"]   = loaners.Count(d => d.Status == LoanerStatus.Available);
-            ViewData["LoanerInUse"]       = loaners.Count(d => d.Status == LoanerStatus.NotAvailable);
+            var loanerByStatus = await loanersQ
+                .GroupBy(d => d.Status)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .ToListAsync();
 
-            ViewData["SwapPending"]       = wic.Count(d => d.SwapStatus == "SwapPending");
-            ViewData["SwapReturnPending"] = wic.Count(d => d.SwapStatus == "SwapReturnPending");
+            var statusSlices = new List<StatusSlice>();
+            foreach (var r in returnByStatus)
+                statusSlices.Add(new StatusSlice(
+                    r.Status == ReturnDeviceStatus.PendingPickup ? "Abholung ausstehend" : "Abgeholt",
+                    r.Count,
+                    r.Status == ReturnDeviceStatus.PendingPickup ? "#FBBF24" : "#38BDF8"));
+            foreach (var w in wicByStatus)
+                statusSlices.Add(new StatusSlice(
+                    w.Status == WicStockStatus.Available ? "WIC Verfügbar" : "WIC Nicht verf.",
+                    w.Count,
+                    w.Status == WicStockStatus.Available ? "#34D399" : "#8B949E"));
+            foreach (var l in loanerByStatus)
+                statusSlices.Add(new StatusSlice(
+                    l.Status == LoanerStatus.Available ? "Leihger. Verfügbar" : "Leihger. In Nutzung",
+                    l.Count,
+                    l.Status == LoanerStatus.Available ? "#A78BFA" : "#6E7681"));
 
-            return View();
+            // Devices by kind counts
+            var devicesByKind = new List<KindCount>
+            {
+                new("Rückgaben",   returnCount),
+                new("WIC-Bestand", wicCount),
+                new("Leihgeräte",  loanerCount)
+            };
+
+            // Recent 5 devices (all three tables, sorted by date desc)
+            var recentReturns = await returnsQ
+                .OrderByDescending(d => d.Date)
+                .Take(5)
+                .Select(d => new RecentDevice(d.Id, d.SerialNumber, d.DeviceType, "Rückgaben", d.RITM,
+                    d.Status == ReturnDeviceStatus.PendingPickup ? "Ausstehend" : "Abgeholt",
+                    d.Status == ReturnDeviceStatus.PendingPickup ? "#FBBF24" : "#38BDF8",
+                    d.Date))
+                .ToListAsync();
+
+            var recentWic = await wicQ
+                .OrderByDescending(d => d.Date)
+                .Take(5)
+                .Select(d => new RecentDevice(d.Id, d.SerialNumber, d.DeviceType, "WIC-Bestand", d.RITM,
+                    d.Status == WicStockStatus.Available ? "Verfügbar" : "Nicht verf.",
+                    d.Status == WicStockStatus.Available ? "#34D399" : "#8B949E",
+                    d.Date))
+                .ToListAsync();
+
+            var recentLoaners = await loanersQ
+                .OrderByDescending(d => d.Date)
+                .Take(5)
+                .Select(d => new RecentDevice(d.Id, d.SerialNumber, d.DeviceType, "Leihgeräte", d.RITM,
+                    d.Status == LoanerStatus.Available ? "Verfügbar" : "In Nutzung",
+                    d.Status == LoanerStatus.Available ? "#A78BFA" : "#6E7681",
+                    d.Date))
+                .ToListAsync();
+
+            var recentDevices = recentReturns
+                .Concat(recentWic)
+                .Concat(recentLoaners)
+                .OrderByDescending(d => d.Date)
+                .Take(5)
+                .ToList();
+
+            // Recent audit entries — degrade gracefully if table absent
+            var recentAudits = new List<RecentAudit>();
+            var auditAvailable = false;
+            try
+            {
+                recentAudits = await _context.AuditLogs
+                    .OrderByDescending(a => a.TimestampUtc)
+                    .Take(5)
+                    .Select(a => new RecentAudit(a.Kid, a.Action, a.EntityLabel, a.TimestampUtc))
+                    .ToListAsync();
+                auditAvailable = true;
+            }
+            catch { /* table not yet migrated — hide panel */ }
+
+            var vm = new DashboardViewModel
+            {
+                ReturnCount       = returnCount,
+                WicStockCount     = wicCount,
+                LoanerCount       = loanerCount,
+                PendingCount      = pendingCount,
+                StatusDistribution = statusSlices,
+                DevicesByKind     = devicesByKind,
+                RecentDevices     = recentDevices,
+                RecentAudits      = recentAudits,
+                AuditAvailable    = auditAvailable
+            };
+
+            return View(vm);
         }
     }
 }
-
-
-
