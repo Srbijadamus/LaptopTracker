@@ -1,18 +1,25 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LaptopTracker.Data;
 using LaptopTracker.Helpers;
 using LaptopTracker.Models;
+using LaptopTracker.Services;
 
 namespace LaptopTracker.Controllers
 {
     public class ReturnDevicesController : Controller
     {
         private readonly LaptopTrackerDbContext _context;
+        private readonly ReturnDocumentService _docSvc;
+        private readonly ICurrentUser _currentUser;
 
-        public ReturnDevicesController(LaptopTrackerDbContext context)
+        public ReturnDevicesController(LaptopTrackerDbContext context,
+            ReturnDocumentService docSvc, ICurrentUser currentUser)
         {
             _context = context;
+            _docSvc  = docSvc;
+            _currentUser = currentUser;
         }
 
         public async Task<IActionResult> Index(string? searchQuery, string? statusFilter, string? locationFilter, string? deviceTypeFilter, string? hasWorkOrder)
@@ -578,6 +585,82 @@ namespace LaptopTracker.Controllers
             await _context.SaveChangesAsync();
             TempData["StatusMessage"] = "Import successful.";
             return RedirectToAction("Index");
+        }
+
+        // ── WP-12: Document hub ───────────────────────────────────────────────
+
+        [HttpGet]
+        public async Task<IActionResult> Document(int id)
+        {
+            var device = await _context.ReturnDevices
+                .Include(d => d.Photos)
+                .FirstOrDefaultAsync(d => d.Id == id);
+            if (device == null) return NotFound();
+
+            _context.AuditLogs.Add(new AuditLog
+            {
+                Kid        = _currentUser.Kid ?? "ANONYMOUS",
+                Action     = "Document",
+                EntityName = nameof(ReturnDevice),
+                EntityId   = id.ToString(),
+                EntityLabel= device.SerialNumber,
+                Source     = "Web",
+                Route      = HttpContext.Request.Path.Value,
+                IpAddress  = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                Changes    = JsonSerializer.Serialize(new {
+                    recipientKid     = device.KID,
+                    includedSignature= device.Photos.Any(p => p.IsSignature),
+                    format           = "pdf"
+                })
+            });
+            await _context.SaveChangesAsync();
+
+            return View(device);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DocumentPdf(int id)
+        {
+            var device = await _context.ReturnDevices
+                .Include(d => d.Photos)
+                .FirstOrDefaultAsync(d => d.Id == id);
+            if (device == null) return NotFound();
+
+            var bytes = _docSvc.GeneratePdf(device);
+            var safeSn = string.Concat(device.SerialNumber
+                .Where(c => char.IsLetterOrDigit(c) || c == '-' || c == '_'));
+            return File(bytes, "application/pdf", $"Rueckgabe_{safeSn}.pdf");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CaptureSignature(int id, string? signatureData)
+        {
+            var device = await _context.ReturnDevices.FindAsync(id);
+            if (device == null) return NotFound();
+
+            if (!string.IsNullOrWhiteSpace(signatureData)
+                && signatureData.StartsWith("data:image/png;base64,"))
+            {
+                try
+                {
+                    var base64 = signatureData["data:image/png;base64,".Length..];
+                    var bytes  = Convert.FromBase64String(base64);
+                    var name   = $"{Guid.NewGuid()}.png";
+                    var path   = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", name);
+                    await System.IO.File.WriteAllBytesAsync(path, bytes);
+                    _context.ReturnDevicePhotos.Add(new ReturnDevicePhoto
+                    {
+                        ReturnDeviceId   = id,
+                        FilePath         = $"/uploads/{name}",
+                        OriginalFileName = "signature.png",
+                        UploadedAt       = DateTime.UtcNow,
+                        IsSignature      = true
+                    });
+                    await _context.SaveChangesAsync();
+                }
+                catch (FormatException) { }
+            }
+            return RedirectToAction(nameof(Document), new { id });
         }
     }
 }

@@ -13,6 +13,7 @@ builder.Services.AddDbContext<LaptopTrackerDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IAgentDeviceRepository, AgentDeviceRepository>();
 builder.Services.AddScoped<IIdempotencyService, IdempotencyService>();
+builder.Services.AddScoped<ReturnDocumentService>();
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme).AddNegotiate();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, WindowsCurrentUser>();
