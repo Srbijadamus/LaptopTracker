@@ -63,11 +63,10 @@ body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg-page);color:var
       <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark/light mode">&#9728;&#65039;</button>
     </div>
   </nav>
+  <div style="font-size:11px;color:var(--text-muted);text-align:right;padding:4px 28px;border-bottom:1px solid var(--border)">Developed by Nebojsa Stojnic &mdash; with the selfless support of Ion Ciuceanu.</div>
   @RenderBody()
 </div>
-<footer style="text-align:center;padding:18px 0 12px;font-size:12px;color:var(--text-secondary);">
-  Developed by Nebojsa Stojnic &mdash; with the selfless support of Ion Ciuceanu.
-</footer>
+<footer style="text-align:center;padding:18px 0 12px;font-size:11px;color:var(--text-muted)">Developed by Nebojsa Stojnic &mdash; with the selfless support of Ion Ciuceanu.</footer>
 <script src="/js/theme.js"></script>
 @RenderSection("Scripts", required: false)
 </body>
