@@ -668,6 +668,73 @@ namespace LaptopTracker.Controllers
             return File(bytes, "application/pdf", $"Rueckgabe_{safeSn}.pdf");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> EmailDraft(int id)
+        {
+            var device = await _context.ReturnDevices
+                .Include(d => d.Photos)
+                .FirstOrDefaultAsync(d => d.Id == id);
+            if (device == null) return NotFound();
+
+            var pdfBytes = _docSvc.GeneratePdf(device);
+            var pdfB64   = Convert.ToBase64String(pdfBytes);
+            var safeSn   = string.Concat(device.SerialNumber
+                .Where(c => char.IsLetterOrDigit(c) || c == '-' || c == '_'));
+            var pdfName  = $"Rueckgabe_{safeSn}.pdf";
+            var toEmail  = _docSvc.ResolveEmail(device.KID);
+            var subject  = $"Geräterückgabe – {device.SerialNumber}";
+            var boundary = $"----=_Part_{Guid.NewGuid():N}";
+
+            var body =
+                $"Sehr geehrte/r Mitarbeiter/in,\r\n\r\n" +
+                $"anbei erhalten Sie die Bestätigung der Geräterückgabe für " +
+                $"Seriennummer {device.SerialNumber} (RITM: {device.RITM}).\r\n\r\n" +
+                $"Mit freundlichen Grüßen\r\nGlobal Service Desk – WIC Team\r\n";
+
+            // wrap base64 at 76 chars per RFC 2045
+            var b64Lines = new System.Text.StringBuilder();
+            for (int i = 0; i < pdfB64.Length; i += 76)
+                b64Lines.AppendLine(pdfB64.Substring(i, Math.Min(76, pdfB64.Length - i)));
+
+            var eml = new System.Text.StringBuilder();
+            eml.AppendLine($"From: wic-tracker@eon.com");
+            if (!string.IsNullOrEmpty(toEmail)) eml.AppendLine($"To: {toEmail}");
+            eml.AppendLine($"Subject: {subject}");
+            eml.AppendLine("MIME-Version: 1.0");
+            eml.AppendLine("X-Unsent: 1");
+            eml.AppendLine($"Content-Type: multipart/mixed; boundary=\"{boundary}\"");
+            eml.AppendLine();
+            eml.AppendLine($"--{boundary}");
+            eml.AppendLine("Content-Type: text/plain; charset=UTF-8");
+            eml.AppendLine("Content-Transfer-Encoding: 8bit");
+            eml.AppendLine();
+            eml.AppendLine(body);
+            eml.AppendLine($"--{boundary}");
+            eml.AppendLine($"Content-Type: application/pdf; name=\"{pdfName}\"");
+            eml.AppendLine($"Content-Disposition: attachment; filename=\"{pdfName}\"");
+            eml.AppendLine("Content-Transfer-Encoding: base64");
+            eml.AppendLine();
+            eml.Append(b64Lines);
+            eml.AppendLine($"--{boundary}--");
+
+            _context.AuditLogs.Add(new AuditLog
+            {
+                Kid        = _currentUser.Kid ?? "ANONYMOUS",
+                Action     = "EmailDraft",
+                EntityName = nameof(ReturnDevice),
+                EntityId   = id.ToString(),
+                EntityLabel= device.SerialNumber,
+                Source     = "Web",
+                Route      = HttpContext.Request.Path.Value,
+                IpAddress  = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                Changes    = JsonSerializer.Serialize(new { toEmail, pdfName })
+            });
+            await _context.SaveChangesAsync();
+
+            var emlBytes = System.Text.Encoding.UTF8.GetBytes(eml.ToString());
+            return File(emlBytes, "message/rfc822", $"Rueckgabe_{safeSn}.eml");
+        }
+
         [HttpPost]
         public async Task<IActionResult> CaptureSignature(int id, string? signatureData)
         {
