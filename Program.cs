@@ -15,6 +15,7 @@ builder.Services.AddScoped<IAgentDeviceRepository, AgentDeviceRepository>();
 builder.Services.AddScoped<IIdempotencyService, IdempotencyService>();
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme).AddNegotiate();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUser, WindowsCurrentUser>();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
