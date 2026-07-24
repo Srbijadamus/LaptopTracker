@@ -3,7 +3,10 @@
     "allow": [
       "Bash(dotnet build *)",
       "Bash(cmd /c \"dotnet build 2>&1\")",
-      "Bash(pwsh *)"
+      "Bash(pwsh *)",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"C:\\\\GSDDashboard\\\\PS1_19_FinalBuildVerify.ps1\" 2>&1)",
+      "Bash(pwsh -NonInteractive -File PS1_19_FinalBuildVerify.ps1)",
+      "Bash(pwsh.exe *)"
     ]
   }
 }

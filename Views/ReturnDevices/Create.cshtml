@@ -7,6 +7,7 @@
     var curLoc = Model.Location ?? "";
     var locInList = eonLocations.Contains(curLoc);
     var showOther = !locInList && curLoc != "";
+    var prefillStatus = ViewData["StatusChoice"] as string;
 }
 @section Styles {
 <style>
@@ -73,9 +74,9 @@
           <div class="fg">
             <label>Status</label>
             <select name="statusChoice">
-              <option value="PendingPickup" selected="@(Model.Status == LaptopTracker.Models.ReturnDeviceStatus.PendingPickup ? "selected" : null)">Pending Pickup</option>
-              <option value="PickedUp" selected="@(Model.Status == LaptopTracker.Models.ReturnDeviceStatus.PickedUp ? "selected" : null)">Picked Up</option>
-              <option value="WicStock">WIC Stock</option>
+              <option value="PendingPickup" selected="@(prefillStatus == "PendingPickup" || (prefillStatus == null && Model.Status == LaptopTracker.Models.ReturnDeviceStatus.PendingPickup) ? "selected" : null)">Pending Pickup</option>
+              <option value="PickedUp" selected="@(prefillStatus == "PickedUp" || (prefillStatus == null && Model.Status == LaptopTracker.Models.ReturnDeviceStatus.PickedUp) ? "selected" : null)">Picked Up</option>
+              <option value="WicStock" selected="@(prefillStatus == "WicStock" ? "selected" : null)">WIC Stock</option>
             </select>
           </div>
 
@@ -213,8 +214,10 @@
             <input type="hidden" name="signatureData" id="sigData" />
           </div>
 
+          <input type="hidden" name="addAnother" id="addAnotherFlag" value="false" />
           <div class="form-actions form-full">
-            <button type="submit" class="btn-submit">Save</button>
+            <button type="submit" class="btn-submit" onclick="document.getElementById('addAnotherFlag').value='false'">Save</button>
+            <button type="submit" class="btn-submit" style="background:transparent;color:var(--accent);border:1px solid var(--accent);" onclick="document.getElementById('addAnotherFlag').value='true'">Save &amp; Add Another</button>
             <a href="/ReturnDevices" class="btn-cancel">Cancel</a>
           </div>
 

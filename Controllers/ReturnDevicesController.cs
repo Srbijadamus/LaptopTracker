@@ -84,13 +84,26 @@ namespace LaptopTracker.Controllers
         }
 
         [HttpGet]
-        public IActionResult Create(string? serialNumber)
+        public IActionResult Create(string? serialNumber, string? prefillLocation, string? prefillDeviceType,
+            string? prefillDeviceLocation, string? prefillDate, string? prefillRitm,
+            string? prefillStatus, string? prefillWorkOrder)
         {
-            return View(new ReturnDevice { Date = DateTime.Today, SerialNumber = serialNumber ?? string.Empty });
+            var d = new ReturnDevice
+            {
+                Date           = DateTime.TryParse(prefillDate, out var dt) ? dt : DateTime.Today,
+                SerialNumber   = serialNumber ?? string.Empty,
+                Location       = prefillLocation,
+                DeviceType     = string.IsNullOrEmpty(prefillDeviceType) ? "Lenovo" : prefillDeviceType,
+                DeviceLocation = string.IsNullOrEmpty(prefillDeviceLocation) ? "In WIC" : prefillDeviceLocation,
+                RITM           = prefillRitm ?? string.Empty,
+                WorkOrder      = prefillWorkOrder
+            };
+            ViewData["StatusChoice"] = prefillStatus;
+            return View(d);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(ReturnDevice device, List<IFormFile>? damagePhotos, string? signatureData, string? statusChoice)
+        public async Task<IActionResult> Create(ReturnDevice device, List<IFormFile>? damagePhotos, string? signatureData, string? statusChoice, string? addAnother)
         {
             if (statusChoice == "WicStock")
             {
@@ -105,7 +118,7 @@ namespace LaptopTracker.Controllers
                     Status          = WicStockStatus.Available
                 });
                 await _context.SaveChangesAsync();
-                return RedirectToAction("Index", "WicStockDevices");
+                return RedirectToAction("Index", "WicStock");
             }
 
             if (string.IsNullOrWhiteSpace(device.Location)) ModelState.AddModelError("Location", "Location is required.");
@@ -145,24 +158,42 @@ namespace LaptopTracker.Controllers
 
             if (!string.IsNullOrWhiteSpace(signatureData) && signatureData.StartsWith("data:image/png;base64,"))
             {
-                var base64 = signatureData["data:image/png;base64,".Length..];
-                var bytes = Convert.FromBase64String(base64);
-                var uniqueName = $"{Guid.NewGuid()}.png";
-                var savePath = Path.Combine(uploadDir, uniqueName);
-                await System.IO.File.WriteAllBytesAsync(savePath, bytes);
-                _context.ReturnDevicePhotos.Add(new ReturnDevicePhoto
+                try
                 {
-                    ReturnDeviceId   = device.Id,
-                    FilePath         = $"/uploads/{uniqueName}",
-                    OriginalFileName = "signature.png",
-                    UploadedAt       = DateTime.UtcNow,
-                    IsSignature      = true
-                });
-                photoAdded = true;
+                    var base64 = signatureData["data:image/png;base64,".Length..];
+                    var bytes = Convert.FromBase64String(base64);
+                    var uniqueName = $"{Guid.NewGuid()}.png";
+                    var savePath = Path.Combine(uploadDir, uniqueName);
+                    await System.IO.File.WriteAllBytesAsync(savePath, bytes);
+                    _context.ReturnDevicePhotos.Add(new ReturnDevicePhoto
+                    {
+                        ReturnDeviceId   = device.Id,
+                        FilePath         = $"/uploads/{uniqueName}",
+                        OriginalFileName = "signature.png",
+                        UploadedAt       = DateTime.UtcNow,
+                        IsSignature      = true
+                    });
+                    photoAdded = true;
+                }
+                catch (FormatException)
+                {
+                    // malformed base64 payload -- skip signature, device + damage photos still save
+                }
             }
 
             if (photoAdded)
                 await _context.SaveChangesAsync();
+
+            if (addAnother == "true")
+                return RedirectToAction(nameof(Create), new {
+                    prefillLocation       = device.Location,
+                    prefillDeviceType     = device.DeviceType,
+                    prefillDeviceLocation = device.DeviceLocation,
+                    prefillDate           = device.Date.ToString("yyyy-MM-dd"),
+                    prefillRitm           = device.RITM,
+                    prefillStatus         = statusChoice,
+                    prefillWorkOrder      = device.WorkOrder
+                });
 
             return RedirectToAction(nameof(Index));
         }
@@ -200,7 +231,7 @@ namespace LaptopTracker.Controllers
                     });
                 }
                 await _context.SaveChangesAsync();
-                return RedirectToAction("Index", "WicStockDevices");
+                return RedirectToAction("Index", "WicStock");
             }
 
             var statusEnum = Enum.TryParse<ReturnDeviceStatus>(status, out var s) ? s : ReturnDeviceStatus.PendingPickup;
@@ -263,7 +294,7 @@ namespace LaptopTracker.Controllers
 
         [HttpPost]
         [ActionName("BulkEdit")]
-        public async Task<IActionResult> BulkEditSave(int[] ids, string? status, string? deviceLocation, string? workOrder, string? location)
+        public async Task<IActionResult> BulkEditSave(int[] ids, string? status, string? deviceLocation, string? workOrder, string? location, string? pickupStatus)
         {
             if (ids == null || ids.Length == 0) return RedirectToAction(nameof(Index));
             var idList = ids.ToList();
@@ -281,6 +312,8 @@ namespace LaptopTracker.Controllers
                     d.WorkOrder = workOrder;
                 if (!string.IsNullOrWhiteSpace(location))
                     d.Location = location;
+                if (!string.IsNullOrWhiteSpace(pickupStatus))
+                    d.PickupStatus = pickupStatus;
             }
 
             await _context.SaveChangesAsync();
@@ -326,7 +359,11 @@ namespace LaptopTracker.Controllers
             }
 
             if (string.IsNullOrWhiteSpace(model.Location)) ModelState.AddModelError("Location", "Location is required.");
-            if (!ModelState.IsValid) return View(device);
+            if (!ModelState.IsValid)
+            {
+                model.Photos = device.Photos;
+                return View(model);
+            }
 
             device.SerialNumber              = model.SerialNumber;
             device.DeviceType                = model.DeviceType;
@@ -401,19 +438,26 @@ namespace LaptopTracker.Controllers
 
             if (!string.IsNullOrWhiteSpace(signatureData) && signatureData.StartsWith("data:image/png;base64,"))
             {
-                var base64 = signatureData["data:image/png;base64,".Length..];
-                var bytes = Convert.FromBase64String(base64);
-                var uniqueName = $"{Guid.NewGuid()}.png";
-                var savePath = Path.Combine(uploadDir, uniqueName);
-                await System.IO.File.WriteAllBytesAsync(savePath, bytes);
-
-                device.Photos.Add(new LaptopTracker.Models.ReturnDevicePhoto
+                try
                 {
-                    FilePath         = $"/uploads/{uniqueName}",
-                    OriginalFileName = "signature.png",
-                    UploadedAt       = DateTime.UtcNow,
-                    IsSignature      = true
-                });
+                    var base64 = signatureData["data:image/png;base64,".Length..];
+                    var bytes = Convert.FromBase64String(base64);
+                    var uniqueName = $"{Guid.NewGuid()}.png";
+                    var savePath = Path.Combine(uploadDir, uniqueName);
+                    await System.IO.File.WriteAllBytesAsync(savePath, bytes);
+
+                    device.Photos.Add(new LaptopTracker.Models.ReturnDevicePhoto
+                    {
+                        FilePath         = $"/uploads/{uniqueName}",
+                        OriginalFileName = "signature.png",
+                        UploadedAt       = DateTime.UtcNow,
+                        IsSignature      = true
+                    });
+                }
+                catch (FormatException)
+                {
+                    // malformed base64 payload -- skip signature, device changes still save
+                }
             }
 
             await _context.SaveChangesAsync();

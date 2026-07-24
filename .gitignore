@@ -23,3 +23,6 @@ Thumbs.db
 # Secrets / connection strings (VAZNO!)
 appsettings.Development.json
 secrets.json
+
+# Production uploads — irreplaceable personal data, never commit
+wwwroot/uploads/

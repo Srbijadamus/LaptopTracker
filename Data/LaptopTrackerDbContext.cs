@@ -25,12 +25,18 @@ namespace LaptopTracker.Data
 
             modelBuilder.Entity<ReturnDevice>()
                 .Property(d => d.Status).HasConversion<string>().HasMaxLength(32).IsRequired();
+            modelBuilder.Entity<ReturnDevice>()
+                .HasQueryFilter(d => !d.IsDeleted);
 
             modelBuilder.Entity<WicStockDevice>()
                 .Property(d => d.Status).HasConversion<string>().HasMaxLength(32).IsRequired();
+            modelBuilder.Entity<WicStockDevice>()
+                .HasQueryFilter(d => !d.IsDeleted);
 
             modelBuilder.Entity<LoanerDevice>()
                 .Property(d => d.Status).HasConversion<string>().HasMaxLength(32).IsRequired();
+            modelBuilder.Entity<LoanerDevice>()
+                .HasQueryFilter(d => !d.IsDeleted);
 
             modelBuilder.Entity<HandoverDevice>()
                 .HasOne(hd => hd.Handover)
@@ -41,6 +47,8 @@ namespace LaptopTracker.Data
                 .HasOne(p => p.ReturnDevice)
                 .WithMany(d => d.Photos)
                 .HasForeignKey(p => p.ReturnDeviceId);
+            modelBuilder.Entity<ReturnDevicePhoto>()
+                .HasQueryFilter(p => !p.ReturnDevice.IsDeleted);
 
             modelBuilder.Entity<IdempotencyRecord>()
                 .Property(r => r.RequestId).HasMaxLength(128).IsRequired();
