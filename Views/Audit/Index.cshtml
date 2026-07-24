@@ -1,0 +1,152 @@
+@model IEnumerable<LaptopTracker.Models.AuditLog>
+@{
+    ViewData["Title"] = "Audit Log";
+    var page       = (int)(ViewData["Page"] ?? 1);
+    var totalPages = (int)(ViewData["TotalPages"] ?? 1);
+    var total      = (int)(ViewData["Total"] ?? 0);
+    var allActions  = (ViewData["AllActions"]  as IEnumerable<string>) ?? Enumerable.Empty<string>();
+    var allEntities = (ViewData["AllEntities"] as IEnumerable<string>) ?? Enumerable.Empty<string>();
+    var kid        = (string?)(ViewData["Kid"]);
+    var action     = (string?)(ViewData["Action"]);
+    var entityName = (string?)(ViewData["EntityName"]);
+    var entityId   = (string?)(ViewData["EntityId"]);
+    var entityLabel= (string?)(ViewData["EntityLabel"]);
+    var from       = (string?)(ViewData["From"]);
+    var to         = (string?)(ViewData["To"]);
+}
+@section Styles {
+<style>
+.content{padding:24px 28px 0}
+.page-title{font-size:20px;font-weight:700;margin-bottom:16px;color:var(--text-primary)}
+.filter-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;background:var(--bg-panel);padding:14px 18px;border-radius:12px;border:1px solid var(--border)}
+.filter-bar input,.filter-bar select{padding:7px 11px;border:1px solid var(--border-input);border-radius:8px;font-size:13px;color:var(--text-primary);background:var(--bg-input);font-family:inherit;min-width:140px}
+.filter-bar button{padding:7px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
+.filter-bar a.clear{padding:7px 14px;border:1px solid var(--border-input);border-radius:8px;font-size:13px;color:var(--text-secondary);text-decoration:none;display:inline-block}
+.audit-table{width:100%;border-collapse:collapse;font-size:13px}
+.audit-table th{padding:9px 10px;text-align:left;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-secondary);border-bottom:2px solid var(--border);white-space:nowrap}
+.audit-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top;word-break:break-word;max-width:240px}
+.audit-table tr:hover td{background:var(--bg-hover)}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase}
+.badge-create{background:#16532420;color:#22c55e}
+.badge-update{background:#1d4ed820;color:#60a5fa}
+.badge-softdelete{background:#7f1d1d20;color:#f87171}
+.badge-restore{background:#78350f20;color:#fbbf24}
+.badge-harddelete{background:#3b082520;color:#e879f9}
+.badge-login{background:#1e3a5f20;color:#38bdf8}
+.badge-export{background:#14b8c420;color:#14b8c4}
+.badge-purgeold{background:#4a1d9620;color:#a78bfa}
+.badge-other{background:var(--bg-hover);color:var(--text-secondary)}
+.changes-cell{font-family:monospace;font-size:11px;color:var(--text-secondary);max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pagination{display:flex;gap:6px;align-items:center;padding:16px 0;flex-wrap:wrap}
+.pagination a,.pagination span{padding:6px 12px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none}
+.pagination a{border:1px solid var(--border-input);color:var(--text-secondary)}
+.pagination a:hover{background:var(--bg-hover)}
+.pagination .cur{background:var(--accent);color:#fff;border:none}
+.meta-line{font-size:12px;color:var(--text-muted);margin-bottom:12px}
+</style>
+}
+<div class="content">
+  <div class="page-title">Audit Log</div>
+  <form method="get" action="/Audit">
+    <div class="filter-bar">
+      <input name="kid" type="text" placeholder="KID (e.g. S69307)" value="@kid" />
+      <select name="action">
+        <option value="">All Actions</option>
+        @foreach (var a in allActions) {
+          <option value="@a" selected="@(action == a ? "selected" : null)">@a</option>
+        }
+      </select>
+      <select name="entityName">
+        <option value="">All Entities</option>
+        @foreach (var e in allEntities) {
+          <option value="@e" selected="@(entityName == e ? "selected" : null)">@e</option>
+        }
+      </select>
+      <input name="entityLabel" type="text" placeholder="Label / serial" value="@entityLabel" />
+      <input name="from" type="date" placeholder="From" value="@from" title="From date" />
+      <input name="to" type="date" placeholder="To" value="@to" title="To date" />
+      <button type="submit">Filter</button>
+      <a href="/Audit" class="clear">Clear</a>
+    </div>
+  </form>
+  <div class="meta-line">@total entries found — page @(page) of @totalPages</div>
+  <div style="overflow-x:auto">
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th>Timestamp (UTC)</th>
+        <th>KID</th>
+        <th>Action</th>
+        <th>Entity</th>
+        <th>ID</th>
+        <th>Label</th>
+        <th>Changes</th>
+        <th>Source</th>
+        <th>IP</th>
+      </tr>
+    </thead>
+    <tbody>
+    @if (!Model.Any()) {
+      <tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-muted)">No audit entries match the current filters.</td></tr>
+    }
+    @foreach (var row in Model) {
+      var badgeClass = row.Action switch {
+        "Create"     => "badge-create",
+        "Update"     => "badge-update",
+        "SoftDelete" => "badge-softdelete",
+        "Restore"    => "badge-restore",
+        "HardDelete" => "badge-harddelete",
+        "Login"      => "badge-login",
+        "Export"     => "badge-export",
+        "PurgeOld"   => "badge-purgeold",
+        _            => "badge-other"
+      };
+      <tr>
+        <td style="white-space:nowrap;font-size:12px">@row.TimestampUtc.ToString("yyyy-MM-dd HH:mm:ss")</td>
+        <td style="font-weight:600">@row.Kid</td>
+        <td><span class="badge @badgeClass">@row.Action</span></td>
+        <td>@row.EntityName</td>
+        <td style="font-size:12px">@row.EntityId</td>
+        <td>
+          @if (!string.IsNullOrWhiteSpace(row.EntityLabel) && !string.IsNullOrWhiteSpace(row.EntityName) && !string.IsNullOrWhiteSpace(row.EntityId)) {
+            var ctrl = row.EntityName switch {
+              "ReturnDevice"   => "ReturnDevices",
+              "LoanerDevice"   => "LoanerDevices",
+              "WicStockDevice" => "WicStock",
+              _ => null
+            };
+            if (ctrl is not null) {
+              <a href="/@ctrl/Edit/@row.EntityId" style="color:var(--accent)">@row.EntityLabel</a>
+            } else {
+              @row.EntityLabel
+            }
+          } else {
+            @row.EntityLabel
+          }
+        </td>
+        <td class="changes-cell" title="@row.Changes">@(row.Changes?.Length > 80 ? row.Changes[..80] + "…" : row.Changes)</td>
+        <td style="font-size:12px">@row.Source</td>
+        <td style="font-size:12px">@row.IpAddress</td>
+      </tr>
+    }
+    </tbody>
+  </table>
+  </div>
+  @if (totalPages > 1) {
+    <div class="pagination">
+      @if (page > 1) {
+        <a href="@Url.Action("Index", new { kid, action, entityName, entityId, entityLabel, from, to, page = page - 1 })">&laquo; Prev</a>
+      }
+      @for (int p = Math.Max(1, page - 3); p <= Math.Min(totalPages, page + 3); p++) {
+        if (p == page) {
+          <span class="cur">@p</span>
+        } else {
+          <a href="@Url.Action("Index", new { kid, action, entityName, entityId, entityLabel, from, to, page = p })">@p</a>
+        }
+      }
+      @if (page < totalPages) {
+        <a href="@Url.Action("Index", new { kid, action, entityName, entityId, entityLabel, from, to, page = page + 1 })">Next &raquo;</a>
+      }
+    </div>
+  }
+</div>
