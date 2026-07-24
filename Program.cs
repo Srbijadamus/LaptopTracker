@@ -1,5 +1,6 @@
 using LaptopTracker.Data;
 using LaptopTracker.Services;
+using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,8 @@ builder.Services.AddDbContext<LaptopTrackerDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IAgentDeviceRepository, AgentDeviceRepository>();
 builder.Services.AddScoped<IIdempotencyService, IdempotencyService>();
+builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme).AddNegotiate();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -43,7 +46,15 @@ app.UseRequestLocalization(new RequestLocalizationOptions()
     .SetDefaultCulture("en-US")
     .AddSupportedCultures("en-US", "de-DE")
     .AddSupportedUICultures("en-US", "de-DE"));
+app.UseAuthentication();
 app.UseAuthorization();
+
+// TEMP diagnostic — remove in Phase 7
+app.MapGet("/whoami", (HttpContext ctx) => Results.Json(new {
+    name = ctx.User?.Identity?.Name,
+    authType = ctx.User?.Identity?.AuthenticationType,
+    isAuth = ctx.User?.Identity?.IsAuthenticated
+})).AllowAnonymous();
 
 app.MapControllers();
 app.MapControllerRoute(
