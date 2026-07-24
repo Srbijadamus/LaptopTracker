@@ -1,0 +1,55 @@
+@{
+    Layout = null;
+    var kid = (string?)ViewBag.Kid;
+    var authType = (string?)ViewBag.AuthType;
+}
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>WIC Asset Tracker – Identitätsprüfung</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{background:#1a1d27;border:1px solid #2d3148;border-radius:16px;padding:40px 48px;max-width:480px;width:100%;text-align:center}
+.icon{font-size:48px;margin-bottom:16px}
+.title{font-size:22px;font-weight:700;margin-bottom:8px}
+.sub{font-size:14px;color:#94a3b8;margin-bottom:28px}
+.kid-box{background:#0d1b2a;border:2px solid #14b8c4;border-radius:12px;padding:16px 24px;margin-bottom:24px}
+.kid-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:#14b8c4;margin-bottom:6px}
+.kid-value{font-size:32px;font-weight:800;color:#14b8c4;letter-spacing:0.04em}
+.auth-type{font-size:12px;color:#64748b;margin-top:4px}
+.success{color:#22c55e;font-weight:600;font-size:15px;margin-bottom:8px}
+.anon-warn{color:#f87171;font-weight:600;font-size:15px;margin-bottom:8px}
+.note{font-size:12px;color:#475569;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="card">
+  @if (!string.IsNullOrWhiteSpace(kid) && kid != "ANONYMOUS") {
+    <div class="icon">&#x2705;</div>
+    <div class="title">Identität erkannt</div>
+    <div class="sub">Ihre Domain-Anmeldung wurde erfolgreich übertragen.</div>
+    <div class="kid-box">
+      <div class="kid-label">Ihre KID</div>
+      <div class="kid-value">@kid</div>
+      @if (!string.IsNullOrWhiteSpace(authType)) {
+        <div class="auth-type">Auth: @authType</div>
+      }
+    </div>
+    <div class="success">&#x1F4CB; Ihre KID wurde protokolliert. Sie können diese Seite schließen.</div>
+  } else {
+    <div class="icon">&#x26A0;&#xFE0F;</div>
+    <div class="title">Identität nicht erkannt</div>
+    <div class="sub">Bitte melden Sie dies dem Administrator.</div>
+    <div class="kid-box" style="border-color:#f87171">
+      <div class="kid-label" style="color:#f87171">Status</div>
+      <div class="kid-value" style="color:#f87171;font-size:20px">ANONYMOUS</div>
+    </div>
+    <div class="anon-warn">Domain-Authentifizierung nicht übertragen — bitte Administrator informieren.</div>
+  }
+  <div class="note">WIC Asset Tracker — Identitätsprüfung für Zugriffsvorbereitung</div>
+</div>
+</body>
+</html>
