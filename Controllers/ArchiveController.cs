@@ -1,16 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LaptopTracker.Data;
+using LaptopTracker.Models;
+using LaptopTracker.Services;
 
 namespace LaptopTracker.Controllers
 {
     public class ArchiveController : Controller
     {
         private readonly LaptopTrackerDbContext _context;
+        private readonly ICurrentUser _currentUser;
 
-        public ArchiveController(LaptopTrackerDbContext context)
+        public ArchiveController(LaptopTrackerDbContext context, ICurrentUser currentUser)
         {
             _context = context;
+            _currentUser = currentUser;
         }
 
         public async Task<IActionResult> Index()
@@ -110,6 +114,20 @@ namespace LaptopTracker.Controllers
                 _context.LoanerDevices.RemoveRange(oldLoaners);
                 _context.ReturnDevices.RemoveRange(oldReturns);
                 _context.WicStockDevices.RemoveRange(oldWic);
+                await _context.SaveChangesAsync();  // engine logs individual HardDelete rows
+
+                _context.AuditLogs.Add(new AuditLog
+                {
+                    Kid        = _currentUser.Kid ?? "ANONYMOUS",
+                    Action     = "PurgeOld",
+                    EntityName = "BulkOp",
+                    EntityId   = "",
+                    Changes    = $"{{\"purgedCount\":{total},\"cutoffDays\":30}}",
+                    Source     = "Web",
+                    IpAddress  = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    Route      = HttpContext.Request.Path.Value,
+                    RequestId  = HttpContext.TraceIdentifier
+                });
                 await _context.SaveChangesAsync();
             }
 

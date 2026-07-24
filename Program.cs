@@ -49,6 +49,7 @@ app.UseRequestLocalization(new RequestLocalizationOptions()
     .AddSupportedUICultures("en-US", "de-DE"));
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<LoginAuditMiddleware>();
 
 // TEMP diagnostic — remove in Phase 7
 app.MapGet("/whoami", (HttpContext ctx) => Results.Json(new {

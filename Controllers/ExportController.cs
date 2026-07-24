@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LaptopTracker.Data;
+using LaptopTracker.Models;
+using LaptopTracker.Services;
 using ClosedXML.Excel;
 
 namespace LaptopTracker.Controllers
@@ -8,10 +10,28 @@ namespace LaptopTracker.Controllers
     public class ExportController : Controller
     {
         private readonly LaptopTrackerDbContext _context;
+        private readonly ICurrentUser _currentUser;
 
-        public ExportController(LaptopTrackerDbContext context)
+        public ExportController(LaptopTrackerDbContext context, ICurrentUser currentUser)
         {
             _context = context;
+            _currentUser = currentUser;
+        }
+
+        private async Task WriteExportAudit(string entityName, string? entityId = null)
+        {
+            _context.AuditLogs.Add(new AuditLog
+            {
+                Kid        = _currentUser.Kid ?? "ANONYMOUS",
+                Action     = "Export",
+                EntityName = entityName,
+                EntityId   = entityId ?? "",
+                Source     = "Web",
+                IpAddress  = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                Route      = HttpContext.Request.Path.Value,
+                RequestId  = HttpContext.TraceIdentifier
+            });
+            await _context.SaveChangesAsync();
         }
 
         public async Task<IActionResult> ExportAll()
@@ -93,6 +113,7 @@ namespace LaptopTracker.Controllers
             wb.SaveAs(stream);
             stream.Position = 0;
             var fileName = $"WIC_Asset_Tracker_Export_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
+            await WriteExportAudit("ReturnDevice+WicStockDevice+LoanerDevice");
             return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
@@ -137,6 +158,7 @@ namespace LaptopTracker.Controllers
             wb.SaveAs(stream);
             stream.Position = 0;
             var fileName = $"WIC_Export_Selected_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
+            await WriteExportAudit("ReturnDevice", string.Join(",", ids));
             return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
     }
