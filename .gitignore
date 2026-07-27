@@ -26,3 +26,6 @@ secrets.json
 
 # Production uploads — irreplaceable personal data, never commit
 wwwroot/uploads/
+
+LaptopTrackerpublish/
+Tempemltest.txt
