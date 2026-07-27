@@ -1,7 +1,9 @@
 @model LaptopTracker.Models.LoanerDevice
 @using LaptopTracker.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
-    ViewData["Title"] = "Edit Loaner Device";
+    ViewData["Title"] = Localizer["PageTitle"].Value;
     var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Mini Desktop" };
     var eonLocations = LocationList.Locations.OrderBy(l => l).ToList();
     var wicOptions = LocationList.SiteLocations.OrderBy(l => l).ToList();
@@ -12,7 +14,7 @@
 @section Styles {
 <style>
 .back{padding:9px 18px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;border:1px solid var(--accent);color:var(--accent);background:transparent;display:inline-block;margin-bottom:16px}
-.content{padding:24px 28px 0}
+.content{padding:0}
 .page-title{font-size:20px;font-weight:700;margin-bottom:20px;color:var(--text-primary)}
 .form-card{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:28px 32px;max-width:860px}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px 24px}
@@ -33,8 +35,8 @@
 </style>
 }
   <div class="content">
-    <a href="/LoanerDevices" class="back">&larr; Back</a>
-    <div class="page-title">Edit Loaner Device — @Model.SerialNumber</div>
+    <a href="/LoanerDevices" class="back">&larr; @Localizer["BtnBack"]</a>
+    <div class="page-title">@Localizer["PageTitlePrefix"] @Model.SerialNumber</div>
     <div class="form-card">
       <form method="post" action="/LoanerDevices/Edit/@Model.Id">
         <input type="hidden" name="Id" value="@Model.Id" />
@@ -42,12 +44,12 @@
         <div class="form-grid">
 
           <div class="fg">
-            <label>Serial Number *</label>
+            <label>@Localizer["FieldSerialRequired"]</label>
             <input name="SerialNumber" type="text" value="@Model.SerialNumber" required />
           </div>
 
           <div class="fg">
-            <label>Device Type</label>
+            <label>@Localizer["FieldDeviceType"]</label>
             <select name="DeviceType">
               @foreach (var t in deviceTypes)
               {
@@ -62,31 +64,31 @@
           </div>
 
           <div class="fg">
-            <label>Date</label>
+            <label>@Localizer["FieldDate"]</label>
             <input name="Date" type="date" value="@Model.Date.ToString("yyyy-MM-dd")" />
           </div>
 
           <div class="fg">
-            <label>Device Status</label>
+            <label>@Localizer["FieldDeviceStatus"]</label>
             <select name="DeviceLocation">
-              <option value="In WIC" selected="@(curLoc == "In WIC" ? "selected" : null)">In WIC</option>
-              <option value="In Use" selected="@(curLoc == "In Use" ? "selected" : null)">In Use</option>
-              <option value="In Transit" selected="@(curLoc == "In Transit" ? "selected" : null)">In Transit</option>
+              <option value="In WIC" selected="@(curLoc == "In WIC" ? "selected" : null)">@StatusLocalizer.GetDeviceLocation("In WIC", StatusLoc)</option>
+              <option value="In Use" selected="@(curLoc == "In Use" ? "selected" : null)">@StatusLocalizer.GetDeviceLocation("In Use", StatusLoc)</option>
+              <option value="In Transit" selected="@(curLoc == "In Transit" ? "selected" : null)">@StatusLocalizer.GetDeviceLocation("In Transit", StatusLoc)</option>
             </select>
           </div>
 
           <div class="fg">
-            <label>Status</label>
+            <label>@Localizer["FieldStatus"]</label>
             <select name="Status">
-              <option value="Available" selected="@(Model.Status == LaptopTracker.Models.LoanerStatus.Available ? "selected" : null)">Available</option>
-              <option value="NotAvailable" selected="@(Model.Status == LaptopTracker.Models.LoanerStatus.NotAvailable ? "selected" : null)">Not Available</option>
+              <option value="Available" selected="@(Model.Status == LaptopTracker.Models.LoanerStatus.Available ? "selected" : null)">@StatusLocalizer.Get(LaptopTracker.Models.LoanerStatus.Available, StatusLoc)</option>
+              <option value="NotAvailable" selected="@(Model.Status == LaptopTracker.Models.LoanerStatus.NotAvailable ? "selected" : null)">@StatusLocalizer.Get(LaptopTracker.Models.LoanerStatus.NotAvailable, StatusLoc)</option>
             </select>
           </div>
 
           <div class="fg">
-            <label>WIC (Office Location) *</label>
+            <label>@Localizer["FieldWic"]</label>
             <select name="WIC" required>
-              <option value="">— Select WIC —</option>
+              <option value="">@Localizer["SelectWicPlaceholder"]</option>
               @foreach (var w in wicOptions)
               {
                 <option value="@w" selected="@(Model.WIC == w ? "selected" : null)">@w</option>
@@ -95,32 +97,32 @@
           </div>
 
           <div class="fg form-full">
-            <label>KID (Konzern-ID) <span class="hint">(optional)</span></label>
+            <label>@Localizer["FieldKid"] <span class="hint">@Localizer["HintOptional"]</span></label>
             <div class="kid-row">
               <input id="kidInput" name="KID" type="text" value="@Model.KID" placeholder="e.g. K12345" />
-              <button type="button" class="btn-clear-kid" onclick="clearKid()" title="Clear KID">&#x2715; Clear KID</button>
+              <button type="button" class="btn-clear-kid" onclick="clearKid()" title="@Localizer["BtnClearKid"]">@Localizer["BtnClearKid"]</button>
             </div>
           </div>
           <div class="fg form-full">
-            <label>User Address <span class="hint">(where it is)</span></label>
+            <label>@Localizer["FieldUserAddress"] <span class="hint">@Localizer["HintWhereItIs"]</span></label>
             <input name="UserAddress" type="text" value="@Model.UserAddress" placeholder="e.g. Helmstedt, Schillerstr. 3 (38350)" />
           </div>
 
           <div class="fg">
-            <label>Handed To <span class="hint">(optional)</span></label>
+            <label>@Localizer["FieldHandedTo"] <span class="hint">@Localizer["HintOptional"]</span></label>
             <input name="KidHandedTo" type="text" value="@Model.KidHandedTo" />
           </div>
 
           <div class="fg">
-            <label>Date Handed Over <span class="hint">(optional)</span></label>
+            <label>@Localizer["FieldDateHandedOver"] <span class="hint">@Localizer["HintOptional"]</span></label>
             <input name="DateHandedOver" type="date" value="@(Model.DateHandedOver?.ToString("yyyy-MM-dd") ?? "")" />
           </div>
 
           <div class="form-actions form-full">
-            <button type="submit" class="btn-submit">Save Changes</button>
-            <a href="/LoanerDevices" class="btn-cancel">Cancel</a>
-            <a href="/Audit?entityName=LoanerDevice&amp;entityId=@Model.Id" class="btn-cancel" style="font-size:12px">&#x1F4CB; History</a>
-            <button type="button" class="btn-delete" onclick="deleteDevice()">&#x1F5D1; Delete Device</button>
+            <button type="submit" class="btn-submit">@Localizer["BtnSaveChanges"]</button>
+            <a href="/LoanerDevices" class="btn-cancel">@Localizer["BtnCancel"]</a>
+            <a href="/Audit?entityName=LoanerDevice&amp;entityId=@Model.Id" class="btn-cancel" style="font-size:12px">@Localizer["BtnHistory"]</a>
+            <button type="button" class="btn-delete" onclick="deleteDevice()">@Localizer["BtnDeleteDevice"]</button>
           </div>
 
         </div>
@@ -151,6 +153,3 @@ function deleteDevice() {
 }
 </script>
 }
-
-
-

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="PageTitle" xml:space="preserve"><value>Archiv</value></data>
+  <data name="PageSub" xml:space="preserve"><value>Soft-gelöschte Geräte werden 30 Tage aufbewahrt und danach dauerhaft entfernt. Stellen Sie Einträge vor Ablauf der Frist wieder her.</value></data>
+  <data name="BtnPurge" xml:space="preserve"><value>&#x1F5D1; Einträge älter als 30 Tage löschen</value></data>
+  <data name="ConfirmPurge" xml:space="preserve"><value>Alle Einträge älter als 30 Tage dauerhaft löschen? Diese Aktion kann nicht rückgängig gemacht werden.</value></data>
+  <data name="EmptyArchive" xml:space="preserve"><value>Keine archivierten Geräte. Gelöschte Einträge erscheinen hier für 30 Tage, bevor sie dauerhaft entfernt werden.</value></data>
+  <data name="SectionLoaners" xml:space="preserve"><value>Leihgeräte</value></data>
+  <data name="SectionReturns" xml:space="preserve"><value>Rückgaben</value></data>
+  <data name="SectionWic" xml:space="preserve"><value>WIC-Bestand</value></data>
+  <data name="ColSerial" xml:space="preserve"><value>Seriennummer</value></data>
+  <data name="ColType" xml:space="preserve"><value>Typ</value></data>
+  <data name="ColOrigDate" xml:space="preserve"><value>Ursprüngliches Datum</value></data>
+  <data name="ColDeletedOn" xml:space="preserve"><value>Gelöscht am</value></data>
+  <data name="ColDaysRemaining" xml:space="preserve"><value>Verbleibende Tage</value></data>
+  <data name="DaySingular" xml:space="preserve"><value>Tag</value></data>
+  <data name="DayPlural" xml:space="preserve"><value>Tage</value></data>
+  <data name="BtnRestore" xml:space="preserve"><value>&#x21A9; Wiederherstellen</value></data>
+  <data name="BadgeLoaner" xml:space="preserve"><value>Leihgerät</value></data>
+  <data name="BadgeReturn" xml:space="preserve"><value>Rückgabe</value></data>
+  <data name="BadgeWic" xml:space="preserve"><value>WIC-Bestand</value></data>
+</root>

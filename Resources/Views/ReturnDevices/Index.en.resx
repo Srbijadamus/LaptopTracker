@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="PageTitle" xml:space="preserve"><value>Returns</value></data>
+  <data name="FilterWoAll" xml:space="preserve"><value>All</value></data>
+  <data name="FilterWoHas" xml:space="preserve"><value>Has Work Order</value></data>
+  <data name="FilterWoNo" xml:space="preserve"><value>No Work Order</value></data>
+  <data name="FilterFromDate" xml:space="preserve"><value>From Date</value></data>
+  <data name="FilterToDate" xml:space="preserve"><value>To Date</value></data>
+
+  <!-- Scan panel -->
+  <data name="ScanTitle" xml:space="preserve"><value>Scan Device</value></data>
+  <data name="ScanLabelSerial" xml:space="preserve"><value>Serial Number</value></data>
+  <data name="ScanPlaceholder" xml:space="preserve"><value>Scan or type serial…</value></data>
+  <data name="ScanBtn" xml:space="preserve"><value>Scan</value></data>
+
+  <!-- Tabs and top toolbar -->
+  <data name="TabActive" xml:space="preserve"><value>Active</value></data>
+  <data name="TabCollected" xml:space="preserve"><value>Collected</value></data>
+  <data name="BtnAddDevice" xml:space="preserve"><value>+ Add Device</value></data>
+
+  <!-- Search -->
+  <data name="SearchPlaceholder" xml:space="preserve"><value>Search by serial, RITM, work order…</value></data>
+  <data name="BtnSearch" xml:space="preserve"><value>Search</value></data>
+
+  <!-- Filter dropdowns -->
+  <data name="FilterAllStatuses" xml:space="preserve"><value>All Statuses</value></data>
+  <data name="FilterAllLocations" xml:space="preserve"><value>All Locations</value></data>
+  <data name="FilterAllTypes" xml:space="preserve"><value>All Types</value></data>
+  <data name="BtnClearFilters" xml:space="preserve"><value>&#x2715; Clear Filters</value></data>
+
+  <!-- Table headers (active tab) -->
+  <data name="ColSelectAll" xml:space="preserve"><value>Select all</value></data>
+  <data name="ColSerial" xml:space="preserve"><value>Serial Number</value></data>
+  <data name="ColType" xml:space="preserve"><value>Type</value></data>
+  <data name="ColDate" xml:space="preserve"><value>Date</value></data>
+  <data name="ColDeviceLocation" xml:space="preserve"><value>Device Location</value></data>
+  <data name="ColStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="ColWorkOrder" xml:space="preserve"><value>Work Order</value></data>
+  <data name="ColPickupStatus" xml:space="preserve"><value>Pickup Status</value></data>
+  <data name="ColLocation" xml:space="preserve"><value>Location</value></data>
+  <data name="ColCharger" xml:space="preserve"><value>Charger</value></data>
+  <data name="ColPowerCable" xml:space="preserve"><value>Power Cable</value></data>
+
+  <!-- Empty states -->
+  <data name="EmptyNoDevices" xml:space="preserve"><value>No return devices found.</value></data>
+  <data name="EmptyClearFilters" xml:space="preserve"><value>Try clearing the filters.</value></data>
+
+  <!-- Row actions -->
+  <data name="CellDocument" xml:space="preserve"><value>Document</value></data>
+  <data name="CellEdit" xml:space="preserve"><value>Edit</value></data>
+  <data name="CellEmailDraft" xml:space="preserve"><value>&#x2709; Email</value></data>
+  <data name="EmailWarnMsg" xml:space="preserve"><value>Enter the user's email address in Outlook</value></data>
+  <data name="CellDelete" xml:space="preserve"><value>Delete</value></data>
+
+  <!-- Bulk action bar -->
+  <data name="BulkSetWo" xml:space="preserve"><value>Set Work Order:</value></data>
+  <data name="BulkWoPlaceholder" xml:space="preserve"><value>Work Order number…</value></data>
+  <data name="BulkApply" xml:space="preserve"><value>Apply to Selected</value></data>
+  <data name="BulkEditSelected" xml:space="preserve"><value>Edit Selected</value></data>
+  <data name="BulkHandOver" xml:space="preserve"><value>Hand Over Devices</value></data>
+  <data name="BulkExport" xml:space="preserve"><value>&#x2B07; Export</value></data>
+  <data name="BulkCopy" xml:space="preserve"><value>&#x1F4CB; Copy</value></data>
+
+  <!-- Collected tab -->
+  <data name="CollectedColCable" xml:space="preserve"><value>Cable</value></data>
+  <data name="CollectedEmpty" xml:space="preserve"><value>No collected devices.</value></data>
+</root>

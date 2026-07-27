@@ -1,8 +1,9 @@
 @model LaptopTracker.Models.DashboardViewModel
 @using System.Globalization
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
     ViewData["Title"] = "Dashboard";
-    Layout = "_LayoutV2";
     var ci = CultureInfo.CurrentUICulture;
     var today = DateTime.Now;
     var dateLine = today.ToString("dddd, d. MMMM yyyy", ci);
@@ -12,6 +13,30 @@
         {"PurgeOld","#C084FC"},{"AuthCheck","#FCD34D"},{"EmailDraft","#F472B6"},
         {"Document","#94A3B8"}
     };
+    // Translation lambdas for dynamic model values (controller emits German keys)
+    var kindLabel = new Func<string, string>(k => k switch {
+        "Rückgaben"   => Localizer["Kind_Returns"].Value,
+        "WIC-Bestand" => Localizer["Kind_WicStock"].Value,
+        "Leihgeräte"  => Localizer["Kind_Loaners"].Value,
+        _ => k
+    });
+    var statusLabel = new Func<string, string>(s => s switch {
+        "Ausstehend"  => Localizer["Status_Pending"].Value,
+        "Abgeholt"    => Localizer["Status_Collected"].Value,
+        "Verfügbar"   => Localizer["Status_Available"].Value,
+        "Nicht verf." => Localizer["Status_Unavailable"].Value,
+        "In Nutzung"  => Localizer["Status_InUse"].Value,
+        _ => s
+    });
+    var sliceLabel = new Func<string, string>(s => s switch {
+        "Abholung ausstehend"  => Localizer["Slice_PendingPickup"].Value,
+        "Abgeholt"             => Localizer["Slice_Collected"].Value,
+        "WIC Verfügbar"        => Localizer["Slice_WicAvailable"].Value,
+        "WIC Nicht verf."      => Localizer["Slice_WicUnavailable"].Value,
+        "Leihger. Verfügbar"   => Localizer["Slice_LoanerAvailable"].Value,
+        "Leihger. In Nutzung"  => Localizer["Slice_LoanerInUse"].Value,
+        _ => s
+    });
 }
 @section Styles {
 <style>
@@ -96,7 +121,7 @@
 
 <div class="db-header">
   <div class="db-title">Dashboard</div>
-  <div class="db-sub">GSD-Übersicht &mdash; @dateLine</div>
+  <div class="db-sub">@Localizer["PageSub"] &mdash; @dateLine</div>
 </div>
 
 <!-- ── KPI Cards ───────────────────────────────────────────────────── -->
@@ -104,26 +129,26 @@
   <a href="/ReturnDevices" class="kpi-card">
     <div class="kpi-tile" style="background:var(--accent-soft)">&#x1F4E6;</div>
     <div class="kpi-num" style="color:var(--v2-accent)">@Model.ReturnCount</div>
-    <div class="kpi-label">Rückgaben</div>
-    <div class="kpi-sub">Alle Standorte</div>
+    <div class="kpi-label">@Localizer["KpiReturnsLabel"]</div>
+    <div class="kpi-sub">@Localizer["KpiReturnsSub"]</div>
   </a>
   <a href="/WicStock" class="kpi-card">
     <div class="kpi-tile" style="background:var(--purple-soft)">&#x1F5C4;&#xFE0F;</div>
     <div class="kpi-num" style="color:var(--purple)">@Model.WicStockCount</div>
-    <div class="kpi-label">WIC-Bestand</div>
-    <div class="kpi-sub">Tauschpool</div>
+    <div class="kpi-label">@Localizer["KpiWicLabel"]</div>
+    <div class="kpi-sub">@Localizer["KpiWicSub"]</div>
   </a>
   <a href="/LoanerDevices" class="kpi-card">
     <div class="kpi-tile" style="background:var(--green-soft)">&#x1F4BB;</div>
     <div class="kpi-num" style="color:var(--green)">@Model.LoanerCount</div>
-    <div class="kpi-label">Leihgeräte</div>
-    <div class="kpi-sub">Aktive Leihen</div>
+    <div class="kpi-label">@Localizer["KpiLoanersLabel"]</div>
+    <div class="kpi-sub">@Localizer["KpiLoanersSub"]</div>
   </a>
   <a href="/ReturnDevices?status=PendingPickup" class="kpi-card">
     <div class="kpi-tile" style="background:var(--amber-soft)">&#x23F3;</div>
     <div class="kpi-num" style="color:var(--amber)">@Model.PendingCount</div>
-    <div class="kpi-label">Ausstehend</div>
-    <div class="kpi-sub">Abholung / Transit</div>
+    <div class="kpi-label">@Localizer["KpiPendingLabel"]</div>
+    <div class="kpi-sub">@Localizer["KpiPendingSub"]</div>
   </a>
 </div>
 
@@ -132,7 +157,7 @@
   <!-- Doughnut: status distribution -->
   <div class="panel">
     <div class="panel-header">
-      <span class="panel-title">Status-Verteilung</span>
+      <span class="panel-title">@Localizer["ChartStatusTitle"]</span>
     </div>
     @if (Model.StatusDistribution.Any(s => s.Count > 0)) {
       <div class="donut-wrap">
@@ -143,26 +168,26 @@
           @foreach (var s in Model.StatusDistribution.Where(s => s.Count > 0)) {
             <div class="legend-row">
               <span class="legend-dot" style="background:@s.Color"></span>
-              <span class="legend-lbl">@s.Label</span>
+              <span class="legend-lbl">@sliceLabel(s.Label)</span>
               <span class="legend-cnt">@s.Count</span>
             </div>
           }
         </div>
       </div>
     } else {
-      <div class="panel-empty">Keine Einträge</div>
+      <div class="panel-empty">@Localizer["PanelEmpty"]</div>
     }
   </div>
 
   <!-- Bar: devices by kind -->
   <div class="panel">
     <div class="panel-header">
-      <span class="panel-title">Geräte nach Typ</span>
+      <span class="panel-title">@Localizer["ChartKindTitle"]</span>
     </div>
     @if (Model.DevicesByKind.Any(k => k.Count > 0)) {
       <canvas id="barChart" style="max-height:200px"></canvas>
     } else {
-      <div class="panel-empty">Keine Einträge</div>
+      <div class="panel-empty">@Localizer["PanelEmpty"]</div>
     }
   </div>
 </div>
@@ -172,8 +197,8 @@
   <!-- Recent devices -->
   <div class="panel">
     <div class="panel-header">
-      <span class="panel-title">Neueste Geräte</span>
-      <a href="/ReturnDevices" class="panel-link">Alle &rarr;</a>
+      <span class="panel-title">@Localizer["PanelRecentDevices"]</span>
+      <a href="/ReturnDevices" class="panel-link">@Localizer["PanelAllLink"] &rarr;</a>
     </div>
     @if (Model.RecentDevices.Any()) {
       @foreach (var d in Model.RecentDevices) {
@@ -189,29 +214,29 @@
               <div class="device-meta">@d.SerialNumber &middot; @d.RITM</div>
             </div>
             <div class="device-pills">
-              <span class="pill" style="background:@kindBg;color:@kindColor">@d.Kind</span>
-              <span class="pill" style="background:rgba(255,255,255,0.05);color:@d.StatusColor">@d.StatusLabel</span>
+              <span class="pill" style="background:@kindBg;color:@kindColor">@kindLabel(d.Kind)</span>
+              <span class="pill" style="background:rgba(255,255,255,0.05);color:@d.StatusColor">@statusLabel(d.StatusLabel)</span>
             </div>
           </div>
         </a>
       }
     } else {
-      <div class="panel-empty">Keine Einträge</div>
+      <div class="panel-empty">@Localizer["PanelEmpty"]</div>
     }
   </div>
 
   <!-- Recent audit -->
   <div class="panel">
     <div class="panel-header">
-      <span class="panel-title">Letzte Audit-Einträge</span>
+      <span class="panel-title">@Localizer["PanelRecentAudit"]</span>
       @if (Model.AuditAvailable) {
-        <a href="/Audit" class="panel-link">Audit-Log &rarr;</a>
+        <a href="/Audit" class="panel-link">@Localizer["PanelAuditLink"] &rarr;</a>
       }
     </div>
     @if (!Model.AuditAvailable) {
-      <div class="panel-empty">Audit-Log nicht verfügbar</div>
+      <div class="panel-empty">@Localizer["PanelAuditUnavailable"]</div>
     } else if (!Model.RecentAudits.Any()) {
-      <div class="panel-empty">Keine Einträge</div>
+      <div class="panel-empty">@Localizer["PanelEmpty"]</div>
     } else {
       @foreach (var a in Model.RecentAudits) {
         var dotColor = actionColors.TryGetValue(a.Action, out var ac) ? ac : "#8B949E";
@@ -234,6 +259,24 @@
 </div>
 
 @section Scripts {
+@{
+    // Re-declare lambdas here — @section Scripts compiles to a separate method
+    var kindLabel = new Func<string, string>(k => k switch {
+        "Rückgaben"   => Localizer["Kind_Returns"].Value,
+        "WIC-Bestand" => Localizer["Kind_WicStock"].Value,
+        "Leihgeräte"  => Localizer["Kind_Loaners"].Value,
+        _ => k
+    });
+    var sliceLabel = new Func<string, string>(s => s switch {
+        "Abholung ausstehend"  => Localizer["Slice_PendingPickup"].Value,
+        "Abgeholt"             => Localizer["Slice_Collected"].Value,
+        "WIC Verfügbar"        => Localizer["Slice_WicAvailable"].Value,
+        "WIC Nicht verf."      => Localizer["Slice_WicUnavailable"].Value,
+        "Leihger. Verfügbar"   => Localizer["Slice_LoanerAvailable"].Value,
+        "Leihger. In Nutzung"  => Localizer["Slice_LoanerInUse"].Value,
+        _ => s
+    });
+}
 <script src="/lib/chartjs/chart.umd.min.js"></script>
 <script>
 (function(){
@@ -241,12 +284,12 @@
   var gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)';
   var tickColor = isDark ? '#6E7681' : '#605e5c';
 
-  // Doughnut
+  // Doughnut — labels translated server-side via sliceLabel()
   var donutEl = document.getElementById('donutChart');
   if(donutEl){
     var slices = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
         Model.StatusDistribution.Where(s => s.Count > 0)
-            .Select(s => new { label = s.Label, count = s.Count, color = s.Color })
+            .Select(s => new { label = sliceLabel(s.Label), count = s.Count, color = s.Color })
             .ToList()));
     if(slices && slices.length){
       new Chart(donutEl, {
@@ -269,16 +312,16 @@
     }
   }
 
-  // Bar
+  // Bar — labels translated server-side via kindLabel()
   var barEl = document.getElementById('barChart');
   if(barEl){
     var kinds = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-        Model.DevicesByKind.Select(k => new { kind = k.Kind, count = k.Count }).ToList()));
+        Model.DevicesByKind.Select(k => new { label = kindLabel(k.Kind), count = k.Count }).ToList()));
     if(kinds && kinds.length){
       new Chart(barEl, {
         type: 'bar',
         data: {
-          labels: kinds.map(function(k){return k.kind;}),
+          labels: kinds.map(function(k){return k.label;}),
           datasets:[{
             data: kinds.map(function(k){return k.count;}),
             backgroundColor: ['#38BDF8','#A78BFA','#34D399'],

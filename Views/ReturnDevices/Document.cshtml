@@ -1,6 +1,9 @@
 @model LaptopTracker.Models.ReturnDevice
+@using LaptopTracker.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
-    ViewData["Title"] = $"Dokument – {Model.SerialNumber}";
+    ViewData["Title"] = $"{Localizer["PageTitlePrefix"].Value} {Model.SerialNumber}";
     var hasSig = Model.Photos?.Any(p => p.IsSignature) == true;
     var sig    = Model.Photos?.FirstOrDefault(p => p.IsSignature);
 }
@@ -26,20 +29,20 @@ canvas#sigPad{display:block;width:100%;height:160px;border:2px dashed var(--bord
 </style>
 }
 <div class="content">
-  <div class="page-title">Geräterückgabe-Dokument</div>
-  <div class="sub">@Model.SerialNumber – generiert als PDF zum Drucken oder Mailen</div>
+  <div class="page-title">@Localizer["PageHeading"]</div>
+  <div class="sub">@Model.SerialNumber – @Localizer["PageSub"]</div>
 
   <div class="doc-grid">
     <div class="doc-card">
-      <h3>Mitarbeiter</h3>
+      <h3>@Localizer["SectionEmployee"]</h3>
       <div class="doc-row"><span class="doc-label">KID</span><span class="doc-val">@(Model.KID ?? "–")</span></div>
-      <div class="doc-row"><span class="doc-label">Rückgabedatum</span><span class="doc-val">@Model.Date.ToString("dd.MM.yyyy")</span></div>
-      <div class="doc-row"><span class="doc-label">Standort</span><span class="doc-val">@(Model.Location ?? "–")</span></div>
+      <div class="doc-row"><span class="doc-label">@Localizer["LabelDate"]</span><span class="doc-val">@Model.Date.ToString("dd.MM.yyyy")</span></div>
+      <div class="doc-row"><span class="doc-label">@Localizer["LabelLocation"]</span><span class="doc-val">@(Model.Location ?? "–")</span></div>
     </div>
     <div class="doc-card">
-      <h3>Gerät</h3>
-      <div class="doc-row"><span class="doc-label">Seriennummer</span><span class="doc-val">@Model.SerialNumber</span></div>
-      <div class="doc-row"><span class="doc-label">Gerätetyp</span><span class="doc-val">@Model.DeviceType</span></div>
+      <h3>@Localizer["SectionDevice"]</h3>
+      <div class="doc-row"><span class="doc-label">@Localizer["LabelSerial"]</span><span class="doc-val">@Model.SerialNumber</span></div>
+      <div class="doc-row"><span class="doc-label">@Localizer["LabelDeviceType"]</span><span class="doc-val">@Model.DeviceType</span></div>
       <div class="doc-row"><span class="doc-label">RITM</span><span class="doc-val">@Model.RITM</span></div>
       @if (!string.IsNullOrWhiteSpace(Model.WorkOrder)) {
         <div class="doc-row"><span class="doc-label">Work Order</span><span class="doc-val">@Model.WorkOrder</span></div>
@@ -47,46 +50,46 @@ canvas#sigPad{display:block;width:100%;height:160px;border:2px dashed var(--bord
     </div>
     @if (Model.ChargerReturned.HasValue || Model.PowerCableReturned.HasValue) {
       <div class="doc-card">
-        <h3>Zubehör</h3>
+        <h3>@Localizer["SectionAccessories"]</h3>
         @if (Model.ChargerReturned.HasValue) {
-          <div class="doc-row"><span class="doc-label">Ladegerät</span><span class="doc-val">@(Model.ChargerReturned == true ? "Ja" : "Nein")</span></div>
+          <div class="doc-row"><span class="doc-label">@Localizer["LabelCharger"]</span><span class="doc-val">@StatusLocalizer.GetBoolBadge(Model.ChargerReturned, StatusLoc)</span></div>
         }
         @if (Model.PowerCableReturned.HasValue) {
-          <div class="doc-row"><span class="doc-label">Netzkabel</span><span class="doc-val">@(Model.PowerCableReturned == true ? "Ja" : "Nein")</span></div>
+          <div class="doc-row"><span class="doc-label">@Localizer["LabelPowerCable"]</span><span class="doc-val">@StatusLocalizer.GetBoolBadge(Model.PowerCableReturned, StatusLoc)</span></div>
         }
       </div>
     }
   </div>
 
   <div class="action-bar">
-    <a href="/ReturnDevices/DocumentPdf/@Model.Id" class="btn-primary" target="_blank">&#x2B07; Dokument herunterladen (PDF)</a>
-    <a href="/ReturnDevices/EmailDraft/@Model.Id" class="btn-outline">&#x2709; E-Mail-Entwurf (.eml)</a>
-    <a href="/ReturnDevices/Edit/@Model.Id" class="btn-outline">&#x2190; Zurück zum Datensatz</a>
+    <a href="/ReturnDevices/DocumentPdf/@Model.Id" class="btn-primary" target="_blank">@Localizer["BtnDownloadPdf"]</a>
+    <a href="/ReturnDevices/EmailDraft/@Model.Id" class="btn-outline">@Localizer["BtnEmailDraft"]</a>
+    <a href="/ReturnDevices/Edit/@Model.Id" class="btn-outline">@Localizer["BtnBack"]</a>
   </div>
 
   <!-- Signature section -->
   <div class="sig-section">
-    <h3>Unterschrift</h3>
+    <h3>@Localizer["SectionSignature"]</h3>
     @if (hasSig && sig is not null) {
       <div class="sig-existing">
-        <img src="@sig.FilePath" alt="Unterschrift" />
-        <p>Erfasst: @sig.UploadedAt.ToString("dd.MM.yyyy HH:mm")</p>
+        <img src="@sig.FilePath" alt="@Localizer["AltSignature"]" />
+        <p>@Localizer["LabelCapturedAt"] @sig.UploadedAt.ToString("dd.MM.yyyy HH:mm")</p>
       </div>
-      <p style="font-size:13px;color:var(--text-muted);margin-top:12px">Eine Unterschrift ist bereits vorhanden und wird im PDF angezeigt.</p>
+      <p style="font-size:13px;color:var(--text-muted);margin-top:12px">@Localizer["SigAlreadyPresent"]</p>
     } else {
-      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Noch keine Unterschrift erfasst. Hier unterschreiben lassen, dann Dokument herunterladen.</p>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">@Localizer["SigNotYet"]</p>
       <form method="post" action="/ReturnDevices/CaptureSignature/@Model.Id" id="sigForm">
         <div style="position:relative;max-width:600px">
           <canvas id="sigPad"></canvas>
           <button type="button" id="sigClear"
             style="position:absolute;top:8px;right:8px;padding:5px 12px;background:var(--bg-panel);border:1px solid var(--border-input);border-radius:6px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">
-            Löschen
+            @Localizer["BtnClear"]
           </button>
         </div>
         <input type="hidden" name="signatureData" id="sigData" />
         <div style="display:flex;gap:10px;margin-top:12px">
           <button type="submit" class="btn-primary" style="font-size:13px;padding:9px 18px">
-            &#x270F; Unterschrift speichern
+            @Localizer["BtnSaveSignature"]
           </button>
         </div>
       </form>

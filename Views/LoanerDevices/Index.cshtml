@@ -1,5 +1,8 @@
 @model List<LaptopTracker.Models.LoanerDevice>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
+    ViewData["Title"] = Localizer["PageTitle"].Value;
     var searchQuery      = ViewData["SearchQuery"]      as string;
     var statusFilter     = ViewData["StatusFilter"]     as string;
     var locationFilter   = ViewData["LocationFilter"]   as string;
@@ -12,32 +15,17 @@
         || !string.IsNullOrWhiteSpace(locationFilter) || !string.IsNullOrWhiteSpace(deviceTypeFilter)
         || !string.IsNullOrWhiteSpace(wicFilter);
 }
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Loaner Devices | WIC Asset Tracker</title>
-<link rel="stylesheet" href="/css/theme.css" />
-<script>(function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+@section Styles {
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg-page);color:var(--text-primary)}
-.page{min-height:100vh;padding-bottom:80px}
-.topbar{display:flex;flex-wrap:wrap;align-items:center;gap:0;padding:0 28px;background:var(--bg-topbar);border-bottom:1px solid var(--border);height:60px}
-.brand{font-size:17px;font-weight:800;color:var(--accent);text-decoration:none;margin-right:32px;white-space:nowrap}
-.nav-links{display:flex;gap:2px;align-items:center;flex:1}
-.nav-link{padding:8px 14px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:500;color:var(--text-secondary)}
-.nav-link:hover{background:var(--bg-hover);color:var(--text-primary)}
-.nav-link.active{background:var(--accent-bg);color:var(--accent);font-weight:600}
-.topbar-actions{display:flex;gap:10px;align-items:center}
+.content{padding:0}
 .btn-primary{padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;display:inline-block;cursor:pointer}
-.content{padding:20px 28px 0}
 .search-form{display:flex;gap:10px;margin-bottom:8px}
 .search-input{flex:1;padding:10px 14px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);outline:none}
 .search-input:focus{border-color:var(--accent)}
 .search-btn{padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
 .panel{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);overflow:hidden}
-table{width:100%;border-collapse:collapse}
+.table-scroll{overflow-x:auto;width:100%}
+table{width:100%;min-width:1100px;border-collapse:collapse}
 thead th{text-align:left;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg-thead);font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
 thead th:first-child{width:36px;padding-left:12px;padding-right:4px}
 tbody td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:14px;color:var(--text-primary);vertical-align:middle}
@@ -69,93 +57,92 @@ tbody tr:hover{background:var(--bg-hover)}
 .btn-row-del:hover{background:#c4314b;color:#fff}
 .kid-badge{display:inline-block;padding:2px 8px;background:var(--kid-badge-bg);color:var(--kid-badge-color);border-radius:999px;font-size:11px;font-weight:700}
 .row-checkbox{width:16px;height:16px;cursor:pointer;accent-color:var(--accent)}
-.bulk-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg-topbar);border-top:1px solid var(--border);padding:14px 28px;display:none;align-items:center;gap:14px;z-index:100;box-shadow:0 -2px 12px rgba(0,0,0,0.15)}
+.bulk-bar{position:fixed;bottom:0;left:var(--sidebar-w,280px);right:0;background:var(--bg-topbar);border-top:1px solid var(--border);padding:14px 28px;display:none;align-items:center;gap:14px;z-index:100;box-shadow:0 -2px 12px rgba(0,0,0,0.15)}
 .bulk-count{font-size:14px;font-weight:600;color:var(--text-primary);white-space:nowrap}
 .bulk-apply{padding:10px 22px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
 .bulk-edit{padding:10px 22px;background:var(--bg-panel);color:var(--accent);border:1px solid var(--accent);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
 </style>
-</head>
-<body>
-<div class="page">
-  <div style="padding:16px 28px 0;">
-    <div class="scan-panel">
-      <h3>Scan Device</h3>
-      <form method="post" action="/LoanerDevices/Scan" class="scan-row">
-        <div class="scan-field">
-          <label>Serial Number</label>
-          <input type="text" name="serialNumber" placeholder="Scan or type serial…" required />
-        </div>
-        <button type="submit" class="scan-submit">Scan</button>
-      </form>
-    </div>
-  </div>
-  <div class="content">
-    <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-      <a href="/LoanerDevices/Create" class="btn-primary" style="padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;color:#fff;background:var(--accent)">+ Add Device</a>
-    </div>
-  <div class="content">
-    <form method="get" action="/LoanerDevices">
-      <div class="search-form">
-        <input class="search-input" name="searchQuery" type="text" placeholder="Search by serial, RITM, KID, handed to…" value="@searchQuery" />
-        <button type="submit" class="search-btn">Search</button>
-      </div>
-      <div class="filter-bar">
-        <select name="statusFilter" class="filter-select" onchange="this.form.submit()">
-          <option value="">All Statuses</option>
-          <option value="Available" selected="@(statusFilter == "Available" ? "selected" : null)">Available</option>
-          <option value="NotAvailable" selected="@(statusFilter == "NotAvailable" ? "selected" : null)">Not Available</option>
-        </select>
-        <select name="locationFilter" class="filter-select" onchange="this.form.submit()">
-          <option value="">All Locations</option>
-          @foreach (var loc in allLocations)
-          {
-            <option value="@loc" selected="@(locationFilter == loc ? "selected" : null)">@loc</option>
-          }
-        </select>
-        <select name="deviceTypeFilter" class="filter-select" onchange="this.form.submit()">
-          <option value="">All Types</option>
-          @foreach (var t in allDeviceTypes)
-          {
-            <option value="@t" selected="@(deviceTypeFilter == t ? "selected" : null)">@t</option>
-          }
-        </select>
-        <select name="wicFilter" class="filter-select" onchange="this.form.submit()">
-          <option value="">All WICs</option>
-          @foreach (var w in allWicValues)
-          {
-            <option value="@w" selected="@(wicFilter == w ? "selected" : null)">@w</option>
-          }
-        </select>
-        @if (anyFilter)
-        {
-          <a href="/LoanerDevices" class="clear-link">&#x2715; Clear Filters</a>
-        }
-      </div>
-    </form>
+}
 
-    <div class="panel">
+<div class="scan-panel">
+  <h3>@Localizer["ScanTitle"]</h3>
+  <form method="post" action="/LoanerDevices/Scan" class="scan-row">
+    <div class="scan-field">
+      <label>@Localizer["ScanLabelSerial"]</label>
+      <input type="text" name="serialNumber" placeholder="@Localizer["ScanPlaceholder"]" required />
+    </div>
+    <button type="submit" class="scan-submit">@Localizer["ScanBtn"]</button>
+  </form>
+</div>
+
+<div class="content">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+    <a href="/LoanerDevices/Create" class="btn-primary">@Localizer["BtnAddDevice"]</a>
+  </div>
+
+  <form method="get" action="/LoanerDevices">
+    <div class="search-form">
+      <input class="search-input" name="searchQuery" type="text" placeholder="@Localizer["SearchPlaceholder"]" value="@searchQuery" />
+      <button type="submit" class="search-btn">@Localizer["BtnSearch"]</button>
+    </div>
+    <div class="filter-bar">
+      <select name="statusFilter" class="filter-select" onchange="this.form.submit()">
+        <option value="">@Localizer["FilterAllStatuses"]</option>
+        <option value="Available" selected="@(statusFilter == "Available" ? "selected" : null)">@StatusLocalizer.Get(LaptopTracker.Models.LoanerStatus.Available, StatusLoc)</option>
+        <option value="NotAvailable" selected="@(statusFilter == "NotAvailable" ? "selected" : null)">@StatusLocalizer.Get(LaptopTracker.Models.LoanerStatus.NotAvailable, StatusLoc)</option>
+      </select>
+      <select name="locationFilter" class="filter-select" onchange="this.form.submit()">
+        <option value="">@Localizer["FilterAllLocations"]</option>
+        @foreach (var loc in allLocations)
+        {
+          <option value="@loc" selected="@(locationFilter == loc ? "selected" : null)">@loc</option>
+        }
+      </select>
+      <select name="deviceTypeFilter" class="filter-select" onchange="this.form.submit()">
+        <option value="">@Localizer["FilterAllTypes"]</option>
+        @foreach (var t in allDeviceTypes)
+        {
+          <option value="@t" selected="@(deviceTypeFilter == t ? "selected" : null)">@t</option>
+        }
+      </select>
+      <select name="wicFilter" class="filter-select" onchange="this.form.submit()">
+        <option value="">@Localizer["FilterAllWics"]</option>
+        @foreach (var w in allWicValues)
+        {
+          <option value="@w" selected="@(wicFilter == w ? "selected" : null)">@w</option>
+        }
+      </select>
+      @if (anyFilter)
+      {
+        <a href="/LoanerDevices" class="clear-link">@Localizer["BtnClearFilters"]</a>
+      }
+    </div>
+  </form>
+
+  <div class="panel">
+    <div class="table-scroll">
       <table>
         <thead>
           <tr>
-            <th><input type="checkbox" id="selectAll" class="row-checkbox" title="Select all" /></th>
+            <th><input type="checkbox" id="selectAll" class="row-checkbox" title="@Localizer["ColSelectAll"]" /></th>
             <th>#</th>
-            <th>Serial Number</th>
-            <th>Type</th>
+            <th>@Localizer["ColSerial"]</th>
+            <th>@Localizer["ColType"]</th>
             <th>RITM</th>
-            <th>Date</th>
-            <th>Device Status</th>
-            <th>Status</th>
+            <th>@Localizer["ColDate"]</th>
+            <th>@Localizer["ColDeviceStatus"]</th>
+            <th>@Localizer["ColStatus"]</th>
             <th>WIC</th>
             <th>KID</th>
-            <th>Handed To</th>
-            <th>Handed Over</th>
+            <th>@Localizer["ColHandedTo"]</th>
+            <th>@Localizer["ColHandedOver"]</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
           @if (!Model.Any())
           {
-            <tr class="empty"><td colspan="13">No loaner devices found.@(anyFilter ? " Try clearing the filters." : "")</td></tr>
+            <tr class="empty"><td colspan="13">@Localizer["EmptyNoDevices"]@(anyFilter ? " " + Localizer["EmptyClearFilters"].Value : "")</td></tr>
           }
           else
           {
@@ -171,16 +158,16 @@ tbody tr:hover{background:var(--bg-hover)}
                 <td>@d.DeviceType</td>
                 <td>@d.RITM</td>
                 <td>@d.Date.ToString("dd/MM/yyyy")</td>
-                <td><span class="badge @locClass">@d.DeviceLocation</span></td>
-                <td><span class="badge @statusClass">@(d.Status == LaptopTracker.Models.LoanerStatus.Available ? "Available" : "Not Available")</span></td>
+                <td><span class="badge @locClass">@StatusLocalizer.GetDeviceLocation(d.DeviceLocation, StatusLoc)</span></td>
+                <td><span class="badge @statusClass">@StatusLocalizer.Get(d.Status, StatusLoc)</span></td>
                 <td class="muted">@(string.IsNullOrWhiteSpace(d.WIC) ? "—" : d.WIC)</td>
                 <td>@if (!string.IsNullOrWhiteSpace(d.KID)) { <span class="kid-badge">@d.KID</span> } else { <span class="muted">—</span> }</td>
                 <td class="muted">@(string.IsNullOrWhiteSpace(d.KidHandedTo) ? "—" : d.KidHandedTo)</td>
                 <td class="muted">@(d.DateHandedOver.HasValue ? d.DateHandedOver.Value.ToString("dd/MM/yyyy") : "—")</td>
                 <td style="white-space:nowrap">
-                  <a class="link" href="/LoanerDevices/Edit/@d.Id">Edit</a>
+                  <a class="link" href="/LoanerDevices/Edit/@d.Id">@Localizer["CellEdit"]</a>
                   &nbsp;
-                  <button type="button" class="btn-row-del" onclick="deleteDevice(@d.Id,'@Html.Raw(d.SerialNumber.Replace("'","\\'"  ))')">&#x1F5D1; Delete</button>
+                  <button type="button" class="btn-row-del" onclick="deleteDevice(@d.Id,'@Html.Raw(d.SerialNumber.Replace("'","\\'"  ))')">&#x1F5D1; @Localizer["CellDelete"]</button>
                 </td>
               </tr>
             }
@@ -188,16 +175,17 @@ tbody tr:hover{background:var(--bg-hover)}
         </tbody>
       </table>
     </div>
+  </div>
 
-    <!-- Bulk action bar -->
-    <div class="bulk-bar" id="bulkBar">
-      <span class="bulk-count" id="bulkCount">0 items selected</span>
-      <button type="button" class="bulk-edit" onclick="editSelected()">Edit Selected</button>
-      <button type="button" class="bulk-apply" onclick="handOverSelected()">Hand Over Devices</button>
-    </div>
+  <!-- Bulk action bar -->
+  <div class="bulk-bar" id="bulkBar">
+    <span class="bulk-count" id="bulkCount">0</span>
+    <button type="button" class="bulk-edit" onclick="editSelected()">@Localizer["BulkEditSelected"]</button>
+    <button type="button" class="bulk-apply" onclick="handOverSelected()">@Localizer["BulkHandOver"]</button>
   </div>
 </div>
-<script src="/js/theme.js"></script>
+
+@section Scripts {
 <script>
 var selectAll = document.getElementById('selectAll');
 var bulkBar   = document.getElementById('bulkBar');
@@ -210,7 +198,7 @@ function updateBulkBar() {
   var n = getChecked().length;
   var total = getAllChecks().length;
   bulkBar.style.display = n > 0 ? 'flex' : 'none';
-  bulkCount.textContent = n + ' item' + (n === 1 ? '' : 's') + ' selected';
+  bulkCount.textContent = n;
   selectAll.indeterminate = n > 0 && n < total;
   selectAll.checked = total > 0 && n === total;
 }
@@ -243,7 +231,4 @@ function handOverSelected() {
   window.location.href = url;
 }
 </script>
-</body>
-</html>
-
-
+}

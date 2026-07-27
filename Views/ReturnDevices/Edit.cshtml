@@ -1,5 +1,7 @@
 @model LaptopTracker.Models.ReturnDevice
 @using LaptopTracker.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
     ViewData["Title"] = "Edit Return Device";
     var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Mini Desktop" };
@@ -97,7 +99,7 @@
           </div>
 
           <div class="fg">
-            <label>Charger returned? (Ladegerät zurückgegeben?)</label>
+            <label>@Localizer["LblCharger"]</label>
             <select name="ChargerReturned">
               <option value="" selected="@(Model.ChargerReturned == null ? "selected" : null)">— Not specified —</option>
               <option value="true" selected="@(Model.ChargerReturned == true ? "selected" : null)">Yes</option>
@@ -106,7 +108,7 @@
           </div>
 
           <div class="fg">
-            <label>Power cable returned? (Netzkabel zurückgegeben?)</label>
+            <label>@Localizer["LblPowerCable"]</label>
             <select name="PowerCableReturned">
               <option value="" selected="@(Model.PowerCableReturned == null ? "selected" : null)">— Not specified —</option>
               <option value="true" selected="@(Model.PowerCableReturned == true ? "selected" : null)">Yes</option>
@@ -136,7 +138,7 @@
 
           <!-- Inspection section -->
           <div class="section-divider">
-            <div class="section-label-sm">Inspection / Zustandsprüfung</div>
+            <div class="section-label-sm">@Localizer["SectionInspection"]</div>
           </div>
 
           <div class="fg">
@@ -217,7 +219,7 @@
 
           <!-- Signature section -->
           <div class="section-divider">
-            <div class="section-label-sm">Signature / Unterschrift</div>
+            <div class="section-label-sm">@Localizer["SectionSignature"]</div>
           </div>
 
           @if (signatures.Count > 0)
@@ -258,7 +260,12 @@
           <div class="form-actions form-full">
             <button type="submit" class="btn-submit">Save Changes</button>
             <a href="/ReturnDevices" class="btn-cancel">Cancel</a>
-            <a href="/ReturnDevices/Document/@Model.Id" class="btn-cancel" style="font-size:12px">&#x1F4C4; Dokument</a>
+            <a href="/ReturnDevices/Document/@Model.Id" class="btn-cancel" style="font-size:12px">&#x1F4C4; @Localizer["BtnDocument"]</a>
+            <span style="display:inline-flex;align-items:center;gap:8px">
+              <a href="/ReturnDevices/EmailDraft/@Model.Id" class="btn-cancel" style="font-size:12px"
+                 onclick="return confirmEmail()">&#x2709; @Localizer["BtnEmailDraft"]</a>
+              <span style="font-size:12px;color:var(--text-muted)">@Localizer["EmailWarnMsg"]</span>
+            </span>
             <a href="/Audit?entityName=ReturnDevice&amp;entityId=@Model.Id" class="btn-cancel" style="font-size:12px">&#x1F4CB; History</a>
             <button type="button" class="btn-delete" onclick="deleteDevice()">&#x1F5D1; Delete Device</button>
           </div>
@@ -271,6 +278,10 @@
   </div>
 @section Scripts {
 <script>
+var _emailWarnMsg = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["EmailWarnMsg"].Value));
+function confirmEmail() {
+  return confirm(_emailWarnMsg);
+}
 function onDamageChange(sel) {
   var d = document.getElementById('damageDetails');
   d.style.display = sel.value === 'Yes' ? '' : 'none';

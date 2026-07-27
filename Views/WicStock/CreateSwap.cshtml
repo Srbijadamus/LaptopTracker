@@ -1,14 +1,16 @@
 @model LaptopTracker.Models.WicStockDevice
 @using LaptopTracker.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
-    ViewData["Title"] = "Create SWAP";
+    ViewData["Title"] = Localizer["PageTitle"].Value;
     var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Mini Desktop" };
     var eonLocations = LocationList.Locations.OrderBy(l => l).ToList();
 }
 @section Styles {
 <style>
 .back{padding:9px 18px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;border:1px solid var(--accent);color:var(--accent);background:transparent;display:inline-block;margin-bottom:16px}
-.content{padding:24px 28px 0}
+.content{padding:0}
 .page-title{font-size:20px;font-weight:700;margin-bottom:4px;color:var(--text-primary)}
 .page-sub{font-size:13px;color:var(--text-muted);margin-bottom:20px}
 .form-card{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:28px 32px;max-width:860px;margin-bottom:16px}
@@ -32,35 +34,35 @@
 </style>
 }
   <div class="content">
-    <a href="/WicStock" class="back">&larr; Back</a>
-    <div class="page-title">Create SWAP for @Model.SerialNumber</div>
-    <div class="page-sub">The defective device will be marked as Swap Pending. The new device will be added to WIC Stock as Available.</div>
+    <a href="/WicStock" class="back">&larr; @Localizer["BtnBack"]</a>
+    <div class="page-title">@Localizer["PageTitlePrefix"] @Model.SerialNumber</div>
+    <div class="page-sub">@Localizer["PageSub"]</div>
 
     <div class="form-card">
-      <div class="section-head">Defective Device (Current)</div>
+      <div class="section-head">@Localizer["SectionDefective"]</div>
       <div class="old-device">
         <div class="old-device-grid">
-          <div class="old-field"><span class="old-label">Serial Number</span><span class="old-value">@Model.SerialNumber</span></div>
-          <div class="old-field"><span class="old-label">Type</span><span class="old-value">@Model.DeviceType</span></div>
+          <div class="old-field"><span class="old-label">@Localizer["FieldSerial"]</span><span class="old-value">@Model.SerialNumber</span></div>
+          <div class="old-field"><span class="old-label">@Localizer["FieldType"]</span><span class="old-value">@Model.DeviceType</span></div>
           <div class="old-field"><span class="old-label">RITM</span><span class="old-value">@Model.RITM</span></div>
-          <div class="old-field"><span class="old-label">Location</span><span class="old-value">@Model.DeviceLocation</span></div>
-          <div class="old-field"><span class="old-label">Status</span><span class="old-value">@Model.Status</span></div>
+          <div class="old-field"><span class="old-label">@Localizer["FieldLocation"]</span><span class="old-value">@Model.DeviceLocation</span></div>
+          <div class="old-field"><span class="old-label">@Localizer["FieldStatus"]</span><span class="old-value">@StatusLocalizer.Get(Model.Status, StatusLoc)</span></div>
         </div>
       </div>
     </div>
 
     <div class="form-card">
-      <div class="section-head">New Replacement Device</div>
+      <div class="section-head">@Localizer["SectionNew"]</div>
       <form method="post" action="/WicStock/CreateSwap/@Model.Id">
         <div class="form-grid">
 
           <div class="fg">
-            <label>Serial Number *</label>
+            <label>@Localizer["FieldNewSerial"]</label>
             <input name="swapSerialNumber" type="text" required placeholder="e.g. SN-123456" />
           </div>
 
           <div class="fg">
-            <label>Device Type</label>
+            <label>@Localizer["FieldDeviceType"]</label>
             <select name="swapDeviceType">
               @foreach (var t in deviceTypes)
               {
@@ -75,12 +77,12 @@
           </div>
 
           <div class="fg">
-            <label>Swap Date</label>
+            <label>@Localizer["FieldSwapDate"]</label>
             <input name="swapDate" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
           </div>
 
           <div class="fg form-full">
-            <label>Device Location</label>
+            <label>@Localizer["FieldDeviceLocation"]</label>
             <select name="swapDeviceLocation">
               @foreach (var l in eonLocations)
               {
@@ -91,8 +93,8 @@
 
         </div>
         <div class="form-actions">
-          <button type="submit" class="btn-submit">Create SWAP</button>
-          <a href="/WicStock" class="btn-cancel">Cancel</a>
+          <button type="submit" class="btn-submit">@Localizer["BtnCreate"]</button>
+          <a href="/WicStock" class="btn-cancel">@Localizer["BtnCancel"]</a>
         </div>
       </form>
     </div>

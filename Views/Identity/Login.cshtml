@@ -1,3 +1,5 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
     Layout = null;
     var err    = ViewData.ModelState["kid"]?.Errors.FirstOrDefault()?.ErrorMessage;
@@ -8,7 +10,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Anmeldung – WIC Asset Tracker</title>
+<title>@Localizer["PageTitle"]</title>
 <link rel="stylesheet" href="/css/theme.css" />
 <script>(function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
 <style>
@@ -30,21 +32,21 @@ button:hover{opacity:.9}
 <body>
 <div class="card">
   <div class="brand">WIC Asset Tracker</div>
-  <h1>KID eingeben</h1>
-  <div class="sub">Bitte KID eingeben, um fortzufahren.</div>
+  <h1>@Localizer["Heading"]</h1>
+  <div class="sub">@Localizer["Subtitle"]</div>
   <form method="post" action="/Identity/Login">
     @Html.AntiForgeryToken()
     <input type="hidden" name="returnUrl" value="@retUrl" />
     <label for="kid">KID</label>
     <input type="text" id="kid" name="kid" autocomplete="off" autofocus
-           placeholder="z. B. S69307" style="text-transform:uppercase" />
+           placeholder="@Localizer["Placeholder"]" style="text-transform:uppercase" />
     @if (err != null) {
       <div class="err">@err</div>
     }
-    <button type="submit">Anmelden</button>
+    <button type="submit">@Localizer["BtnLogin"]</button>
   </form>
   @if (!string.IsNullOrEmpty(curKid)) {
-    <div class="switch">Aktuell: <strong>@curKid</strong></div>
+    <div class="switch">@Localizer["LabelCurrent"] <strong>@curKid</strong></div>
   }
 </div>
 </body>

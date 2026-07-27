@@ -1,14 +1,18 @@
 @model List<LaptopTracker.Models.Handover>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
-    ViewData["Title"] = "Handovers";
+    ViewData["Title"] = Localizer["PageTitle"].Value;
 }
 @section Styles {
 <style>
-.content{padding:28px}
+.content{padding:0}
 .page-title{font-size:22px;font-weight:800;color:var(--text-primary);margin-bottom:20px}
+.btn-row-del{padding:4px 10px;background:transparent;color:#c4314b;border:1px solid #c4314b;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer}
+.btn-row-del:hover{background:#c4314b;color:#fff}
 .panel{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);overflow:hidden}
 .table-scroll{overflow-x:auto;width:100%}
-table{width:100%;border-collapse:collapse}
+table{width:100%;min-width:1100px;border-collapse:collapse}
 thead th{text-align:left;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg-thead);font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
 tbody td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:14px;color:var(--text-primary);vertical-align:middle}
 tbody tr:last-child td{border-bottom:none}
@@ -20,25 +24,25 @@ tbody tr:hover{background:var(--bg-hover)}
 </style>
 }
   <div class="content">
-    <div class="page-title">Handover Records</div>
+    <div class="page-title">@Localizer["PageTitle"]</div>
     <div class="panel">
       <div class="table-scroll">
         <table>
           <thead>
             <tr>
               <th>#</th>
-              <th>Date</th>
-              <th>Name</th>
+              <th>@Localizer["ColDate"]</th>
+              <th>@Localizer["ColName"]</th>
               <th>KID</th>
-              <th>Location</th>
-              <th>Devices</th>
+              <th>@Localizer["ColLocation"]</th>
+              <th>@Localizer["ColDevices"]</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             @if (!Model.Any())
             {
-              <tr class="empty"><td colspan="7">No handover records yet.</td></tr>
+              <tr class="empty"><td colspan="7">@Localizer["EmptyNoRecords"]</td></tr>
             }
             else
             {
@@ -51,12 +55,12 @@ tbody tr:hover{background:var(--bg-hover)}
                   <td>@h.Name</td>
                   <td>@h.Kid</td>
                   <td>@h.Location</td>
-                  <td><span class="badge-count">@h.Devices.Count device@(h.Devices.Count == 1 ? "" : "s")</span></td>
+                  <td><span class="badge-count">@h.Devices.Count @(h.Devices.Count == 1 ? Localizer["DeviceSingular"].Value : Localizer["DevicePlural"].Value)</span></td>
                   <td style="white-space:nowrap">
-                    <a class="link" href="/Handovers/Details/@h.Id">View</a>
+                    <a class="link" href="/Handovers/Details/@h.Id">@Localizer["CellView"]</a>
                     &nbsp;
-                    <form method="post" action="/Handovers/Delete/@h.Id" style="display:inline" onsubmit="return confirm('Delete this handover record? This cannot be undone.')">
-                      <button type="submit" class="btn-row-del">&#x1F5D1; Delete</button>
+                    <form method="post" action="/Handovers/Delete/@h.Id" style="display:inline" onsubmit="return confirm('@Html.Raw(Localizer["ConfirmDelete"].Value)')">
+                      <button type="submit" class="btn-row-del">&#x1F5D1; @Localizer["CellDelete"]</button>
                     </form>
                   </td>
                 </tr>
@@ -67,4 +71,3 @@ tbody tr:hover{background:var(--bg-hover)}
       </div>
     </div>
   </div>
-

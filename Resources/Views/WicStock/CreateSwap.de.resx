@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="PageTitle" xml:space="preserve"><value>SWAP erstellen</value></data>
+  <data name="PageTitlePrefix" xml:space="preserve"><value>SWAP erstellen für</value></data>
+  <data name="PageSub" xml:space="preserve"><value>Das defekte Gerät wird als „Tausch ausstehend" markiert. Das neue Gerät wird als verfügbar zum WIC-Bestand hinzugefügt.</value></data>
+  <data name="BtnBack" xml:space="preserve"><value>Zurück</value></data>
+
+  <!-- Defective device card -->
+  <data name="SectionDefective" xml:space="preserve"><value>Defektes Gerät (Aktuell)</value></data>
+  <data name="FieldSerial" xml:space="preserve"><value>Seriennummer</value></data>
+  <data name="FieldType" xml:space="preserve"><value>Typ</value></data>
+  <data name="FieldLocation" xml:space="preserve"><value>Standort</value></data>
+  <data name="FieldStatus" xml:space="preserve"><value>Status</value></data>
+
+  <!-- New device form -->
+  <data name="SectionNew" xml:space="preserve"><value>Neues Ersatzgerät</value></data>
+  <data name="FieldNewSerial" xml:space="preserve"><value>Seriennummer *</value></data>
+  <data name="FieldDeviceType" xml:space="preserve"><value>Gerätetyp</value></data>
+  <data name="FieldSwapDate" xml:space="preserve"><value>Tausch-Datum</value></data>
+  <data name="FieldDeviceLocation" xml:space="preserve"><value>Gerätestandort</value></data>
+
+  <!-- Buttons -->
+  <data name="BtnCreate" xml:space="preserve"><value>SWAP erstellen</value></data>
+  <data name="BtnCancel" xml:space="preserve"><value>Abbrechen</value></data>
+</root>

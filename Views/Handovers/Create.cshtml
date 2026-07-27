@@ -1,13 +1,15 @@
 @model LaptopTracker.Models.Handover
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
-    ViewData["Title"] = "New Handover";
+    ViewData["Title"] = Localizer["PageTitle"].Value;
     var source  = ViewData["Source"]  as string ?? string.Empty;
     var ids     = ViewData["Ids"]     as int[]  ?? Array.Empty<int>();
     var devices = ViewData["Devices"] as List<LaptopTracker.Models.DeviceSelectionInfo> ?? new List<LaptopTracker.Models.DeviceSelectionInfo>();
 }
 @section Styles {
 <style>
-.content{padding:28px;max-width:800px}
+.content{padding:0;max-width:800px}
 .page-title{font-size:22px;font-weight:800;color:var(--text-primary);margin-bottom:24px}
 .section{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:24px;margin-bottom:20px}
 .section-title{font-size:14px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:16px}
@@ -35,7 +37,7 @@ tbody tr:last-child td{border-bottom:none}
 </style>
 }
   <div class="content">
-    <div class="page-title">New Handover / Pickup Confirmation</div>
+    <div class="page-title">@Localizer["PageHeading"]</div>
 
     <form id="handoverForm" method="post" action="/Handovers/Create">
       <input type="hidden" name="source" value="@source" />
@@ -47,22 +49,22 @@ tbody tr:last-child td{border-bottom:none}
 
       <!-- Recipient details -->
       <div class="section">
-        <div class="section-title">Recipient Details</div>
+        <div class="section-title">@Localizer["SectionRecipient"]</div>
         <div class="form-grid">
           <div class="form-field">
-            <label>Full Name <span style="color:#c4314b">*</span></label>
-            <input type="text" name="name" placeholder="Enter recipient name" required />
+            <label>@Localizer["FieldName"] <span style="color:#c4314b">*</span></label>
+            <input type="text" name="name" placeholder="@Localizer["PlaceholderName"]" required />
           </div>
           <div class="form-field">
-            <label>KID / Employee ID <span style="color:#c4314b">*</span></label>
-            <input type="text" name="kid" placeholder="Enter KID or employee ID" required />
+            <label>@Localizer["FieldKid"] <span style="color:#c4314b">*</span></label>
+            <input type="text" name="kid" placeholder="@Localizer["PlaceholderKid"]" required />
           </div>
           <div class="form-field">
-            <label>Location <span style="color:#c4314b">*</span></label>
-            <input type="text" name="location" placeholder="Enter location" required />
+            <label>@Localizer["FieldLocation"] <span style="color:#c4314b">*</span></label>
+            <input type="text" name="location" placeholder="@Localizer["PlaceholderLocation"]" required />
           </div>
           <div class="form-field">
-            <label>Date</label>
+            <label>@Localizer["FieldDate"]</label>
             <input type="text" value="@DateTime.Now.ToString("dd/MM/yyyy HH:mm")" readonly />
           </div>
         </div>
@@ -70,13 +72,13 @@ tbody tr:last-child td{border-bottom:none}
 
       <!-- Devices being handed over -->
       <div class="section">
-        <div class="section-title">Devices Being Handed Over (@devices.Count)</div>
+        <div class="section-title">@Localizer["SectionDevices"] (@devices.Count)</div>
         <table>
           <thead>
             <tr>
               <th>#</th>
-              <th>Serial Number</th>
-              <th>Type</th>
+              <th>@Localizer["ColSerial"]</th>
+              <th>@Localizer["ColType"]</th>
             </tr>
           </thead>
           <tbody>
@@ -95,20 +97,20 @@ tbody tr:last-child td{border-bottom:none}
 
       <!-- Signature pad -->
       <div class="section">
-        <div class="section-title">Recipient Signature</div>
+        <div class="section-title">@Localizer["SectionSignature"]</div>
         <div class="sig-wrap">
           <canvas id="sigCanvas" class="sig-canvas"></canvas>
         </div>
         <div class="sig-actions">
-          <button type="button" class="btn-clear" onclick="clearSignature()">Clear Signature</button>
-          <span class="sig-hint">Sign using mouse or touch</span>
+          <button type="button" class="btn-clear" onclick="clearSignature()">@Localizer["BtnClearSignature"]</button>
+          <span class="sig-hint">@Localizer["SigHint"]</span>
         </div>
       </div>
 
       <!-- Actions -->
       <div class="form-actions">
-        <button type="submit" class="btn-save">Save Handover</button>
-        <a href="/Handovers" class="btn-cancel">Cancel</a>
+        <button type="submit" class="btn-save">@Localizer["BtnSave"]</button>
+        <a href="/Handovers" class="btn-cancel">@Localizer["BtnCancel"]</a>
       </div>
     </form>
   </div>

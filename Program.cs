@@ -2,6 +2,9 @@ using LaptopTracker.Data;
 using LaptopTracker.Services;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
+using PdfSharp.Fonts;
+
+GlobalFontSettings.UseWindowsFontsUnderWindows = true;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,9 +43,9 @@ app.UseRouting();
 app.UseSession();
 app.UseMiddleware<LaptopTracker.Services.AgentApiKeyMiddleware>();
 app.UseRequestLocalization(new RequestLocalizationOptions()
-    .SetDefaultCulture("en-US")
-    .AddSupportedCultures("en-US", "de-DE")
-    .AddSupportedUICultures("en-US", "de-DE"));
+    .SetDefaultCulture("de-DE")
+    .AddSupportedCultures("de-DE", "en-US")
+    .AddSupportedUICultures("de-DE", "en-US"));
 
 app.MapControllers();
 app.MapControllerRoute(

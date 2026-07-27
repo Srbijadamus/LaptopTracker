@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="PageTitle" xml:space="preserve"><value>New Handover</value></data>
+  <data name="PageHeading" xml:space="preserve"><value>New Handover / Pickup Confirmation</value></data>
+  <data name="SectionRecipient" xml:space="preserve"><value>Recipient Details</value></data>
+  <data name="FieldName" xml:space="preserve"><value>Full Name</value></data>
+  <data name="FieldKid" xml:space="preserve"><value>KID / Employee ID</value></data>
+  <data name="FieldLocation" xml:space="preserve"><value>Location</value></data>
+  <data name="FieldDate" xml:space="preserve"><value>Date</value></data>
+  <data name="PlaceholderName" xml:space="preserve"><value>Enter recipient name</value></data>
+  <data name="PlaceholderKid" xml:space="preserve"><value>Enter KID or employee ID</value></data>
+  <data name="PlaceholderLocation" xml:space="preserve"><value>Enter location</value></data>
+  <data name="SectionDevices" xml:space="preserve"><value>Devices Being Handed Over</value></data>
+  <data name="ColSerial" xml:space="preserve"><value>Serial Number</value></data>
+  <data name="ColType" xml:space="preserve"><value>Type</value></data>
+  <data name="SectionSignature" xml:space="preserve"><value>Recipient Signature</value></data>
+  <data name="BtnClearSignature" xml:space="preserve"><value>Clear Signature</value></data>
+  <data name="SigHint" xml:space="preserve"><value>Sign using mouse or touch</value></data>
+  <data name="BtnSave" xml:space="preserve"><value>Save Handover</value></data>
+  <data name="BtnCancel" xml:space="preserve"><value>Cancel</value></data>
+</root>

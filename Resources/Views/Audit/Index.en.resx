@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="PageTitle" xml:space="preserve"><value>Audit Log</value></data>
+  <data name="PlaceholderKid" xml:space="preserve"><value>KID (e.g. S69307)</value></data>
+  <data name="FilterAllActions" xml:space="preserve"><value>All Actions</value></data>
+  <data name="FilterAllEntities" xml:space="preserve"><value>All Entities</value></data>
+  <data name="PlaceholderLabel" xml:space="preserve"><value>Label / serial</value></data>
+  <data name="HintFrom" xml:space="preserve"><value>From date</value></data>
+  <data name="HintTo" xml:space="preserve"><value>To date</value></data>
+  <data name="BtnFilter" xml:space="preserve"><value>Filter</value></data>
+  <data name="BtnClear" xml:space="preserve"><value>Clear</value></data>
+  <data name="MetaEntries" xml:space="preserve"><value>entries found</value></data>
+  <data name="MetaPage" xml:space="preserve"><value>page</value></data>
+  <data name="MetaOf" xml:space="preserve"><value>of</value></data>
+  <data name="ColTimestamp" xml:space="preserve"><value>Timestamp (UTC)</value></data>
+  <data name="ColAction" xml:space="preserve"><value>Action</value></data>
+  <data name="ColEntity" xml:space="preserve"><value>Entity</value></data>
+  <data name="ColId" xml:space="preserve"><value>ID</value></data>
+  <data name="ColLabel" xml:space="preserve"><value>Label</value></data>
+  <data name="ColChanges" xml:space="preserve"><value>Changes</value></data>
+  <data name="ColSource" xml:space="preserve"><value>Source</value></data>
+  <data name="ColIp" xml:space="preserve"><value>IP</value></data>
+  <data name="EmptyNoEntries" xml:space="preserve"><value>No audit entries match the current filters.</value></data>
+  <data name="TitleHistoryFor" xml:space="preserve"><value>History for</value></data>
+  <data name="BtnPrev" xml:space="preserve"><value>&#171; Prev</value></data>
+  <data name="BtnNext" xml:space="preserve"><value>Next &#187;</value></data>
+</root>

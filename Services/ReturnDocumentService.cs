@@ -12,17 +12,21 @@ namespace LaptopTracker.Services
         public ReturnDocumentService(IWebHostEnvironment env, IConfiguration config)
         { _env = env; _config = config; }
 
+        public string GetAddressPattern() =>
+            _config["Email:AddressPattern"] ?? "{kid}@eon.com";
+
         public string ResolveEmail(string? kid)
         {
             if (string.IsNullOrWhiteSpace(kid)) return "";
-            var pattern = _config["Email:AddressPattern"] ?? "{kid}@eon.com";
-            return pattern.Replace("{kid}", kid.ToLowerInvariant());
+            return GetAddressPattern().Replace("{kid}", kid.ToLowerInvariant());
         }
 
-        public byte[] GeneratePdf(ReturnDevice device)
+        public byte[] GeneratePdf(ReturnDevice device, string lang = "de")
         {
             using var doc = new PdfDocument();
-            doc.Info.Title   = $"Gerätrückgabe – {device.SerialNumber}";
+            bool en = lang == "en";
+            doc.Info.Title   = en ? $"Device Return – {device.SerialNumber}"
+                                  : $"Geräterückgabe – {device.SerialNumber}";
             doc.Info.Author  = "WIC Asset Tracker";
             doc.Info.Creator = "WIC Asset Tracker";
 
@@ -30,27 +34,29 @@ namespace LaptopTracker.Services
             page.Width  = XUnit.FromMillimeter(210);
             page.Height = XUnit.FromMillimeter(297);
 
-            DrawPage(page, device);
+            DrawPage(page, device, lang);
 
             using var ms = new MemoryStream();
             doc.Save(ms);
             return ms.ToArray();
         }
 
-        private void DrawPage(PdfPage page, ReturnDevice device)
+        private void DrawPage(PdfPage page, ReturnDevice device, string lang)
         {
-            // XGraphics must be disposed before doc.Save()
+            bool en = lang == "en";
+            string T(string de, string enStr) => en ? enStr : de;
+
             using var gfx = XGraphics.FromPdfPage(page);
 
             const double lm = 20.0;   // left margin mm
             const double pw = 170.0;  // printable width mm
-            const double lh = 6.0;   // standard line height mm
+            const double lh = 6.0;    // standard line height mm
             double y = 20.0;
 
-            var titleFont = new XFont("Segoe UI", 16, XFontStyleEx.Bold);
-            var sectFont  = new XFont("Segoe UI", 10, XFontStyleEx.Bold);
-            var bodyFont  = new XFont("Segoe UI", 10, XFontStyleEx.Regular);
-            var smallFont = new XFont("Segoe UI",  8, XFontStyleEx.Regular);
+            var titleFont = new XFont("Arial", 16, XFontStyleEx.Bold);
+            var sectFont  = new XFont("Arial", 10, XFontStyleEx.Bold);
+            var bodyFont  = new XFont("Arial", 10, XFontStyleEx.Regular);
+            var smallFont = new XFont("Arial",  8, XFontStyleEx.Regular);
 
             var black  = XBrushes.Black;
             var muted  = new XSolidBrush(XColor.FromArgb(110, 110, 110));
@@ -64,11 +70,11 @@ namespace LaptopTracker.Services
                           XUnit.FromMillimeter(w),  XUnit.FromMillimeter(h));
 
             // ── HEADER ──────────────────────────────────────────────
-            gfx.DrawString("Gerätrückgabe – Bestätigung",
+            gfx.DrawString(T("Geräterückgabe – Bestätigung", "Device Return – Confirmation"),
                 titleFont, black, R(y, 12), XStringFormats.TopLeft);
             y += 9;
             gfx.DrawString(
-                $"Dokument-ID: {device.Id}  ·  Erstellt: {DateTime.Now:dd.MM.yyyy HH:mm}",
+                $"{T("Dokument-ID", "Document ID")}: {device.Id}  ·  {T("Erstellt", "Created")}: {DateTime.Now:dd.MM.yyyy HH:mm}",
                 smallFont, muted, R(y, 5), XStringFormats.TopLeft);
             y += 5;
             gfx.DrawLine(new XPen(XColor.FromArgb(20, 184, 196), 1.0),
@@ -97,54 +103,57 @@ namespace LaptopTracker.Services
                 y += lh;
             }
 
-            string JN(bool? v) => v == true ? "Ja" : v == false ? "Nein" : "–";
+            string JN(bool? v) => v == true  ? T("Ja", "Yes")
+                                : v == false ? T("Nein", "No")
+                                             : "–";
 
-            // ── MITARBEITER ──────────────────────────────────────────
-            Section("Mitarbeiter");
+            // ── MITARBEITER / EMPLOYEE ───────────────────────────────
+            Section(T("Mitarbeiter", "Employee"));
             Row("KID:", device.KID ?? "–");
-            Row("Rückgabedatum:", device.Date.ToString("dd.MM.yyyy"));
+            Row(T("Rückgabedatum:", "Return Date:"), device.Date.ToString("dd.MM.yyyy"));
             if (!string.IsNullOrWhiteSpace(device.Location))
-                Row("Standort:", device.Location);
+                Row(T("Standort:", "Location:"), device.Location);
 
-            // ── GERÄT ────────────────────────────────────────────────
-            Section("Gerät");
-            Row("Seriennummer:", device.SerialNumber);
-            Row("Gerätetyp:", device.DeviceType);
+            // ── GERÄT / DEVICE ───────────────────────────────────────
+            Section(T("Gerät", "Device"));
+            Row(T("Seriennummer:", "Serial Number:"), device.SerialNumber);
+            Row(T("Gerätetyp:", "Device Type:"), device.DeviceType);
             Row("RITM:", device.RITM);
             if (!string.IsNullOrWhiteSpace(device.WorkOrder))
                 Row("Work Order:", device.WorkOrder);
 
-            // ── ZUBEHÖR (only if captured) ───────────────────────────
+            // ── ZUBEHÖR / ACCESSORIES ────────────────────────────────
             if (device.ChargerReturned.HasValue || device.PowerCableReturned.HasValue)
             {
-                Section("Zubehör");
-                Row("Ladegerät zurückgegeben:", JN(device.ChargerReturned));
-                Row("Netzkabel zurückgegeben:", JN(device.PowerCableReturned));
+                Section(T("Zubehör", "Accessories"));
+                Row(T("Ladegerät zurückgegeben:", "Charger Returned:"),    JN(device.ChargerReturned));
+                Row(T("Netzkabel zurückgegeben:", "Power Cable Returned:"), JN(device.PowerCableReturned));
             }
 
-            // ── ZUSTAND (only if relevant) ───────────────────────────
+            // ── ZUSTAND / CONDITION ──────────────────────────────────
             bool hasCond = !string.IsNullOrWhiteSpace(device.DamageStatus)
                         || !string.IsNullOrWhiteSpace(device.DamageComment)
                         || device.IsCustomerInducedDamage
                         || device.IsBatterySwollen;
             if (hasCond)
             {
-                Section("Zustand");
+                Section(T("Zustand", "Condition"));
                 if (!string.IsNullOrWhiteSpace(device.DamageStatus))
-                    Row("Schadensstatus:", device.DamageStatus);
+                    Row(T("Schadensstatus:", "Damage Status:"), device.DamageStatus);
                 if (!string.IsNullOrWhiteSpace(device.DamageComment))
-                    Row("Kommentar:", device.DamageComment);
+                    Row(T("Kommentar:", "Comment:"), device.DamageComment);
                 if (device.IsCustomerInducedDamage)
-                    Row("Kundenverschulden:", "Ja");
+                    Row(T("Kundenverschulden:", "Customer-Induced Damage:"), T("Ja", "Yes"));
                 if (device.IsBatterySwollen)
-                    Row("Akku aufgebläht:", "Ja");
+                    Row(T("Akku aufgebläht:", "Battery Swollen:"), T("Ja", "Yes"));
             }
 
-            // ── BESTÄTIGUNG ──────────────────────────────────────────
-            Section("Bestätigung");
-            const string confirmText =
-                "Hiermit wird der Eingang des oben genannten Geräts beim Global Service Desk bestätigt.";
-            gfx.DrawString(confirmText, bodyFont, black, R(y, 10), XStringFormats.TopLeft);
+            // ── BESTÄTIGUNG / CONFIRMATION ───────────────────────────
+            Section(T("Bestätigung", "Confirmation"));
+            gfx.DrawString(
+                T("Hiermit wird der Eingang des oben genannten Geräts beim Global Service Desk bestätigt.",
+                  "This confirms receipt of the above-mentioned device at the Global Service Desk."),
+                bodyFont, black, R(y, 10), XStringFormats.TopLeft);
             y += 10;
 
             // Signature (image or blank lines)
@@ -165,8 +174,8 @@ namespace LaptopTracker.Services
                             XUnit.FromMillimeter(lm + 90), XUnit.FromMillimeter(y),
                             XUnit.FromMillimeter(imgW), XUnit.FromMillimeter(maxH));
                         y += maxH + 1;
-                        gfx.DrawString($"Erfasst: {sig.UploadedAt:dd.MM.yyyy}", smallFont, muted,
-                            RC(lm + 90, y, 80, 4), XStringFormats.TopLeft);
+                        gfx.DrawString($"{T("Erfasst", "Captured")}: {sig.UploadedAt:dd.MM.yyyy}",
+                            smallFont, muted, RC(lm + 90, y, 80, 4), XStringFormats.TopLeft);
                         y += 5;
                     }
                     catch { y += 25; }
@@ -178,6 +187,11 @@ namespace LaptopTracker.Services
                 y += 22; // space for pen signature
             }
 
+            // Pre-fill generation date above the left signature line
+            var generationDate = DateTime.Now.ToString("dd.MM.yyyy");
+            gfx.DrawString(generationDate, bodyFont, black,
+                RC(lm, y - 5, 65, 5), XStringFormats.TopLeft);
+
             // Signature lines
             var thin = new XPen(XColors.Black, 0.5);
             gfx.DrawLine(thin,
@@ -187,8 +201,17 @@ namespace LaptopTracker.Services
                 XUnit.FromMillimeter(lm + 90), XUnit.FromMillimeter(y),
                 XUnit.FromMillimeter(lm + pw), XUnit.FromMillimeter(y));
             y += 3;
-            gfx.DrawString("Ort, Datum",    smallFont, muted, RC(lm,      y, 65,      4), XStringFormats.TopLeft);
-            gfx.DrawString("Unterschrift",  smallFont, muted, RC(lm + 90, y, pw - 90, 4), XStringFormats.TopLeft);
+            gfx.DrawString(T("Ort, Datum", "Place, Date"),
+                smallFont, muted, RC(lm,      y, 65,      4), XStringFormats.TopLeft);
+            gfx.DrawString(T("Unterschrift", "Signature"),
+                smallFont, muted, RC(lm + 90, y, pw - 90, 4), XStringFormats.TopLeft);
+            y += 5;
+
+            // Note: valid without signature
+            gfx.DrawString(
+                T("Dieses Dokument ist auch ohne Unterschrift gültig.",
+                  "This document is valid without a signature."),
+                smallFont, muted, R(y, 4), XStringFormats.TopLeft);
 
             // ── FOOTER ───────────────────────────────────────────────
             const double fy = 282.0;
@@ -196,7 +219,7 @@ namespace LaptopTracker.Services
                 XUnit.FromMillimeter(lm), XUnit.FromMillimeter(fy),
                 XUnit.FromMillimeter(lm + pw), XUnit.FromMillimeter(fy));
             gfx.DrawString(
-                $"WIC Asset Tracker  ·  Dokument-ID: {device.Id}  ·  {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC",
+                $"WIC Asset Tracker  ·  {T("Dokument-ID", "Document ID")}: {device.Id}  ·  {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC",
                 smallFont, muted, R(fy + 1, 4), XStringFormats.TopLeft);
         }
     }

@@ -1,5 +1,7 @@
 @model LaptopTracker.Models.ReturnDevice
 @using LaptopTracker.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
     ViewData["Title"] = "Add Return Device";
     var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Mini Desktop" };
@@ -96,7 +98,7 @@
           </div>
 
           <div class="fg">
-            <label>Charger returned? (Ladegerät zurückgegeben?)</label>
+            <label>@Localizer["LblCharger"]</label>
             <select name="ChargerReturned">
               <option value="" selected="@(Model.ChargerReturned == null ? "selected" : null)">— Not specified —</option>
               <option value="true" selected="@(Model.ChargerReturned == true ? "selected" : null)">Yes</option>
@@ -105,7 +107,7 @@
           </div>
 
           <div class="fg">
-            <label>Power cable returned? (Netzkabel zurückgegeben?)</label>
+            <label>@Localizer["LblPowerCable"]</label>
             <select name="PowerCableReturned">
               <option value="" selected="@(Model.PowerCableReturned == null ? "selected" : null)">— Not specified —</option>
               <option value="true" selected="@(Model.PowerCableReturned == true ? "selected" : null)">Yes</option>
@@ -135,7 +137,7 @@
 
           <!-- Inspection section -->
           <div class="section-divider">
-            <div class="section-label-sm">Inspection / Zustandsprüfung</div>
+            <div class="section-label-sm">@Localizer["SectionInspection"]</div>
           </div>
 
           <div class="fg">
@@ -194,7 +196,7 @@
 
           <!-- Signature section -->
           <div class="section-divider">
-            <div class="section-label-sm">Signature / Unterschrift</div>
+            <div class="section-label-sm">@Localizer["SectionSignature"]</div>
           </div>
 
           <div class="fg form-full">

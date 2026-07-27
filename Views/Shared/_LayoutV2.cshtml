@@ -138,7 +138,7 @@ body{font-family:'Inter',-apple-system,"Segoe UI",Roboto,sans-serif;background:v
 </head>
 <body>
 
-<button class="v2-hamburger" id="v2Ham" aria-label="Navigation öffnen">&#9776;</button>
+<button class="v2-hamburger" id="v2Ham" aria-label="@Localizer["NavOpen"]">&#9776;</button>
 <div class="v2-overlay" id="v2Overlay"></div>
 
 <aside class="v2-sidebar" id="v2Sidebar">
@@ -161,36 +161,36 @@ body{font-family:'Inter',-apple-system,"Segoe UI",Roboto,sans-serif;background:v
       <span class="v2-nav-icon">&#x1F4CA;</span><span class="v2-nav-text">Dashboard</span>
     </a>
     <a href="/Search"         class="v2-nav-item@(ctrl=="Search"         ? " active" : "")">
-      <span class="v2-nav-icon">&#x1F50D;</span><span class="v2-nav-text">Suche</span>
+      <span class="v2-nav-icon">&#x1F50D;</span><span class="v2-nav-text">@Localizer["NavSearch"]</span>
     </a>
 
     <div class="v2-nav-divider"></div>
-    <div class="v2-nav-label">Geräte</div>
+    <div class="v2-nav-label">@Localizer["NavSectionDevices"]</div>
 
     <a href="/ReturnDevices"  class="v2-nav-item@(ctrl=="ReturnDevices"  ? " active" : "")">
-      <span class="v2-nav-icon">&#x1F4E6;</span><span class="v2-nav-text">Rückgaben</span>
+      <span class="v2-nav-icon">&#x1F4E6;</span><span class="v2-nav-text">@Localizer["NavReturns"]</span>
     </a>
     <a href="/WicStock"       class="v2-nav-item@(ctrl=="WicStock"       ? " active" : "")">
-      <span class="v2-nav-icon">&#x1F5C4;&#xFE0F;</span><span class="v2-nav-text">WIC-Bestand</span>
+      <span class="v2-nav-icon">&#x1F5C4;&#xFE0F;</span><span class="v2-nav-text">@Localizer["NavWicStock"]</span>
     </a>
     <a href="/LoanerDevices"  class="v2-nav-item@(ctrl=="LoanerDevices"  ? " active" : "")">
-      <span class="v2-nav-icon">&#x1F4BB;</span><span class="v2-nav-text">Leihgeräte</span>
+      <span class="v2-nav-icon">&#x1F4BB;</span><span class="v2-nav-text">@Localizer["NavLoaners"]</span>
     </a>
 
     <div class="v2-nav-divider"></div>
-    <div class="v2-nav-label">Operationen</div>
+    <div class="v2-nav-label">@Localizer["NavSectionOps"]</div>
 
     <a href="/Operations"     class="v2-nav-item@(ctrl=="Operations"     ? " active" : "")">
       <span class="v2-nav-icon">&#x2699;&#xFE0F;</span><span class="v2-nav-text">Operations</span>
     </a>
     <a href="/Handovers"      class="v2-nav-item@(ctrl=="Handovers"      ? " active" : "")">
-      <span class="v2-nav-icon">&#x1F91D;</span><span class="v2-nav-text">Übergaben</span>
+      <span class="v2-nav-icon">&#x1F91D;</span><span class="v2-nav-text">@Localizer["NavHandovers"]</span>
     </a>
     <a href="/Archive"        class="v2-nav-item@(ctrl=="Archive"        ? " active" : "")">
-      <span class="v2-nav-icon">&#x1F5C2;&#xFE0F;</span><span class="v2-nav-text">Archiv</span>
+      <span class="v2-nav-icon">&#x1F5C2;&#xFE0F;</span><span class="v2-nav-text">@Localizer["NavArchive"]</span>
     </a>
     <a href="/Audit"          class="v2-nav-item@(ctrl=="Audit"          ? " active" : "")">
-      <span class="v2-nav-icon">&#x1F4CB;</span><span class="v2-nav-text">Audit-Log</span>
+      <span class="v2-nav-icon">&#x1F4CB;</span><span class="v2-nav-text">@Localizer["NavAudit"]</span>
     </a>
   </nav>
 
@@ -202,8 +202,8 @@ body{font-family:'Inter',-apple-system,"Segoe UI",Roboto,sans-serif;background:v
        class="v2-strip-btn" aria-label="Deutsch">&#127465;&#127466;</a>
     <select class="v2-strip-select"
             onchange="if(this.value!==undefined){window.location.href='/Country/Set?code='+encodeURIComponent(this.value)+'&returnUrl='+encodeURIComponent(window.location.pathname);}">
-      @if(curCountry==""){<option value="" selected>&#x1F30D; Alle</option>}
-      @if(curCountry!=""){<option value="">&#x1F30D; Alle</option>}
+      @if(curCountry==""){<option value="" selected>&#x1F30D; @Localizer["CountryAll"]</option>}
+      @if(curCountry!=""){<option value="">&#x1F30D; @Localizer["CountryAll"]</option>}
       @foreach(var c in countryCodes){
         @if(curCountry==c){<option value="@c" selected>@c</option>}
         @if(curCountry!=c){<option value="@c">@c</option>}
@@ -216,19 +216,19 @@ body{font-family:'Inter',-apple-system,"Segoe UI",Roboto,sans-serif;background:v
     <div class="v2-avatar">@initials</div>
     <div class="v2-user-info">
       <div class="v2-user-kid">@kid</div>
-      <a href="/Identity/Login" style="font-size:11px;color:var(--v2-accent);text-decoration:none">Wechseln</a>
+      <a href="/Identity/Login" style="font-size:11px;color:var(--v2-accent);text-decoration:none">@Localizer["UserSwitch"]</a>
     </div>
-    <button class="v2-theme-btn" id="v2ThemeToggle" onclick="toggleTheme()" title="Hell/Dunkel">&#9728;&#65039;</button>
+    <button class="v2-theme-btn" id="v2ThemeToggle" onclick="toggleTheme()" title="@Localizer["ThemeToggle"]">&#9728;&#65039;</button>
   </div>
 </aside>
 
 <main class="v2-main">
   <div style="font-size:11px;color:var(--text-muted);text-align:right;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--v2-border)">Developed by Nebojsa Stojnic &mdash; with the selfless support of Ion Ciuceanu.</div>
   @RenderBody()
-  <footer style="text-align:center;padding:24px 0 8px;font-size:11px;color:var(--text-muted)">Developed by Nebojsa Stojnic &mdash; with the selfless support of Ion Ciuceanu.</footer>
 </main>
 
 <script src="/js/theme.js"></script>
+<script src="/js/topscroll.js"></script>
 <script>
 (function(){
   var ham=document.getElementById('v2Ham'),

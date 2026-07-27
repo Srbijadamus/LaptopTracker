@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="PageTitlePrefix" xml:space="preserve"><value>Dokument –</value></data>
+  <data name="PageHeading" xml:space="preserve"><value>Geräterückgabe-Dokument</value></data>
+  <data name="PageSub" xml:space="preserve"><value>generiert als PDF zum Drucken oder Mailen</value></data>
+  <data name="SectionEmployee" xml:space="preserve"><value>Mitarbeiter</value></data>
+  <data name="LabelDate" xml:space="preserve"><value>Rückgabedatum</value></data>
+  <data name="LabelLocation" xml:space="preserve"><value>Standort</value></data>
+  <data name="SectionDevice" xml:space="preserve"><value>Gerät</value></data>
+  <data name="LabelSerial" xml:space="preserve"><value>Seriennummer</value></data>
+  <data name="LabelDeviceType" xml:space="preserve"><value>Gerätetyp</value></data>
+  <data name="SectionAccessories" xml:space="preserve"><value>Zubehör</value></data>
+  <data name="LabelCharger" xml:space="preserve"><value>Ladegerät</value></data>
+  <data name="LabelPowerCable" xml:space="preserve"><value>Netzkabel</value></data>
+  <data name="BtnDownloadPdf" xml:space="preserve"><value>&#x2B07; Dokument herunterladen (PDF)</value></data>
+  <data name="BtnEmailDraft" xml:space="preserve"><value>&#x2709; E-Mail-Entwurf (.eml)</value></data>
+  <data name="BtnBack" xml:space="preserve"><value>&#x2190; Zurück zum Datensatz</value></data>
+  <data name="SectionSignature" xml:space="preserve"><value>Unterschrift</value></data>
+  <data name="AltSignature" xml:space="preserve"><value>Unterschrift</value></data>
+  <data name="LabelCapturedAt" xml:space="preserve"><value>Erfasst:</value></data>
+  <data name="SigAlreadyPresent" xml:space="preserve"><value>Eine Unterschrift ist bereits vorhanden und wird im PDF angezeigt.</value></data>
+  <data name="SigNotYet" xml:space="preserve"><value>Noch keine Unterschrift erfasst. Hier unterschreiben lassen, dann Dokument herunterladen.</value></data>
+  <data name="BtnClear" xml:space="preserve"><value>Löschen</value></data>
+  <data name="BtnSaveSignature" xml:space="preserve"><value>&#x270F; Unterschrift speichern</value></data>
+</root>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="PageTitle" xml:space="preserve"><value>Suche</value></data>
+  <data name="SearchPlaceholder" xml:space="preserve"><value>Seriennummer in allen Modulen suchen…</value></data>
+  <data name="BtnSearch" xml:space="preserve"><value>Suchen</value></data>
+  <data name="NotFoundPrefix" xml:space="preserve"><value>Kein Gerät mit Seriennummer</value></data>
+  <data name="NotFoundSuffix" xml:space="preserve"><value>gefunden.</value></data>
+  <data name="LinkAddReturn" xml:space="preserve"><value>+ Zu Rückgaben hinzufügen</value></data>
+  <data name="LinkAddWic" xml:space="preserve"><value>+ Zu WIC-Bestand hinzufügen</value></data>
+  <data name="LinkAddLoaner" xml:space="preserve"><value>+ Zu Leihgeräten hinzufügen</value></data>
+  <data name="SectionReturn" xml:space="preserve"><value>Rückgaben</value></data>
+  <data name="SectionWic" xml:space="preserve"><value>WIC-Bestand</value></data>
+  <data name="SectionLoaner" xml:space="preserve"><value>Leihgeräte</value></data>
+  <data name="ResultSingular" xml:space="preserve"><value>Ergebnis</value></data>
+  <data name="ResultPlural" xml:space="preserve"><value>Ergebnisse</value></data>
+  <data name="ColModule" xml:space="preserve"><value>Modul</value></data>
+  <data name="ColSerial" xml:space="preserve"><value>Seriennummer</value></data>
+  <data name="ColDeviceType" xml:space="preserve"><value>Gerätetyp</value></data>
+  <data name="ColDeviceLocation" xml:space="preserve"><value>Gerätestatus</value></data>
+  <data name="ColStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="CellEdit" xml:space="preserve"><value>Bearbeiten</value></data>
+  <data name="BadgeReturn" xml:space="preserve"><value>Rückgabe</value></data>
+  <data name="BadgeWic" xml:space="preserve"><value>WIC-Bestand</value></data>
+  <data name="BadgeLoaner" xml:space="preserve"><value>Leihgerät</value></data>
+</root>

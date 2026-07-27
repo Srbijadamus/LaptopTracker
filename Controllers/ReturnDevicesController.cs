@@ -670,7 +670,8 @@ namespace LaptopTracker.Controllers
                 .FirstOrDefaultAsync(d => d.Id == id);
             if (device == null) return NotFound();
 
-            var bytes = _docSvc.GeneratePdf(device);
+            var lang = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+            var bytes = _docSvc.GeneratePdf(device, lang);
             var safeSn = string.Concat(device.SerialNumber
                 .Where(c => char.IsLetterOrDigit(c) || c == '-' || c == '_'));
             return File(bytes, "application/pdf", $"Rueckgabe_{safeSn}.pdf");
@@ -684,20 +685,28 @@ namespace LaptopTracker.Controllers
                 .FirstOrDefaultAsync(d => d.Id == id);
             if (device == null) return NotFound();
 
-            var pdfBytes = _docSvc.GeneratePdf(device);
+            var pdfLang = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+            var pdfBytes = _docSvc.GeneratePdf(device, pdfLang);
             var pdfB64   = Convert.ToBase64String(pdfBytes);
             var safeSn   = string.Concat(device.SerialNumber
                 .Where(c => char.IsLetterOrDigit(c) || c == '-' || c == '_'));
             var pdfName  = $"Rueckgabe_{safeSn}.pdf";
             var toEmail  = _docSvc.ResolveEmail(device.KID);
-            var subject  = $"Geräterückgabe – {device.SerialNumber}";
+            var subject  = pdfLang == "en"
+                ? $"Device Return - Confirmation - {device.SerialNumber}"
+                : $"Geräterückgabe – {device.SerialNumber}";
             var boundary = $"----=_Part_{Guid.NewGuid():N}";
 
-            var body =
-                $"Sehr geehrte/r Mitarbeiter/in,\r\n\r\n" +
-                $"anbei erhalten Sie die Bestätigung der Geräterückgabe für " +
-                $"Seriennummer {device.SerialNumber} (RITM: {device.RITM}).\r\n\r\n" +
-                $"Mit freundlichen Grüßen\r\nGlobal Service Desk – WIC Team\r\n";
+            var body = pdfLang == "en"
+                ? $"Dear colleague,\r\n\r\n" +
+                  $"please find attached the confirmation of the device return for serial number " +
+                  $"{device.SerialNumber} (RITM: {device.RITM}).\r\n\r\n" +
+                  $"If a signature is required, you can print and sign the document or sign it digitally.\r\n\r\n" +
+                  $"Kind regards\r\nGlobal Service Desk - WIC Team\r\n"
+                : $"Sehr geehrte/r Mitarbeiter/in,\r\n\r\n" +
+                  $"anbei erhalten Sie die Bestätigung der Geräterückgabe für " +
+                  $"Seriennummer {device.SerialNumber} (RITM: {device.RITM}).\r\n\r\n" +
+                  $"Mit freundlichen Grüßen\r\nGlobal Service Desk – WIC Team\r\n";
 
             // wrap base64 at 76 chars per RFC 2045
             var b64Lines = new System.Text.StringBuilder();
@@ -705,8 +714,6 @@ namespace LaptopTracker.Controllers
                 b64Lines.AppendLine(pdfB64.Substring(i, Math.Min(76, pdfB64.Length - i)));
 
             var eml = new System.Text.StringBuilder();
-            eml.AppendLine($"From: wic-tracker@eon.com");
-            if (!string.IsNullOrEmpty(toEmail)) eml.AppendLine($"To: {toEmail}");
             eml.AppendLine($"Subject: {subject}");
             eml.AppendLine("MIME-Version: 1.0");
             eml.AppendLine("X-Unsent: 1");

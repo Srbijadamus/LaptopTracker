@@ -68,7 +68,7 @@
               <td>@d.SerialNumber</td>
               <td class="muted">@d.DeviceType</td>
               <td class="muted">@d.RITM</td>
-              <td><span class="badge @sc">@(d.Status == LaptopTracker.Models.ReturnDeviceStatus.PendingPickup ? "Pending Pickup" : "Picked Up")</span></td>
+              <td><span class="badge @sc">@StatusLocalizer.Get(d.Status, StatusLoc)</span></td>
               <td><span class="badge @lc">@d.DeviceLocation</span></td>
               <td class="muted">@(string.IsNullOrWhiteSpace(d.WorkOrder) ? "—" : d.WorkOrder)</td>
             </tr>

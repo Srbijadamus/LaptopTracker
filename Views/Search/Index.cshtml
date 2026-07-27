@@ -1,5 +1,8 @@
+@using LaptopTracker.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
-    ViewData["Title"] = "Search";
+    ViewData["Title"] = Localizer["PageTitle"].Value;
     var returnResults  = ViewData["ReturnResults"]  as List<LaptopTracker.Models.ReturnDevice>   ?? new List<LaptopTracker.Models.ReturnDevice>();
     var wicResults     = ViewData["WicResults"]     as List<LaptopTracker.Models.WicStockDevice> ?? new List<LaptopTracker.Models.WicStockDevice>();
     var loanerResults  = ViewData["LoanerResults"]  as List<LaptopTracker.Models.LoanerDevice>   ?? new List<LaptopTracker.Models.LoanerDevice>();
@@ -9,7 +12,7 @@
 }
 @section Styles {
 <style>
-.content{padding:24px 28px 0}
+.content{padding:0}
 .search-bar{display:flex;gap:10px;margin-bottom:24px}
 .search-bar input{flex:1;padding:10px 14px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);outline:none}
 .search-bar input:focus{border-color:var(--accent)}
@@ -17,7 +20,7 @@
 .section-label{font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;margin-top:20px}
 .section-label:first-of-type{margin-top:0}
 .panel{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);overflow:hidden;margin-bottom:16px}
-table{width:100%;border-collapse:collapse}
+table{width:100%;min-width:1100px;border-collapse:collapse}
 thead th{text-align:left;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg-thead);font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
 tbody td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:14px;color:var(--text-primary);vertical-align:middle}
 tbody tr:last-child td{border-bottom:none}
@@ -43,8 +46,8 @@ tbody tr:hover{background:var(--bg-hover)}
 }
   <div class="content">
     <form class="search-bar" method="get" action="/Search">
-      <input type="text" name="serialNumber" placeholder="Search serial number across all modules…" value="@serialNumber" />
-      <button type="submit">Search</button>
+      <input type="text" name="serialNumber" placeholder="@Localizer["SearchPlaceholder"]" value="@serialNumber" />
+      <button type="submit">@Localizer["BtnSearch"]</button>
     </form>
 
     @if (searched)
@@ -52,11 +55,11 @@ tbody tr:hover{background:var(--bg-hover)}
       if (totalFound == 0)
       {
         <div class="not-found">
-          <p>No device found with serial number <strong>@serialNumber</strong>.</p>
+          <p>@Localizer["NotFoundPrefix"] <strong>@serialNumber</strong>@Localizer["NotFoundSuffix"]</p>
           <div class="not-found-links">
-            <a href="/ReturnDevices/Create?serialNumber=@Uri.EscapeDataString(serialNumber!)" class="create-link">+ Add to Return Devices</a>
-            <a href="/WicStock/Create?serialNumber=@Uri.EscapeDataString(serialNumber!)" class="create-link">+ Add to WIC Stock</a>
-            <a href="/LoanerDevices/Create?serialNumber=@Uri.EscapeDataString(serialNumber!)" class="create-link">+ Add to Loaner Devices</a>
+            <a href="/ReturnDevices/Create?serialNumber=@Uri.EscapeDataString(serialNumber!)" class="create-link">@Localizer["LinkAddReturn"]</a>
+            <a href="/WicStock/Create?serialNumber=@Uri.EscapeDataString(serialNumber!)" class="create-link">@Localizer["LinkAddWic"]</a>
+            <a href="/LoanerDevices/Create?serialNumber=@Uri.EscapeDataString(serialNumber!)" class="create-link">@Localizer["LinkAddLoaner"]</a>
           </div>
         </div>
       }
@@ -64,17 +67,17 @@ tbody tr:hover{background:var(--bg-hover)}
       {
         if (returnResults.Count > 0)
         {
-          <div class="section-label">Return Devices (@returnResults.Count result@(returnResults.Count == 1 ? "" : "s"))</div>
+          <div class="section-label">@Localizer["SectionReturn"] (@returnResults.Count @(returnResults.Count == 1 ? Localizer["ResultSingular"].Value : Localizer["ResultPlural"].Value))</div>
           <div class="panel">
             <table>
               <thead>
                 <tr>
-                  <th>Module</th>
-                  <th>Serial Number</th>
-                  <th>Device Type</th>
+                  <th>@Localizer["ColModule"]</th>
+                  <th>@Localizer["ColSerial"]</th>
+                  <th>@Localizer["ColDeviceType"]</th>
                   <th>RITM</th>
-                  <th>Device Location</th>
-                  <th>Status</th>
+                  <th>@Localizer["ColDeviceLocation"]</th>
+                  <th>@Localizer["ColStatus"]</th>
                   <th></th>
                 </tr>
               </thead>
@@ -83,15 +86,14 @@ tbody tr:hover{background:var(--bg-hover)}
                 {
                   var locClass    = d.DeviceLocation == "In Transit" ? "b-intransit" : "b-inwic";
                   var statusClass = d.Status == LaptopTracker.Models.ReturnDeviceStatus.PendingPickup ? "b-pending" : "b-pickedup";
-                  var statusLabel = d.Status == LaptopTracker.Models.ReturnDeviceStatus.PendingPickup ? "Pending Pickup" : "Picked Up";
                   <tr>
-                    <td><span class="badge b-return">Return</span></td>
+                    <td><span class="badge b-return">@Localizer["BadgeReturn"]</span></td>
                     <td><a class="link" href="/ReturnDevices/Edit/@d.Id">@d.SerialNumber</a></td>
                     <td>@d.DeviceType</td>
                     <td>@d.RITM</td>
-                    <td><span class="badge @locClass">@d.DeviceLocation</span></td>
-                    <td><span class="badge @statusClass">@statusLabel</span></td>
-                    <td><a class="link" href="/ReturnDevices/Edit/@d.Id">Edit</a></td>
+                    <td><span class="badge @locClass">@StatusLocalizer.GetDeviceLocation(d.DeviceLocation, StatusLoc)</span></td>
+                    <td><span class="badge @statusClass">@StatusLocalizer.Get(d.Status, StatusLoc)</span></td>
+                    <td><a class="link" href="/ReturnDevices/Edit/@d.Id">@Localizer["CellEdit"]</a></td>
                   </tr>
                 }
               </tbody>
@@ -101,17 +103,17 @@ tbody tr:hover{background:var(--bg-hover)}
 
         if (wicResults.Count > 0)
         {
-          <div class="section-label">WIC Stock (@wicResults.Count result@(wicResults.Count == 1 ? "" : "s"))</div>
+          <div class="section-label">@Localizer["SectionWic"] (@wicResults.Count @(wicResults.Count == 1 ? Localizer["ResultSingular"].Value : Localizer["ResultPlural"].Value))</div>
           <div class="panel">
             <table>
               <thead>
                 <tr>
-                  <th>Module</th>
-                  <th>Serial Number</th>
-                  <th>Device Type</th>
+                  <th>@Localizer["ColModule"]</th>
+                  <th>@Localizer["ColSerial"]</th>
+                  <th>@Localizer["ColDeviceType"]</th>
                   <th>RITM</th>
-                  <th>Device Location</th>
-                  <th>Status</th>
+                  <th>@Localizer["ColDeviceLocation"]</th>
+                  <th>@Localizer["ColStatus"]</th>
                   <th></th>
                 </tr>
               </thead>
@@ -120,15 +122,14 @@ tbody tr:hover{background:var(--bg-hover)}
                 {
                   var locClass    = d.DeviceLocation == "In Use" ? "b-inuse" : "b-inwic";
                   var statusClass = d.Status == LaptopTracker.Models.WicStockStatus.Available ? "b-available" : "b-notavail";
-                  var statusLabel = d.Status == LaptopTracker.Models.WicStockStatus.Available ? "Available" : "Not Available";
                   <tr>
-                    <td><span class="badge b-wic">WIC Stock</span></td>
+                    <td><span class="badge b-wic">@Localizer["BadgeWic"]</span></td>
                     <td><a class="link" href="/WicStock/Edit/@d.Id">@d.SerialNumber</a></td>
                     <td>@d.DeviceType</td>
                     <td>@d.RITM</td>
-                    <td><span class="badge @locClass">@d.DeviceLocation</span></td>
-                    <td><span class="badge @statusClass">@statusLabel</span></td>
-                    <td><a class="link" href="/WicStock/Edit/@d.Id">Edit</a></td>
+                    <td><span class="badge @locClass">@StatusLocalizer.GetDeviceLocation(d.DeviceLocation, StatusLoc)</span></td>
+                    <td><span class="badge @statusClass">@StatusLocalizer.Get(d.Status, StatusLoc)</span></td>
+                    <td><a class="link" href="/WicStock/Edit/@d.Id">@Localizer["CellEdit"]</a></td>
                   </tr>
                 }
               </tbody>
@@ -138,17 +139,17 @@ tbody tr:hover{background:var(--bg-hover)}
 
         if (loanerResults.Count > 0)
         {
-          <div class="section-label">Loaner Devices (@loanerResults.Count result@(loanerResults.Count == 1 ? "" : "s"))</div>
+          <div class="section-label">@Localizer["SectionLoaner"] (@loanerResults.Count @(loanerResults.Count == 1 ? Localizer["ResultSingular"].Value : Localizer["ResultPlural"].Value))</div>
           <div class="panel">
             <table>
               <thead>
                 <tr>
-                  <th>Module</th>
-                  <th>Serial Number</th>
-                  <th>Device Type</th>
+                  <th>@Localizer["ColModule"]</th>
+                  <th>@Localizer["ColSerial"]</th>
+                  <th>@Localizer["ColDeviceType"]</th>
                   <th>RITM</th>
-                  <th>Device Location</th>
-                  <th>Status</th>
+                  <th>@Localizer["ColDeviceLocation"]</th>
+                  <th>@Localizer["ColStatus"]</th>
                   <th></th>
                 </tr>
               </thead>
@@ -157,15 +158,14 @@ tbody tr:hover{background:var(--bg-hover)}
                 {
                   var locClass    = d.DeviceLocation == "In Use" ? "b-inuse" : "b-inwic";
                   var statusClass = d.Status == LaptopTracker.Models.LoanerStatus.Available ? "b-available" : "b-notavail";
-                  var statusLabel = d.Status == LaptopTracker.Models.LoanerStatus.Available ? "Available" : "Not Available";
                   <tr>
-                    <td><span class="badge b-loaner">Loaner</span></td>
+                    <td><span class="badge b-loaner">@Localizer["BadgeLoaner"]</span></td>
                     <td><a class="link" href="/LoanerDevices/Edit/@d.Id">@d.SerialNumber</a></td>
                     <td>@d.DeviceType</td>
                     <td>@d.RITM</td>
-                    <td><span class="badge @locClass">@d.DeviceLocation</span></td>
-                    <td><span class="badge @statusClass">@statusLabel</span></td>
-                    <td><a class="link" href="/LoanerDevices/Edit/@d.Id">Edit</a></td>
+                    <td><span class="badge @locClass">@StatusLocalizer.GetDeviceLocation(d.DeviceLocation, StatusLoc)</span></td>
+                    <td><span class="badge @statusClass">@StatusLocalizer.Get(d.Status, StatusLoc)</span></td>
+                    <td><a class="link" href="/LoanerDevices/Edit/@d.Id">@Localizer["CellEdit"]</a></td>
                   </tr>
                 }
               </tbody>

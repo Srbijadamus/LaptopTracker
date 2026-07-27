@@ -1,0 +1,62 @@
+using LaptopTracker.Models;
+using Microsoft.Extensions.Localization;
+
+namespace LaptopTracker.Helpers;
+
+public class StatusLabels { }
+
+public static class StatusLocalizer
+{
+    public static string Get(ReturnDeviceStatus status, IStringLocalizer<StatusLabels> loc) =>
+        status switch
+        {
+            ReturnDeviceStatus.PendingPickup => loc["Status_PendingPickup"],
+            ReturnDeviceStatus.PickedUp      => loc["Status_PickedUp"],
+            _                                => status.ToString()
+        };
+
+    public static string Get(WicStockStatus status, IStringLocalizer<StatusLabels> loc) =>
+        status switch
+        {
+            WicStockStatus.Available    => loc["Status_Available"],
+            WicStockStatus.NotAvailable => loc["Status_WicNotAvailable"],
+            _                           => status.ToString()
+        };
+
+    public static string Get(LoanerStatus status, IStringLocalizer<StatusLabels> loc) =>
+        status switch
+        {
+            LoanerStatus.Available    => loc["Status_Available"],
+            LoanerStatus.NotAvailable => loc["Status_LoanerNotAvailable"],
+            _                         => status.ToString()
+        };
+
+    // DeviceLocation badge text — maps raw DB value to localized label
+    public static string GetDeviceLocation(string? rawValue, IStringLocalizer<StatusLabels> loc) =>
+        rawValue switch
+        {
+            "In WIC"     => loc["DevLoc_InWic"],
+            "In Use"     => loc["DevLoc_InUse"],
+            "In Transit" => loc["DevLoc_InTransit"],
+            null or ""   => "—",
+            _            => rawValue
+        };
+
+    // Boolean accessory display with icons (charger / cable detail row)
+    public static string GetBool(bool? value, IStringLocalizer<StatusLabels> loc) =>
+        value switch
+        {
+            true  => "✓ " + loc["Bool_Yes"].Value,
+            false => "✗ " + loc["Bool_No"].Value,
+            null  => "—"
+        };
+
+    // Boolean without icons — for badge-only cells
+    public static string GetBoolBadge(bool? value, IStringLocalizer<StatusLabels> loc) =>
+        value switch
+        {
+            true  => loc["Bool_Yes"],
+            false => loc["Bool_No"],
+            null  => "—"
+        };
+}

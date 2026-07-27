@@ -133,6 +133,21 @@
   color: var(--text-primary);
 }
 
+/* ── Scroll container (used directly in HTML or auto-injected by topscroll.js) */
+.table-scroll { overflow-x: auto; width: 100%; }
+
+/* ── Top scrollbar (injected above wide tables by topscroll.js) ─── */
+.top-scroll-bar {
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0; /* inherits parent panel's top corners via overflow:hidden */
+}
+.top-scroll-inner {
+  height: 1px;
+  pointer-events: none;
+}
+
 /* Warning box dark mode override */
 [data-theme="dark"] .warning {
   background: var(--warning-bg);
