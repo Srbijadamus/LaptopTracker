@@ -78,6 +78,9 @@ tbody tr:hover{background:var(--bg-hover)}
 .bulk-input:focus{border-color:var(--accent)}
 .bulk-apply{padding:10px 22px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
 .bulk-label{font-size:13px;font-weight:600;color:var(--text-secondary);white-space:nowrap}
+.link-muted{color:var(--text-secondary);font-weight:600;font-size:13px;text-decoration:none}
+.link-muted:hover{color:var(--text-primary)}
+.actions-cell{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
 </style>
 }
 
@@ -195,15 +198,13 @@ tbody tr:hover{background:var(--bg-hover)}
                 <td>@if (d.ChargerReturned != null) { <span class="@ChargerClass(d.ChargerReturned)">@StatusLocalizer.GetBool(d.ChargerReturned, StatusLoc)</span> } else { <span class="muted">—</span> }</td>
                 <td>@if (d.PowerCableReturned != null) { <span class="@ChargerClass(d.PowerCableReturned)">@StatusLocalizer.GetBool(d.PowerCableReturned, StatusLoc)</span> } else { <span class="muted">—</span> }</td>
                 <td>
-                  <a class="link" href="/ReturnDevices/Edit/@d.Id">@Localizer["CellEdit"]</a>
-                  &nbsp;
-                  <a class="link" href="/ReturnDevices/Document/@d.Id">@Localizer["CellDocument"]</a>
-                  &nbsp;
-                  <a class="link" href="/ReturnDevices/EmailDraft/@d.Id"
-                     onclick="return confirmEmail()">@Localizer["CellEmailDraft"]</a>
-                  &nbsp;
-                  <button type="button" class="btn-row-del" onclick="deleteDevice(@d.Id,'@Html.Raw(d.SerialNumber.Replace("'","\\'"  ))')">&#x1F5D1; @Localizer["CellDelete"]</button>
-                  <br><span style="font-size:11px;color:var(--text-muted)">@Localizer["EmailWarnMsg"]</span>
+                  <div class="actions-cell">
+                    <a class="link-muted" href="/ReturnDevices/Edit/@d.Id">@Localizer["CellEdit"]</a>
+                    <a class="link-muted" href="/ReturnDevices/Document/@d.Id">&#x1F4C4; @Localizer["CellDocument"]</a>
+                    <a class="link" href="/ReturnDevices/EmailDraft/@d.Id"
+                       onclick="return confirmEmail()">@Localizer["CellEmailDraft"]</a>
+                    <button type="button" class="btn-row-del" onclick="deleteDevice(@d.Id,'@Html.Raw(d.SerialNumber.Replace("'","\\'"  ))')">&#x1F5D1; @Localizer["CellDelete"]</button>
+                  </div>
                 </td>
               </tr>
             }
@@ -260,9 +261,10 @@ var d = collectedDevices[i];
 <td>@if(d.ChargerReturned==true){<span class="badge b-yes">@StatusLoc["Bool_Yes"]</span>}else{<span class="badge b-no">@StatusLoc["Bool_No"]</span>}</td>
 <td>@if(d.PowerCableReturned==true){<span class="badge b-yes">@StatusLoc["Bool_Yes"]</span>}else{<span class="badge b-no">@StatusLoc["Bool_No"]</span>}</td>
 <td>
-  <a class="link" href="/ReturnDevices/Edit/@d.Id">@Localizer["CellEdit"]</a>
-  &nbsp;
-  <a class="link" href="/ReturnDevices/Document/@d.Id">@Localizer["CellDocument"]</a>
+  <div class="actions-cell">
+    <a class="link-muted" href="/ReturnDevices/Edit/@d.Id">@Localizer["CellEdit"]</a>
+    <a class="link-muted" href="/ReturnDevices/Document/@d.Id">&#x1F4C4; @Localizer["CellDocument"]</a>
+  </div>
 </td>
 </tr>
 }
