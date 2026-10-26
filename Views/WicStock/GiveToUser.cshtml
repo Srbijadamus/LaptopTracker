@@ -1,0 +1,66 @@
+@model LaptopTracker.Models.WicStockDevice
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    ViewData["Title"] = Localizer["PageTitle"].Value;
+}
+@section Styles {
+<style>
+.back{padding:9px 18px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;border:1px solid var(--accent);color:var(--accent);background:transparent;display:inline-block;margin-bottom:16px}
+.content{padding:0}
+.page-title{font-size:20px;font-weight:700;margin-bottom:4px;color:var(--text-primary)}
+.page-sub{font-size:13px;color:var(--text-muted);margin-bottom:20px}
+.form-card{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:28px 32px;max-width:640px;margin-bottom:16px}
+.section-head{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-secondary);margin-bottom:16px}
+.fg{display:flex;flex-direction:column;gap:6px}
+.fg label{font-size:13px;font-weight:600;color:var(--text-primary)}
+.fg input{padding:10px 13px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);font-family:inherit;outline:none;text-transform:uppercase}
+.fg input:focus{border-color:var(--accent)}
+.fg .hint{font-size:12px;color:var(--text-muted)}
+.old-device{background:var(--bg-thead);border-radius:10px;padding:16px 20px;margin-bottom:20px}
+.old-device h4{font-size:13px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;margin-bottom:10px}
+.old-device-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.old-field{display:flex;flex-direction:column;gap:2px}
+.old-label{font-size:11px;color:var(--text-muted);text-transform:uppercase}
+.old-value{font-size:14px;font-weight:600;color:var(--text-primary)}
+.form-actions{display:flex;gap:12px;align-items:center;padding-top:8px}
+.btn-submit{padding:11px 24px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
+.btn-cancel{padding:11px 20px;background:transparent;color:var(--text-secondary);border:1px solid var(--border-input);border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block}
+.status-msg{background:#fde0e3;color:#8a1c2b;border:1px solid #f5c2c7;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px}
+</style>
+}
+  <div class="content">
+    <a href="/WicStock" class="back">&larr; @Localizer["BtnBack"]</a>
+    <div class="page-title">@Localizer["PageTitlePrefix"] @Model.SerialNumber</div>
+    <div class="page-sub">@Localizer["PageSub"]</div>
+
+    @if (TempData["StatusMessage"] != null)
+    {
+      <div class="status-msg">@TempData["StatusMessage"]</div>
+    }
+
+    <div class="form-card">
+      <div class="section-head">@Localizer["SectionDevice"]</div>
+      <div class="old-device">
+        <div class="old-device-grid">
+          <div class="old-field"><span class="old-label">@Localizer["FieldSerial"]</span><span class="old-value">@Model.SerialNumber</span></div>
+          <div class="old-field"><span class="old-label">@Localizer["FieldType"]</span><span class="old-value">@Model.DeviceType</span></div>
+          <div class="old-field"><span class="old-label">RITM</span><span class="old-value">@Model.RITM</span></div>
+          <div class="old-field"><span class="old-label">@Localizer["FieldLocation"]</span><span class="old-value">@Model.DeviceLocation</span></div>
+          <div class="old-field"><span class="old-label">@Localizer["FieldCategory"]</span><span class="old-value">@Localizer["CatReimaged"]</span></div>
+        </div>
+      </div>
+
+      <form method="post" action="/WicStock/GiveToUser/@Model.Id">
+        <div class="fg">
+          <label>@Localizer["FieldKid"]</label>
+          <input name="kid" type="text" required autofocus autocomplete="off" placeholder="Z. B. S69307" />
+          <span class="hint">@Localizer["FieldKidHint"]</span>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-submit">@Localizer["BtnSubmit"]</button>
+          <a href="/WicStock" class="btn-cancel">@Localizer["BtnCancel"]</a>
+        </div>
+      </form>
+    </div>
+  </div>

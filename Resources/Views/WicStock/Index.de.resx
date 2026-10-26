@@ -92,3 +92,4 @@
   <data name="BulkEditSelected" xml:space="preserve"><value>Auswahl bearbeiten</value></data>
   <data name="BulkHandOver" xml:space="preserve"><value>Geräte übergeben</value></data>
 </root>
+  <data name="CellGiveToUser" xml:space="preserve"><value>An Benutzer</value></data>

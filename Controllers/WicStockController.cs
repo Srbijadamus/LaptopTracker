@@ -319,3 +319,82 @@ namespace LaptopTracker.Controllers
 
 
 
+
+        // ── Give directly to a user (KID) ─────────────────────────────────────
+        // A re-imaged laptop can leave the WIC pool in one of two ways: the existing
+        // "Geräte übergeben" handover (used for the AIOT path, Location="AIOT") or this
+        // simpler single-device handover that records only the recipient's KID. Both
+        // book the device out via the same soft-delete and create a Handover row, so the
+        // Übergabeliste and the audit log stay the single evidence trail.
+
+        [HttpGet]
+        public async Task<IActionResult> GiveToUser(int id)
+        {
+            var device = await _context.WicStockDevices
+                .FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted);
+            if (device == null) return NotFound();
+            return View(device);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GiveToUser(int id, string kid)
+        {
+            var device = await _context.WicStockDevices
+                .FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted);
+
+            if (device == null)
+            {
+                TempData["StatusMessage"] = "Gerät nicht gefunden oder bereits übergeben.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Same KID rule as the login: trim + uppercase, reject empty. There is no
+            // wider KID format in the system, so this is the whole validation.
+            kid = (kid ?? "").Trim().ToUpperInvariant();
+            if (string.IsNullOrEmpty(kid))
+            {
+                TempData["StatusMessage"] = "KID ist erforderlich.";
+                return RedirectToAction(nameof(GiveToUser), new { id });
+            }
+
+            if (device.Category != "Re-imaged laptops")
+            {
+                TempData["StatusMessage"] = "Nur re-image Laptops können direkt an einen Benutzer übergeben werden.";
+                return RedirectToAction(nameof(GiveToUser), new { id });
+            }
+
+            if (device.DeviceLocation == "In Transit")
+            {
+                TempData["StatusMessage"] = "Das Gerät ist unterwegs und kann nicht direkt übergeben werden.";
+                return RedirectToAction(nameof(GiveToUser), new { id });
+            }
+
+            // Record the recipient on the device row (visible in Archive), then book it
+            // out via soft-delete — the same mechanism the WIC handover uses, so the
+            // audit engine logs a SoftDelete and the device leaves the stock list.
+            device.KID = kid;
+            device.IsDeleted = true;
+            device.DeletedAt = DateTime.UtcNow;
+
+            var handover = new Handover
+            {
+                Name     = "Direkt an Benutzer",
+                Kid      = kid,
+                Location = "Direkt an Benutzer",
+                Date     = DateTime.Now,
+                Devices = new List<HandoverDevice>
+                {
+                    new HandoverDevice
+                    {
+                        DeviceId     = device.Id,
+                        DeviceType   = "WicStock",
+                        SerialNumber = device.SerialNumber,
+                        WorkOrder    = device.WorkOrder
+                    }
+                }
+            };
+            _context.Handovers.Add(handover);
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Details", "Handovers", new { id = handover.Id });
+        }
