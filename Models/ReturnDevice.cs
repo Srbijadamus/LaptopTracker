@@ -29,6 +29,11 @@ namespace LaptopTracker.Models
         public bool IsCustomerInducedDamage { get; set; } = false;
         public bool IsBatterySwollen { get; set; } = false;
         public string? Acknowledgement { get; set; }
+
+        // Same reference data as WicStockDevice.Model: free string matched against
+        // Models.ModelName at read time, nullable so "not recorded" stays NULL.
+        public string? Model { get; set; }
+
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }
         public List<ReturnDevicePhoto> Photos { get; set; } = new();

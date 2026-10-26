@@ -57,7 +57,7 @@
   <data name="FieldSerialRequired" xml:space="preserve"><value>Serial Number *</value></data>
   <data name="FieldDeviceType" xml:space="preserve"><value>Device Type</value></data>
   <data name="FieldDate" xml:space="preserve"><value>Date</value></data>
-  <data name="FieldDeviceStatus" xml:space="preserve"><value>Device Status</value></data>
+  <data name="FieldDeviceStatus" xml:space="preserve"><value>Device State</value></data>
   <data name="FieldStatus" xml:space="preserve"><value>Status</value></data>
   <data name="FieldWic" xml:space="preserve"><value>WIC (Office Location) *</value></data>
   <data name="SelectWicPlaceholder" xml:space="preserve"><value>— Select WIC —</value></data>

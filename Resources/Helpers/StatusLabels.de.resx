@@ -68,6 +68,14 @@
   <data name="DevLoc_InTransit" xml:space="preserve"><value>In Transit</value></data>
 
   <!-- Boolean accessory labels -->
+  <data name="Lease_Expired" xml:space="preserve"><value>Lease abgelaufen</value></data>
+  <data name="Lease_EndsSoon" xml:space="preserve"><value>Lease endet bald</value></data>
   <data name="Bool_Yes" xml:space="preserve"><value>Ja</value></data>
   <data name="Bool_No" xml:space="preserve"><value>Nein</value></data>
+
+  <!-- Ideal Stock Overview -->
+  <data name="Status_StockOk" xml:space="preserve"><value>OK</value></data>
+  <data name="Status_StockSurplus" xml:space="preserve"><value>Überbestand</value></data>
+  <data name="Status_StockShortage" xml:space="preserve"><value>Unterbestand</value></data>
+  <data name="Status_StockUndefined" xml:space="preserve"><value>Nicht festgelegt</value></data>
 </root>

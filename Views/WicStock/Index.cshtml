@@ -7,10 +7,15 @@
     var statusFilter     = ViewData["StatusFilter"]     as string;
     var locationFilter   = ViewData["LocationFilter"]   as string;
     var deviceTypeFilter = ViewData["DeviceTypeFilter"] as string;
+    var siteFilter       = ViewData["SiteFilter"]       as string;
+    var categoryFilter   = ViewData["CategoryFilter"]   as string;
     var allLocations   = ViewData["Locations"]   as List<string> ?? new List<string>();
     var allDeviceTypes = ViewData["DeviceTypes"] as List<string> ?? new List<string>();
+    var allSites       = ViewData["Sites"]       as List<string> ?? new List<string>();
+    var allCategories  = ViewData["Categories"]  as List<string> ?? new List<string>();
     var anyFilter = !string.IsNullOrWhiteSpace(searchQuery) || !string.IsNullOrWhiteSpace(statusFilter)
-        || !string.IsNullOrWhiteSpace(locationFilter) || !string.IsNullOrWhiteSpace(deviceTypeFilter);
+        || !string.IsNullOrWhiteSpace(locationFilter) || !string.IsNullOrWhiteSpace(deviceTypeFilter)
+        || !string.IsNullOrWhiteSpace(siteFilter) || !string.IsNullOrWhiteSpace(categoryFilter);
 }
 @section Styles {
 <style>
@@ -31,6 +36,9 @@ tbody tr:hover{background:var(--bg-hover)}
 .empty td{padding:48px;text-align:center;color:var(--text-muted);font-size:14px}
 .link{color:var(--accent);font-weight:700;text-decoration:none}
 .badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+.b-reimaged{background:#3b2f6b;color:#cdbcff}
+.b-expired{background:#fde0e3;color:#8a1c2b}
+.b-leasesoon{background:#fff4d6;color:#755000}
 .b-available{background:#dff4ff;color:#0b4a74}
 .b-notavail{background:#fde2c7;color:#8a4f00}
 .b-inwic{background:#f3f2f1;color:#323130}
@@ -71,23 +79,16 @@ tbody tr:hover{background:var(--bg-hover)}
 </div>
 
 <div class="content">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+    <a href="/WicStock/Create" class="btn-primary">@Localizer["BtnAddDevice"]</a>
+  </div>
+
   <form method="get" action="/WicStock">
     <div class="search-form">
       <input class="search-input" name="searchQuery" type="text" placeholder="@Localizer["SearchPlaceholder"]" value="@searchQuery" />
       <button type="submit" class="search-btn">@Localizer["BtnSearch"]</button>
     </div>
     <div class="filter-bar">
-      <select name="countryFilter" class="filter-select" onchange="this.form.submit()">
-        <option value="">@Localizer["FilterAllCountries"]</option>
-        <option value="DE" selected="@(ViewData["CountryFilter"] as string == "DE" ? "selected" : null)">DE - Germany</option>
-        <option value="HU" selected="@(ViewData["CountryFilter"] as string == "HU" ? "selected" : null)">HU - Hungary</option>
-        <option value="IT" selected="@(ViewData["CountryFilter"] as string == "IT" ? "selected" : null)">IT - Italy</option>
-        <option value="PL" selected="@(ViewData["CountryFilter"] as string == "PL" ? "selected" : null)">PL - Poland</option>
-        <option value="SE" selected="@(ViewData["CountryFilter"] as string == "SE" ? "selected" : null)">SE - Sweden</option>
-        <option value="NL" selected="@(ViewData["CountryFilter"] as string == "NL" ? "selected" : null)">NL - Netherlands</option>
-        <option value="GB" selected="@(ViewData["CountryFilter"] as string == "GB" ? "selected" : null)">GB - Great Britain</option>
-        <option value="CZ" selected="@(ViewData["CountryFilter"] as string == "CZ" ? "selected" : null)">CZ - Czech Republic</option>
-      </select>
       <select name="statusFilter" class="filter-select" onchange="this.form.submit()">
         <option value="">@Localizer["FilterAllStatuses"]</option>
         <option value="Available" selected="@(statusFilter == "Available" ? "selected" : null)">@StatusLocalizer.Get(LaptopTracker.Models.WicStockStatus.Available, StatusLoc)</option>
@@ -98,6 +99,20 @@ tbody tr:hover{background:var(--bg-hover)}
         @foreach (var loc in allLocations)
         {
           <option value="@loc" selected="@(locationFilter == loc ? "selected" : null)">@loc</option>
+        }
+      </select>
+      <select name="siteFilter" class="filter-select" onchange="this.form.submit()">
+        <option value="">@Localizer["FilterAllSites"]</option>
+        @foreach (var site in allSites)
+        {
+          <option value="@site" selected="@(siteFilter == site ? "selected" : null)">@site</option>
+        }
+      </select>
+      <select name="categoryFilter" class="filter-select" onchange="this.form.submit()">
+        <option value="">@Localizer["FilterAllCategories"]</option>
+        @foreach (var c in allCategories)
+        {
+          <option value="@c" selected="@(categoryFilter == c ? "selected" : null)">@(c == "Re-imaged laptops" ? Localizer["CatReimaged"].Value : c)</option>
         }
       </select>
       <select name="deviceTypeFilter" class="filter-select" onchange="this.form.submit()">
@@ -128,13 +143,15 @@ tbody tr:hover{background:var(--bg-hover)}
             <th>@Localizer["ColDeviceLocation"]</th>
             <th>@Localizer["ColStatus"]</th>
             <th>@Localizer["ColSwapRITM"]</th>
+            <th>@Localizer["ColCategory"]</th>
+            <th>@Localizer["ColLeaseEnd"]</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
           @if (!Model.Any())
           {
-            <tr class="empty"><td colspan="10">@Localizer["EmptyNoDevices"]@(anyFilter ? " " + Localizer["EmptyClearFilters"].Value : "")</td></tr>
+            <tr class="empty"><td colspan="12">@Localizer["EmptyNoDevices"]@(anyFilter ? " " + Localizer["EmptyClearFilters"].Value : "")</td></tr>
           }
           else
           {
@@ -153,11 +170,34 @@ tbody tr:hover{background:var(--bg-hover)}
                 <td><span class="badge @locClass">@StatusLocalizer.GetDeviceLocation(d.DeviceLocation, StatusLoc)</span></td>
                 <td><span class="badge @statusClass">@StatusLocalizer.Get(d.Status, StatusLoc)</span></td>
                 <td class="muted">@(string.IsNullOrWhiteSpace(d.SwapRITM) ? "—" : d.SwapRITM)</td>
+                <td>
+                  @if (d.Category == "Re-imaged laptops")
+                  {
+                    <span class="badge b-reimaged">@Localizer["CatReimaged"]</span>
+                  }
+                  else
+                  {
+                    <span class="muted">—</span>
+                  }
+                </td>
+                <td class="muted">
+                  @(d.LeaseEndDatePlanned?.ToString("dd.MM.yyyy") ?? "—")
+                  @{ var leaseState = DateTimeHelper.ClassifyLease(d.LeaseEndDatePlanned); }
+                  @if (leaseState != LeaseStatus.None)
+                  {
+                    <span class="badge @(leaseState == LeaseStatus.Expired ? "b-expired" : "b-leasesoon")">@StatusLocalizer.GetLease(leaseState, StatusLoc)</span>
+                  }
+                </td>
                 <td style="white-space:nowrap">
                   <a class="link" href="/WicStock/Edit/@d.Id">@Localizer["CellEdit"]</a>
                   &nbsp;
                   <a class="link" href="/WicStock/CreateSwap/@d.Id" style="color:#f59e0b">@Localizer["CellSwap"]</a>
                   &nbsp;
+                  @if (d.Category == "Re-imaged laptops")
+                  {
+                    <a class="link" href="/WicStock/GiveToUser/@d.Id" style="color:#1a7f37">@Localizer["CellGiveToUser"]</a>
+                    <text>&nbsp;</text>
+                  }
                   <button type="button" class="btn-row-del" onclick="deleteDevice(@d.Id,'@Html.Raw(d.SerialNumber.Replace("'","\\'"  ))')">&#x1F5D1; @Localizer["CellDelete"]</button>
                 </td>
               </tr>
@@ -223,8 +263,3 @@ function handOverSelected() {
 }
 </script>
 }
-                  @if (d.Category == "Re-imaged laptops")
-                  {
-                    <a class="link" href="/WicStock/GiveToUser/@d.Id" style="color:#1a7f37">@Localizer["CellGiveToUser"]</a>
-                    <text>&nbsp;</text>
-                  }

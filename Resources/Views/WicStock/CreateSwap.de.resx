@@ -60,7 +60,7 @@
   <data name="SectionDefective" xml:space="preserve"><value>Defektes Gerät (Aktuell)</value></data>
   <data name="FieldSerial" xml:space="preserve"><value>Seriennummer</value></data>
   <data name="FieldType" xml:space="preserve"><value>Typ</value></data>
-  <data name="FieldLocation" xml:space="preserve"><value>Standort</value></data>
+  <data name="FieldLocation" xml:space="preserve"><value>Gerätestatus</value></data>
   <data name="FieldStatus" xml:space="preserve"><value>Status</value></data>
 
   <!-- New device form -->
@@ -68,7 +68,8 @@
   <data name="FieldNewSerial" xml:space="preserve"><value>Seriennummer *</value></data>
   <data name="FieldDeviceType" xml:space="preserve"><value>Gerätetyp</value></data>
   <data name="FieldSwapDate" xml:space="preserve"><value>Tausch-Datum</value></data>
-  <data name="FieldDeviceLocation" xml:space="preserve"><value>Gerätestandort</value></data>
+  <data name="FieldSwapDeviceState" xml:space="preserve"><value>Gerätestatus</value></data>
+  <data name="FieldDeviceLocation" xml:space="preserve"><value>Standort</value></data>
 
   <!-- Buttons -->
   <data name="BtnCreate" xml:space="preserve"><value>SWAP erstellen</value></data>

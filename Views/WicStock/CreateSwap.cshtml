@@ -4,8 +4,9 @@
 @inject IViewLocalizer Localizer
 @{
     ViewData["Title"] = Localizer["PageTitle"].Value;
-    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Mini Desktop" };
-    var eonLocations = LocationList.Locations.OrderBy(l => l).ToList();
+    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Rugged tablet", "Microsoft Surface tablet", "Apple tablet" };
+    var siteLocations = LocationList.SiteLocations.OrderBy(l => l).ToList();
+    var modelNames = ((ViewData["Models"] as List<DeviceModel>) ?? new()).Select(m => m.ModelName).OrderBy(n => n).ToList();
 }
 @section Styles {
 <style>
@@ -81,12 +82,32 @@
             <input name="swapDate" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
           </div>
 
+          <div class="fg">
+            <label>@Localizer["FieldSwapDeviceState"]</label>
+            <select name="swapDeviceState">
+              <option value="In WIC">In WIC</option>
+              <option value="In Transit">In Transit</option>
+            </select>
+          </div>
+
           <div class="fg form-full">
-            <label>@Localizer["FieldDeviceLocation"]</label>
-            <select name="swapDeviceLocation">
-              @foreach (var l in eonLocations)
+            <label>@Localizer["FieldDeviceLocation"] *</label>
+            <select name="swapLocation" required>
+              <option value="" disabled selected>— Select site —</option>
+              @foreach (var l in siteLocations)
               {
-                <option value="@l" selected="@(Model.DeviceLocation == l ? "selected" : null)">@l</option>
+                <option value="@l" selected="@(Model.Location == l ? "selected" : null)">@l</option>
+              }
+            </select>
+          </div>
+
+          <div class="fg form-full">
+            <label>Model *</label>
+            <select name="swapModel" required>
+              <option value="" disabled selected>— Select model —</option>
+              @foreach (var m in modelNames)
+              {
+                <option value="@m" selected="@(Model.Model == m ? "selected" : null)">@m</option>
               }
             </select>
           </div>

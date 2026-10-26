@@ -137,7 +137,7 @@
         _            => "badge-other"
       };
       <tr>
-        <td style="white-space:nowrap;font-size:12px">@row.TimestampUtc.ToString("yyyy-MM-dd HH:mm:ss")</td>
+        <td style="white-space:nowrap;font-size:12px">@row.TimestampUtc.ToCet().ToString("yyyy-MM-dd HH:mm:ss")</td>
         <td style="font-weight:600">@row.Kid</td>
         <td><span class="badge @badgeClass">@row.Action</span></td>
         <td>@row.EntityName</td>

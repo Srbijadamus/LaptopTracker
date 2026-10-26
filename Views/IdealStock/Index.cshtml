@@ -1,0 +1,391 @@
+@model LaptopTracker.Models.IdealStockOverviewViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    ViewData["Title"] = Localizer["PageTitle"].Value;
+    var classHints = new Dictionary<LaptopTracker.Models.SizeClass, string>
+    {
+        [LaptopTracker.Models.SizeClass.S] = Localizer["ClassS"].Value,
+        [LaptopTracker.Models.SizeClass.M] = Localizer["ClassM"].Value,
+        [LaptopTracker.Models.SizeClass.L] = Localizer["ClassL"].Value,
+        [LaptopTracker.Models.SizeClass.D] = Localizer["ClassD"].Value,
+    };
+}
+@section Styles {
+<style>
+.content{padding:0}
+.panel{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);overflow:hidden;margin-bottom:18px}
+.loc-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+.loc-title{font-size:15px;font-weight:700;color:var(--text-primary)}
+.table-scroll{overflow-x:auto;width:100%}
+table{width:100%;min-width:760px;border-collapse:collapse}
+thead th{text-align:left;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg-thead);font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+tbody td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:14px;color:var(--text-primary);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--bg-hover)}
+.muted{color:var(--text-muted);font-size:13px}
+.status-lamp{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+.status-ok{background:var(--green-soft);color:var(--green)}
+.status-surplus{background:var(--amber-soft);color:var(--amber)}
+.status-shortage{background:var(--danger-soft);color:var(--danger)}
+.status-undefined{background:var(--bg-thead);color:var(--text-muted)}
+.ideal-display{font-weight:600}
+.edit-only{display:none}
+.edit-mode .edit-only{display:inline-flex}
+.edit-mode .ideal-readonly{display:none}
+.ideal-cell{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ideal-select{padding:6px 8px;border:1px solid var(--border-input);border-radius:6px;font-size:13px;color:var(--text-primary);background:var(--bg-input)}
+.btn-mini{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border-input);background:var(--bg-panel);color:var(--text-primary)}
+.btn-mini-primary{background:var(--v2-accent);border-color:var(--v2-accent);color:#04212b}
+.saved-flash{font-size:11px;color:var(--green);font-weight:700;opacity:0;transition:opacity .3s}
+.saved-flash.show{opacity:1}
+.classtype-select{padding:6px 8px;border:1px solid var(--border-input);border-radius:6px;font-size:13px;color:var(--text-primary);background:var(--bg-input)}
+.classtype-flash{font-size:11px;color:var(--green);font-weight:700;opacity:0;transition:opacity .3s}
+.classtype-flash.show{opacity:1}
+.btn-toggle{padding:9px 16px;background:var(--bg-panel);color:var(--v2-accent);border:1px solid var(--v2-accent);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-toggle.on{background:var(--v2-accent);color:#04212b}
+.unmapped-panel{background:var(--bg-panel);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.18);padding:12px 18px;margin-top:8px;border-left:3px solid var(--amber)}
+.unmapped-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--amber);margin-bottom:4px}
+.unmapped-hint{font-size:12px;color:var(--text-muted);margin-bottom:6px}
+.unassigned-panel{border-left:3px solid var(--danger, #c4314b)}
+.legacy-badge{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);background:var(--bg-thead);border-radius:999px;padding:3px 9px;margin-left:8px}
+.caveat-flag{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--amber-soft);color:var(--amber);font-size:11px;font-weight:700;margin-left:6px;cursor:help}
+.unclassified-row td{color:var(--text-muted);font-style:italic}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg-topbar);border:1px solid var(--border);border-radius:10px;padding:12px 18px;display:none;align-items:center;gap:14px;box-shadow:0 4px 20px rgba(0,0,0,0.25);z-index:200;font-size:14px;color:var(--text-primary)}
+#toast.show{display:flex}
+.toast-undo{color:var(--v2-accent);font-weight:700;cursor:pointer;background:none;border:none;font-size:14px}
+.top-bar{display:flex;justify-content:flex-end;gap:10px;margin-bottom:14px}
+</style>
+}
+
+@Html.AntiForgeryToken()
+
+<div class="content">
+  <div class="top-bar">
+    <a href="/IdealStock/Export" class="btn-toggle">@Localizer["BtnExportExcel"]</a>
+    <button type="button" id="editToggle" class="btn-toggle">@Localizer["EditToggleOn"]</button>
+  </div>
+
+  @if (!Model.Locations.Any())
+  {
+    <div class="panel"><div style="padding:40px;text-align:center" class="muted">@Localizer["EmptyNoLocations"]</div></div>
+  }
+
+  @foreach (var group in Model.Locations)
+  {
+    var displayName = group.IsUnassigned ? Localizer["UnassignedTitle"].Value : group.Location;
+    var caveatText = group.Unclassified.Any
+      ? string.Format(Localizer["UnclassifiedCaveat"].Value, group.Unclassified.Total)
+      : null;
+    <div class="panel @(group.IsUnassigned ? "unassigned-panel" : "")" data-location="@group.Location">
+      <div class="loc-header">
+        <span class="loc-title">
+          @displayName
+          @if (group.IsUnassigned)
+          {
+            <span class="legacy-badge">@Localizer["UnassignedTitle"]</span>
+          }
+          else if (group.IsUnseededLegacy)
+          {
+            <span class="legacy-badge">@Localizer["LegacyBadge"]</span>
+          }
+        </span>
+        @if (!group.IsUnassigned)
+        {
+          <button type="button" class="btn-mini edit-only apply-all-btn" data-location="@group.Location">@Localizer["BtnApplyToAll"]</button>
+        }
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>@Localizer["ColClass"]</th>
+              <th>@Localizer["ColInStock"]</th>
+              <th>@Localizer["ColReserved"]</th>
+              <th>@Localizer["ColIdeal"]</th>
+              <th>@Localizer["ColDifference"]</th>
+              <th>@Localizer["ColStatus"]</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach (var row in group.Rows)
+            {
+              var statusClass = row.Status switch
+              {
+                LaptopTracker.Models.StockStatus.Ok => "status-ok",
+                LaptopTracker.Models.StockStatus.Surplus => "status-surplus",
+                LaptopTracker.Models.StockStatus.Shortage => "status-shortage",
+                _ => "status-undefined"
+              };
+              var lastChanged = row.UpdatedAt.HasValue
+                ? string.Format(Localizer["LastChanged"].Value, row.UpdatedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm"), row.UpdatedBy)
+                : null;
+              <tr class="stock-row" data-location="@group.Location" data-sizeclass="@row.SizeClass">
+                <td>
+                  @if (row.SizeClass == LaptopTracker.Models.SizeClass.D && !group.IsUnassigned)
+                  {
+                    <div class="ideal-cell">
+                      <span class="classtype-readonly ideal-display">@(row.DeviceTypeLabel switch
+                        {
+                          "Lenovo" => Localizer["DeviceTypeLenovo"].Value,
+                          "Rugged tablet" => Localizer["DeviceTypeRuggedTablet"].Value,
+                          "Microsoft Surface tablet" => Localizer["DeviceTypeSurfaceTablet"].Value,
+                          "Apple tablet" => Localizer["DeviceTypeAppleTablet"].Value,
+                          _ => Localizer["NotSet"].Value
+                        })</span>
+                      <select class="classtype-select edit-only">
+                        <option value="">@Localizer["NotSet"]</option>
+                        <option value="Lenovo" selected="@(row.DeviceTypeLabel == "Lenovo" ? "selected" : null)">@Localizer["DeviceTypeLenovo"]</option>
+                        <option value="Rugged tablet" selected="@(row.DeviceTypeLabel == "Rugged tablet" ? "selected" : null)">@Localizer["DeviceTypeRuggedTablet"]</option>
+                        <option value="Microsoft Surface tablet" selected="@(row.DeviceTypeLabel == "Microsoft Surface tablet" ? "selected" : null)">@Localizer["DeviceTypeSurfaceTablet"]</option>
+                        <option value="Apple tablet" selected="@(row.DeviceTypeLabel == "Apple tablet" ? "selected" : null)">@Localizer["DeviceTypeAppleTablet"]</option>
+                      </select>
+                      <span class="classtype-flash">@Localizer["ToastSaved"]</span>
+                    </div>
+                  }
+                  else
+                  {
+                    <span title="@classHints[row.SizeClass]">@row.SizeClass</span>
+                  }
+                </td>
+                <td>@row.InStock</td>
+                <td>@row.Reserved</td>
+                <td>
+                  @if (group.IsUnassigned)
+                  {
+                    <span class="ideal-display muted">—</span>
+                  }
+                  else
+                  {
+                    <div class="ideal-cell">
+                      <span class="ideal-readonly ideal-display">@(row.IdealTarget?.ToString() ?? Localizer["NotSet"].Value)</span>
+                      <select class="ideal-select edit-only">
+                        <option value="">@Localizer["NotSet"]</option>
+                        @for (int v = 1; v <= 8; v++)
+                        {
+                          <option value="@v" selected="@(row.IdealTarget == v ? "selected" : null)">@v</option>
+                        }
+                      </select>
+                      <button type="button" class="btn-mini btn-mini-primary edit-only save-btn">@Localizer["BtnSave"]</button>
+                      <button type="button" class="btn-mini edit-only clear-btn">@Localizer["BtnClear"]</button>
+                      <span class="saved-flash">@Localizer["ToastSaved"]</span>
+                    </div>
+                  }
+                </td>
+                <td class="diff-cell">@(row.Difference?.ToString("+0;-0;0") ?? "—")</td>
+                <td>
+                  <span class="status-lamp @statusClass" @(lastChanged != null ? Html.Raw($"title=\"{lastChanged}\"") : null)>
+                    @StatusLocalizer.Get(row.Status, StatusLoc)
+                  </span>
+                  @if (caveatText != null)
+                  {
+                    <span class="caveat-flag" title="@caveatText">!</span>
+                  }
+                </td>
+              </tr>
+            }
+            <tr class="unclassified-row" data-location="@group.Location" data-sizeclass="Unclassified">
+              <td>@Localizer["UnclassifiedRowLabel"]</td>
+              <td>@group.Unclassified.InStock</td>
+              <td>@group.Unclassified.Reserved</td>
+              <td>—</td>
+              <td>—</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      @if (group.Unclassified.Any)
+      {
+        <div class="unmapped-panel">
+          <div class="unmapped-title">@Localizer["UnmappedTitle"]</div>
+          <div class="unmapped-hint">@Localizer["UnmappedHint"]</div>
+          <div class="muted">@Localizer["ColInStock"]: @group.Unclassified.InStock &nbsp;·&nbsp; @Localizer["ColReserved"]: @group.Unclassified.Reserved &nbsp;·&nbsp; @string.Join(", ", group.Unclassified.Models)</div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<div id="toast"><span id="toastMsg"></span><button type="button" class="toast-undo" id="toastUndo" style="display:none">@Localizer["BtnUndo"]</button></div>
+
+@section Scripts {
+<script>
+(function () {
+  var token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+  var editToggle = document.getElementById('editToggle');
+  var content = document.querySelector('.content');
+  var toast = document.getElementById('toast');
+  var toastMsg = document.getElementById('toastMsg');
+  var toastUndo = document.getElementById('toastUndo');
+  var toastTimer = null;
+  var lblSaved = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ToastSaved"].Value));
+  var lblCleared = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ToastCleared"].Value));
+  var lblApplied = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ToastApplied"].Value));
+  var lblRestored = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ToastRestored"].Value));
+  var lblError = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ToastError"].Value));
+  var lblNotSet = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["NotSet"].Value));
+  var lblLastChanged = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["LastChanged"].Value));
+
+  editToggle.addEventListener('click', function () {
+    var on = content.classList.toggle('edit-mode');
+    editToggle.classList.toggle('on', on);
+    editToggle.textContent = on ? @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["EditToggleOff"].Value)) : @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["EditToggleOn"].Value));
+  });
+
+  function showToast(message, undoFn) {
+    toastMsg.textContent = message;
+    if (undoFn) {
+      toastUndo.style.display = 'inline';
+      toastUndo.onclick = function () { undoFn(); hideToast(); };
+    } else {
+      toastUndo.style.display = 'none';
+      toastUndo.onclick = null;
+    }
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 6000);
+  }
+  function hideToast() { toast.classList.remove('show'); }
+
+  async function post(url, body) {
+    var resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+      body: JSON.stringify(body || {})
+    });
+    var data = null;
+    try { data = await resp.json(); } catch (e) {}
+    return { ok: resp.ok, data: data };
+  }
+
+  function applyRowResult(row, targetQuantity, updatedAt, updatedBy) {
+    var readonlySpan = row.querySelector('.ideal-readonly');
+    var diffCell = row.querySelector('.diff-cell');
+    var lamp = row.querySelector('.status-lamp');
+    var inStock = parseInt(row.children[1].textContent, 10);
+
+    if (targetQuantity === null || targetQuantity === undefined) {
+      readonlySpan.textContent = lblNotSet;
+      diffCell.textContent = '—';
+      lamp.className = 'status-lamp status-undefined';
+      lamp.textContent = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(StatusLocalizer.Get(LaptopTracker.Models.StockStatus.Undefined, StatusLoc)));
+      lamp.removeAttribute('title');
+      return;
+    }
+
+    readonlySpan.textContent = String(targetQuantity);
+    var diff = inStock - targetQuantity;
+    diffCell.textContent = diff > 0 ? ('+' + diff) : String(diff);
+
+    var statusClass, statusText;
+    if (diff === 0) { statusClass = 'status-ok'; statusText = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(StatusLocalizer.Get(LaptopTracker.Models.StockStatus.Ok, StatusLoc))); }
+    else if (diff > 0) { statusClass = 'status-surplus'; statusText = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(StatusLocalizer.Get(LaptopTracker.Models.StockStatus.Surplus, StatusLoc))); }
+    else { statusClass = 'status-shortage'; statusText = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(StatusLocalizer.Get(LaptopTracker.Models.StockStatus.Shortage, StatusLoc))); }
+    lamp.className = 'status-lamp ' + statusClass;
+    lamp.textContent = statusText;
+
+    if (updatedAt && updatedBy) {
+      var d = new Date(updatedAt);
+      var formatted = d.toLocaleString();
+      lamp.title = lblLastChanged.replace('{0}', formatted).replace('{1}', updatedBy);
+    }
+  }
+
+  document.querySelectorAll('.save-btn').forEach(function (btn) {
+    btn.addEventListener('click', async function () {
+      var row = btn.closest('.stock-row');
+      var location = row.dataset.location;
+      var sizeClass = row.dataset.sizeclass;
+      var select = row.querySelector('.ideal-select');
+      var value = select.value;
+
+      if (value === '') {
+        var res = await post('/IdealStock/ClearTarget', { location: location, sizeClass: sizeClass });
+        if (!res.ok) { showToast(lblError); return; }
+        applyRowResult(row, null, null, null);
+        flashSaved(row, lblCleared);
+        return;
+      }
+
+      var qty = parseInt(value, 10);
+      var res2 = await post('/IdealStock/SetTarget', { location: location, sizeClass: sizeClass, targetQuantity: qty });
+      if (!res2.ok) { showToast((res2.data && res2.data.error) || lblError); return; }
+      applyRowResult(row, res2.data.targetQuantity, res2.data.updatedAt, res2.data.updatedBy);
+      flashSaved(row, lblSaved);
+    });
+  });
+
+  document.querySelectorAll('.classtype-select').forEach(function (sel) {
+    sel.addEventListener('change', async function () {
+      var row = sel.closest('.stock-row');
+      var location = row.dataset.location;
+      var value = sel.value;
+      var res = await post('/IdealStock/SetClassDDeviceType', { location: location, deviceType: value });
+      if (!res.ok) { showToast((res.data && res.data.error) || lblError); return; }
+      var readonlySpan = row.querySelector('.classtype-readonly');
+      readonlySpan.textContent = value === '' ? lblNotSet : sel.options[sel.selectedIndex].text;
+      var flash = row.querySelector('.classtype-flash');
+      flash.textContent = lblSaved;
+      flash.classList.add('show');
+      setTimeout(function () { flash.classList.remove('show'); }, 1800);
+    });
+  });
+
+  document.querySelectorAll('.clear-btn').forEach(function (btn) {
+    btn.addEventListener('click', async function () {
+      var row = btn.closest('.stock-row');
+      var location = row.dataset.location;
+      var sizeClass = row.dataset.sizeclass;
+      var res = await post('/IdealStock/ClearTarget', { location: location, sizeClass: sizeClass });
+      if (!res.ok) { showToast(lblError); return; }
+      row.querySelector('.ideal-select').value = '';
+      applyRowResult(row, null, null, null);
+      flashSaved(row, lblCleared);
+    });
+  });
+
+  function flashSaved(row, text) {
+    var flash = row.querySelector('.saved-flash');
+    flash.textContent = text;
+    flash.classList.add('show');
+    setTimeout(function () { flash.classList.remove('show'); }, 1800);
+  }
+
+  document.querySelectorAll('.apply-all-btn').forEach(function (btn) {
+    btn.addEventListener('click', async function () {
+      var location = btn.dataset.location;
+      var res = await post('/IdealStock/ApplyToAllLocations', { sourceLocation: location });
+      if (!res.ok) { showToast((res.data && res.data.error) || lblError); return; }
+      var previous = res.data.previous || [];
+      var appliedTo = res.data.appliedTo || [];
+
+      appliedTo.forEach(function (destLocation) {
+        var srcRows = document.querySelectorAll('.stock-row[data-location="' + CSS.escape(location) + '"]');
+        srcRows.forEach(function (srcRow) {
+          var sizeClass = srcRow.dataset.sizeclass;
+          var destRow = document.querySelector('.stock-row[data-location="' + CSS.escape(destLocation) + '"][data-sizeclass="' + sizeClass + '"]');
+          if (!destRow) return;
+          var srcSelectVal = srcRow.querySelector('.ideal-select').value;
+          destRow.querySelector('.ideal-select').value = srcSelectVal;
+          applyRowResult(destRow, srcSelectVal === '' ? null : parseInt(srcSelectVal, 10), new Date().toISOString(), null);
+        });
+      });
+
+      showToast(lblApplied.replace('{0}', appliedTo.length), async function () {
+        var restoreRes = await post('/IdealStock/RestoreTargets', previous);
+        if (restoreRes.ok) {
+          previous.forEach(function (item) {
+            var row = document.querySelector('.stock-row[data-location="' + CSS.escape(item.location) + '"][data-sizeclass="' + item.sizeClass + '"]');
+            if (!row) return;
+            row.querySelector('.ideal-select').value = item.previousQuantity === null ? '' : String(item.previousQuantity);
+            applyRowResult(row, item.previousQuantity, null, null);
+          });
+          showToast(lblRestored);
+        }
+      });
+    });
+  });
+})();
+</script>
+}

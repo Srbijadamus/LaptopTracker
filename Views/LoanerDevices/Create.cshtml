@@ -4,7 +4,7 @@
 @inject IViewLocalizer Localizer
 @{
     ViewData["Title"] = Localizer["PageTitle"].Value;
-    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Mini Desktop" };
+    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Rugged tablet", "Microsoft Surface tablet", "Apple tablet" };
     var eonLocations = LocationList.Locations.OrderBy(l => l).ToList();
     var wicOptions = LocationList.SiteLocations.OrderBy(l => l).ToList();
     var curLoc = Model.DeviceLocation ?? "In WIC";
@@ -155,7 +155,9 @@
         <option value="Dell">Dell</option>
         <option value="Apple iPad">Apple iPad</option>
         <option value="Desktop">Desktop</option>
-        <option value="Mini Desktop">Mini Desktop</option>
+        <option value="Rugged tablet">Rugged tablet</option>
+        <option value="Microsoft Surface tablet">Microsoft Surface tablet</option>
+        <option value="Apple tablet">Apple tablet</option>
       </select>
     </td>
     <td><input type="text" name="ritms" placeholder="e.g. RITM0012345" /></td>

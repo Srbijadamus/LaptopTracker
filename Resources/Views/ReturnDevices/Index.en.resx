@@ -84,7 +84,7 @@
   <data name="ColSerial" xml:space="preserve"><value>Serial Number</value></data>
   <data name="ColType" xml:space="preserve"><value>Type</value></data>
   <data name="ColDate" xml:space="preserve"><value>Date</value></data>
-  <data name="ColDeviceLocation" xml:space="preserve"><value>Device Location</value></data>
+  <data name="ColDeviceLocation" xml:space="preserve"><value>Device State</value></data>
   <data name="ColStatus" xml:space="preserve"><value>Status</value></data>
   <data name="ColWorkOrder" xml:space="preserve"><value>Work Order</value></data>
   <data name="ColPickupStatus" xml:space="preserve"><value>Pickup Status</value></data>

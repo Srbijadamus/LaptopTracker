@@ -68,7 +68,7 @@
   <data name="ColSerial" xml:space="preserve"><value>Serial Number</value></data>
   <data name="ColType" xml:space="preserve"><value>Type</value></data>
   <data name="ColDate" xml:space="preserve"><value>Date</value></data>
-  <data name="ColDeviceStatus" xml:space="preserve"><value>Device Status</value></data>
+  <data name="ColDeviceStatus" xml:space="preserve"><value>Device State</value></data>
   <data name="ColStatus" xml:space="preserve"><value>Status</value></data>
   <data name="ColHandedTo" xml:space="preserve"><value>Handed To</value></data>
   <data name="ColHandedOver" xml:space="preserve"><value>Handed Over</value></data>

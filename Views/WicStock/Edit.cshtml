@@ -1,12 +1,20 @@
 @model LaptopTracker.Models.WicStockDevice
 @using LaptopTracker.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
     ViewData["Title"] = "Edit WIC Stock Device";
-    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Mini Desktop" };
-    var eonLocations = LocationList.Locations.OrderBy(l => l).ToList();
-    var curLoc = Model.DeviceLocation ?? "";
-    var locInList = eonLocations.Contains(curLoc);
-    var showOther = !locInList && curLoc != "";
+    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Rugged tablet", "Microsoft Surface tablet", "Apple tablet" };
+    var siteLocations = LocationList.SiteLocations.OrderBy(l => l).ToList();
+    var curSite = Model.Location ?? "";
+    var siteInList = siteLocations.Contains(curSite);
+    var modelNames = ((ViewData["Models"] as List<DeviceModel>) ?? new()).Select(m => m.ModelName).OrderBy(n => n).ToList();
+    var curModel = Model.Model ?? "";
+    var modelInList = modelNames.Contains(curModel);
+    var wicStates = new[] { "In WIC", "In Transit" };
+    var stateInList = wicStates.Contains(Model.DeviceLocation);
+    var regularPhotos = Model.Photos?.Where(p => !p.IsSignature).ToList() ?? new();
+    var signatures    = Model.Photos?.Where(p => p.IsSignature).ToList() ?? new();
 }
 @section Styles {
 <style>
@@ -25,13 +33,18 @@
 .btn-submit{padding:11px 24px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
 .btn-cancel{padding:11px 20px;background:transparent;color:var(--text-secondary);border:1px solid var(--border-input);border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block}
 .btn-delete{padding:11px 20px;background:#c4314b;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-left:auto}
+.section-divider{grid-column:1/-1;border-top:1px solid var(--border);margin-top:4px;padding-top:4px}
+.section-label-sm{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-secondary);margin-bottom:-8px}
+.badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+.b-expired{background:#fde0e3;color:#8a1c2b}
+.b-leasesoon{background:#fff4d6;color:#755000}
 </style>
 }
   <div class="content">
     <a href="/WicStock" class="back">&larr; Back</a>
     <div class="page-title">Edit WIC Stock Device — @Model.SerialNumber</div>
     <div class="form-card">
-      <form method="post" action="/WicStock/Edit/@Model.Id">
+      <form method="post" action="/WicStock/Edit/@Model.Id" enctype="multipart/form-data">
         <input type="hidden" name="Id" value="@Model.Id" />
         <input type="hidden" name="DeviceStateType" value="WIC Stock" />
         <div class="form-grid">
@@ -52,6 +65,21 @@
           </div>
 
           <div class="fg">
+            <label>Model <span class="hint">(optional — leave as "not recorded" if unknown)</span></label>
+            <select name="Model">
+              <option value="" selected="@(curModel == "" ? "selected" : null)">— not recorded —</option>
+              @foreach (var m in modelNames)
+              {
+                <option value="@m" selected="@(modelInList && curModel == m ? "selected" : null)">@m</option>
+              }
+              @if (curModel != "" && !modelInList)
+              {
+                <option value="@curModel" selected="selected">@curModel (legacy value)</option>
+              }
+            </select>
+          </div>
+
+          <div class="fg">
             <label>RITM *</label>
             <input name="RITM" type="text" value="@Model.RITM" required />
           </div>
@@ -61,8 +89,76 @@
             <input name="Date" type="date" value="@Model.Date.ToString("yyyy-MM-dd")" />
           </div>
 
+          <div class="fg">
+            <label>@Localizer["FieldDeviceState"]</label>
+            <select name="DeviceLocation">
+              @foreach (var st in wicStates)
+              {
+                <option value="@st" selected="@(Model.DeviceLocation == st ? "selected" : null)">@st</option>
+              }
+              @if (!stateInList)
+              {
+                <option value="@Model.DeviceLocation" selected="selected">@Model.DeviceLocation (legacy value)</option>
+              }
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Status</label>
+            <select name="Status">
+              <option value="Available" selected="@(Model.Status == LaptopTracker.Models.WicStockStatus.Available ? "selected" : null)">Available</option>
+              <option value="NotAvailable" selected="@(Model.Status == LaptopTracker.Models.WicStockStatus.NotAvailable ? "selected" : null)">Not Available</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>@Localizer["LblCategory"] <span class="hint">(optional)</span></label>
+            <select name="Category">
+              <option value="" selected="@(string.IsNullOrEmpty(Model.Category) ? "selected" : null)">— not recorded —</option>
+              <option value="Re-imaged laptops" selected="@(Model.Category == "Re-imaged laptops" ? "selected" : null)">@Localizer["CatReimaged"]</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Work Order <span class="hint">(optional)</span></label>
+            <input name="WorkOrder" type="text" value="@Model.WorkOrder" />
+          </div>
+
+          <div class="fg">
+            <label>Pickup Status <span class="hint">(optional)</span></label>
+            <input name="PickupStatus" type="text" value="@Model.PickupStatus" />
+          </div>
+
+          <div class="fg">
+            <label>Swap RITM <span class="hint">(optional)</span></label>
+            <input name="SwapRITM" type="text" value="@Model.SwapRITM" />
+          </div>
+
+          <!-- Accessories returned section -->
+          <div class="section-divider">
+            <div class="section-label-sm">Accessories Returned</div>
+          </div>
+
+          <div class="fg">
+            <label>@Localizer["LblCharger"]</label>
+            <select name="ChargerReturned">
+              <option value="" selected="@(Model.ChargerReturned == null ? "selected" : null)">— Not specified —</option>
+              <option value="true" selected="@(Model.ChargerReturned == true ? "selected" : null)">Yes</option>
+              <option value="false" selected="@(Model.ChargerReturned == false ? "selected" : null)">No</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>@Localizer["LblPowerCable"]</label>
+            <select name="PowerCableReturned">
+              <option value="" selected="@(Model.PowerCableReturned == null ? "selected" : null)">— Not specified —</option>
+              <option value="true" selected="@(Model.PowerCableReturned == true ? "selected" : null)">Yes</option>
+              <option value="false" selected="@(Model.PowerCableReturned == false ? "selected" : null)">No</option>
+            </select>
+          </div>
+
           <div class="fg form-full">
-            <label>Country Filter <span class="hint">(optional — filters locations below)</span></label>
+            <label>Country Filter <span class="hint">(optional — filters sites below)</span></label>
             <select id="countryFilter" onchange="filterLocations(this.value)">
               <option value="">— All Countries —</option>
               <option value="DE">🇩🇪 Germany (DE)</option>
@@ -76,34 +172,141 @@
             </select>
           </div>
           <div class="fg form-full">
-            <label>Device Location</label>
-            <select id="locSelect" onchange="onLocChange(this)">
-              <option value="">— Select location —</option>
-              @foreach (var l in eonLocations)
+            <label>Site <span class="hint">(optional — leave as "not recorded" if unknown)</span></label>
+            <select id="locSelect" name="Location">
+              <option value="" selected="@(curSite == "" ? "selected" : null)">— not recorded —</option>
+              @foreach (var l in siteLocations)
               {
-                var country = LaptopTracker.Helpers.LocationList.GetCountry(l);
-                <option value="@l" data-country="@country" selected="@(locInList && curLoc == l ? "selected" : null)">@l</option>
+                var country = LocationList.GetCountry(l);
+                <option value="@l" data-country="@country" selected="@(siteInList && curSite == l ? "selected" : null)">@l</option>
               }
-              <option value="__other__" data-country="" selected="@(showOther ? "selected" : null)">Other (type below)</option>
-            </select>
-            <input id="locCustom" type="text" placeholder="Type custom location…"
-                   style="margin-top:6px;@(showOther ? "" : "display:none;")"
-                   value="@(showOther ? curLoc : "")"
-                   oninput="document.getElementById('locHidden').value=this.value" />
-            <input type="hidden" id="locHidden" name="DeviceLocation" value="@curLoc" />
-          </div>
-
-          <div class="fg">
-            <label>Status</label>
-            <select name="Status">
-              <option value="Available" selected="@(Model.Status == LaptopTracker.Models.WicStockStatus.Available ? "selected" : null)">Available</option>
-              <option value="NotAvailable" selected="@(Model.Status == LaptopTracker.Models.WicStockStatus.NotAvailable ? "selected" : null)">Not Available</option>
+              @if (curSite != "" && !siteInList)
+              {
+                <option value="@curSite" data-country="" selected="selected">@curSite (legacy value)</option>
+              }
             </select>
           </div>
 
+          <!-- Inspection section -->
+          <div class="section-divider">
+            <div class="section-label-sm">@Localizer["SectionInspection"]</div>
+          </div>
+
           <div class="fg">
-            <label>Swap RITM <span class="hint">(optional)</span></label>
-            <input name="SwapRITM" type="text" value="@Model.SwapRITM" />
+            <label>Damage Status</label>
+            <select name="DamageStatus" id="damageStatusSelect" onchange="onDamageChange(this)">
+              <option value="" selected="@(string.IsNullOrEmpty(Model.DamageStatus) ? "selected" : null)">— Not specified —</option>
+              <option value="No" selected="@(Model.DamageStatus == "No" ? "selected" : null)">No</option>
+              <option value="Yes" selected="@(Model.DamageStatus == "Yes" ? "selected" : null)">Yes</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Lease/DaaS End Date Planned <span class="hint">(dd.MM.yyyy)</span></label>
+            <input type="date" name="LeaseEndDatePlanned"
+                   value="@(Model.LeaseEndDatePlanned?.ToString("yyyy-MM-dd"))" />
+            @{ var leaseState = DateTimeHelper.ClassifyLease(Model.LeaseEndDatePlanned); }
+            @if (leaseState != LeaseStatus.None)
+            {
+              <span class="badge @(leaseState == LeaseStatus.Expired ? "b-expired" : "b-leasesoon")" style="align-self:flex-start">@StatusLocalizer.GetLease(leaseState, StatusLoc)</span>
+            }
+          </div>
+
+          <div id="damageDetails" class="form-full" style="@(Model.DamageStatus == "Yes" ? "" : "display:none;")">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;margin-top:4px;">
+              <div class="fg">
+                <label>Damage Comment</label>
+                <textarea name="DamageComment" rows="3" style="padding:10px 13px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);font-family:inherit;outline:none;resize:vertical;">@Model.DamageComment</textarea>
+              </div>
+              <div class="fg">
+                <label>Damage Photos <span class="hint">(jpg/png, max 10 MB each)</span></label>
+                <input name="damagePhotos" type="file" accept=".jpg,.jpeg,.png" multiple />
+              </div>
+            </div>
+          </div>
+
+          <div class="fg">
+            <label>Acknowledgement</label>
+            <select name="Acknowledgement">
+              <option value="" selected="@(string.IsNullOrEmpty(Model.Acknowledgement) ? "selected" : null)">— Not specified —</option>
+              <option value="Signed by user" selected="@(Model.Acknowledgement == "Signed by user" ? "selected" : null)">Signed by user</option>
+              <option value="Signed by manager" selected="@(Model.Acknowledgement == "Signed by manager" ? "selected" : null)">Signed by manager</option>
+              <option value="Signed by IT-Coordinator" selected="@(Model.Acknowledgement == "Signed by IT-Coordinator" ? "selected" : null)">Signed by IT-Coordinator</option>
+              <option value="Declined" selected="@(Model.Acknowledgement == "Declined" ? "selected" : null)">Declined</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Customer Induced Damage?</label>
+            <select name="IsCustomerInducedDamage">
+              <option value="false" selected="@(!Model.IsCustomerInducedDamage ? "selected" : null)">No</option>
+              <option value="true" selected="@(Model.IsCustomerInducedDamage ? "selected" : null)">Yes</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Battery Swollen?</label>
+            <select name="IsBatterySwollen">
+              <option value="false" selected="@(!Model.IsBatterySwollen ? "selected" : null)">No</option>
+              <option value="true" selected="@(Model.IsBatterySwollen ? "selected" : null)">Yes</option>
+            </select>
+          </div>
+
+          @if (regularPhotos.Count > 0)
+          {
+            <div class="form-full" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;">
+              @foreach (var photo in regularPhotos)
+              {
+                <div style="position:relative;display:inline-block;" id="photo-@photo.Id">
+                  <a href="/WicStock/Photo/@photo.Id" download="@(photo.OriginalFileName ?? "photo")">
+                    <img src="@photo.FilePath" alt="@photo.OriginalFileName"
+                         style="width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--border-input);display:block;" />
+                  </a>
+                  <button type="button" onclick="deletePhoto(@photo.Id)"
+                          style="position:absolute;top:4px;right:4px;background:#c4314b;color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;line-height:1;cursor:pointer;padding:0;">✕</button>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Signature section -->
+          <div class="section-divider">
+            <div class="section-label-sm">@Localizer["SectionSignature"]</div>
+          </div>
+
+          @if (signatures.Count > 0)
+          {
+            <div class="form-full" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px;">
+              @foreach (var sig in signatures)
+              {
+                <div style="position:relative;display:inline-block;" id="photo-@sig.Id">
+                  <a href="/WicStock/Photo/@sig.Id" download="signature.png" title="Download signature">
+                    <img src="@sig.FilePath" alt="Signature"
+                         style="height:80px;max-width:320px;object-fit:contain;border-radius:8px;border:2px solid var(--accent);background:#fff;display:block;padding:4px;" />
+                  </a>
+                  <span style="font-size:11px;color:var(--text-muted);display:block;margin-top:2px;">@sig.UploadedAt.ToString("dd.MM.yyyy HH:mm")</span>
+                  <button type="button" onclick="deletePhoto(@sig.Id)"
+                          style="position:absolute;top:4px;right:4px;background:#c4314b;color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;line-height:1;cursor:pointer;padding:0;">✕</button>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="fg form-full">
+            <label>User KID</label>
+            <input name="KID" type="text" value="@Model.KID" placeholder="e.g. A57253" />
+          </div>
+
+          <div class="fg form-full">
+            <label>Draw new signature <span class="hint">(finger/stylus/mouse — draw here, then Save)</span></label>
+            <div style="position:relative;display:inline-block;width:100%;">
+              <canvas id="sigPad"
+                      style="display:block;width:100%;height:200px;border:2px dashed var(--border-input);border-radius:8px;background:#fff;touch-action:none;cursor:crosshair;box-sizing:border-box;"></canvas>
+              <button type="button" id="sigClear"
+                      style="position:absolute;top:8px;right:8px;padding:5px 12px;background:var(--bg-panel);border:1px solid var(--border-input);border-radius:6px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer;">Clear</button>
+            </div>
+            <span class="hint" style="margin-top:4px;">Leave blank to keep existing signature(s). Draw only if a new signature is needed.</span>
+            <input type="hidden" name="signatureData" id="sigData" />
           </div>
 
           <div class="form-actions form-full">
@@ -125,7 +328,7 @@ function filterLocations(country) {
   var sel = document.getElementById('locSelect');
   var opts = sel.querySelectorAll('option');
   opts.forEach(function(o) {
-    if (!o.value || o.value === '__other__') { o.style.display = ''; return; }
+    if (!o.value) { o.style.display = ''; return; }
     var c = o.getAttribute('data-country');
     o.style.display = (!country || c === country) ? '' : 'none';
   });
@@ -133,41 +336,82 @@ function filterLocations(country) {
   var cur = sel.options[sel.selectedIndex];
   if (cur && cur.style.display === 'none') {
     sel.value = '';
-    document.getElementById('locHidden').value = '';
   }
-  // Pre-select country based on current location
-  var curCountry = document.getElementById('countryFilter').value;
-  if (!curCountry) return;
 }
 function initCountryFilter() {
-  var hidden = document.getElementById('locHidden').value;
   var sel = document.getElementById('locSelect');
-  var opts = sel.querySelectorAll('option');
-  opts.forEach(function(o) {
-    if (o.value === hidden) {
-      var c = o.getAttribute('data-country');
-      if (c) {
-        document.getElementById('countryFilter').value = c;
-        filterLocations(c);
-      }
-    }
-  });
-}
-function onLocChange(sel) {
-  var c = document.getElementById('locCustom');
-  var h = document.getElementById('locHidden');
-  if (sel.value === '__other__') {
-    c.style.display = ''; c.value = ''; h.value = ''; c.focus();
-  } else {
-    c.style.display = 'none'; h.value = sel.value;
+  var cur = sel.options[sel.selectedIndex];
+  var c = cur ? cur.getAttribute('data-country') : '';
+  if (c) {
+    document.getElementById('countryFilter').value = c;
+    filterLocations(c);
   }
+}
+function onDamageChange(sel) {
+  var d = document.getElementById('damageDetails');
+  d.style.display = sel.value === 'Yes' ? '' : 'none';
 }
 function deleteDevice() {
   if (confirm('Delete device @Html.Raw(Model.SerialNumber.Replace("'", "\\'"))? This cannot be undone.')) {
     document.getElementById('deleteForm').submit();
   }
 }
+function deletePhoto(id) {
+  if (!confirm('Delete this image? This cannot be undone.')) return;
+  fetch('/WicStock/DeletePhoto/' + id, { method: 'POST' }).then(function(r) {
+    if (r.ok) {
+      var el = document.getElementById('photo-' + id);
+      if (el) el.remove();
+    } else {
+      alert('Could not delete the image.');
+    }
+  });
+}
+(function() {
+  var canvas = document.getElementById('sigPad');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var drawing = false, hasDrawn = false;
+
+  function resize() {
+    var r = canvas.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    canvas.width  = Math.round(r.width  * dpr);
+    canvas.height = Math.round(r.height * dpr);
+    ctx.scale(dpr, dpr);
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function pos(e) {
+    var r = canvas.getBoundingClientRect();
+    if (e.touches) return { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  canvas.addEventListener('pointerdown', function(e) {
+    e.preventDefault(); drawing = true; var p = pos(e);
+    ctx.beginPath(); ctx.moveTo(p.x, p.y);
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove', function(e) {
+    if (!drawing) return; e.preventDefault(); var p = pos(e);
+    ctx.lineTo(p.x, p.y); ctx.stroke(); hasDrawn = true;
+  });
+  canvas.addEventListener('pointerup',     function() { drawing = false; });
+  canvas.addEventListener('pointercancel', function() { drawing = false; });
+
+  document.getElementById('sigClear').addEventListener('click', function() {
+    var r = canvas.getBoundingClientRect();
+    ctx.clearRect(0, 0, r.width, r.height);
+    hasDrawn = false;
+    document.getElementById('sigData').value = '';
+  });
+
+  canvas.closest('form').addEventListener('submit', function() {
+    if (hasDrawn) document.getElementById('sigData').value = canvas.toDataURL('image/png');
+  });
+})();
 initCountryFilter();
 </script>
 }
-

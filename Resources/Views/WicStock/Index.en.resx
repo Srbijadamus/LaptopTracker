@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -66,16 +66,21 @@
   <!-- Filters -->
   <data name="FilterAllCountries" xml:space="preserve"><value>All Countries</value></data>
   <data name="FilterAllStatuses" xml:space="preserve"><value>All Statuses</value></data>
-  <data name="FilterAllLocations" xml:space="preserve"><value>All Locations</value></data>
+  <data name="FilterAllLocations" xml:space="preserve"><value>All Device States</value></data>
+  <data name="FilterAllSites" xml:space="preserve"><value>All Sites</value></data>
   <data name="FilterAllTypes" xml:space="preserve"><value>All Types</value></data>
-  <data name="BtnClearFilters" xml:space="preserve"><value>&#x2715; Clear Filters</value></data>
+  <data name="FilterAllCategories" xml:space="preserve"><value>All Categories</value></data>
+  <data name="CatReimaged" xml:space="preserve"><value>Re-imaged laptops</value></data>
+  <data name="ColCategory" xml:space="preserve"><value>Category</value></data>
+  <data name="ColLeaseEnd" xml:space="preserve"><value>Lease/DaaS End</value></data>
+  <data name="BtnClearFilters" xml:space="preserve"><value>✕ Clear Filters</value></data>
 
   <!-- Table headers -->
   <data name="ColSelectAll" xml:space="preserve"><value>Select all</value></data>
   <data name="ColSerial" xml:space="preserve"><value>Serial Number</value></data>
   <data name="ColType" xml:space="preserve"><value>Type</value></data>
   <data name="ColDate" xml:space="preserve"><value>Date</value></data>
-  <data name="ColDeviceLocation" xml:space="preserve"><value>Device Location</value></data>
+  <data name="ColDeviceLocation" xml:space="preserve"><value>Device State</value></data>
   <data name="ColStatus" xml:space="preserve"><value>Status</value></data>
   <data name="ColSwapRITM" xml:space="preserve"><value>Swap RITM</value></data>
 
@@ -86,10 +91,11 @@
   <!-- Row actions -->
   <data name="CellEdit" xml:space="preserve"><value>Edit</value></data>
   <data name="CellSwap" xml:space="preserve"><value>SWAP</value></data>
+  <data name="CellGiveToUser" xml:space="preserve"><value>Give to user</value></data>
   <data name="CellDelete" xml:space="preserve"><value>Delete</value></data>
 
   <!-- Bulk bar -->
   <data name="BulkEditSelected" xml:space="preserve"><value>Edit Selected</value></data>
   <data name="BulkHandOver" xml:space="preserve"><value>Hand Over Devices</value></data>
+  <data name="BtnAddDevice" xml:space="preserve"><value>+ Add Device</value></data>
 </root>
-  <data name="CellGiveToUser" xml:space="preserve"><value>Give to user</value></data>

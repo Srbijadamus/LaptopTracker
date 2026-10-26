@@ -58,4 +58,5 @@
   <data name="BtnDocument" xml:space="preserve"><value>Document</value></data>
   <data name="BtnEmailDraft" xml:space="preserve"><value>Send by Email</value></data>
   <data name="EmailWarnMsg" xml:space="preserve"><value>Enter the user's email address in Outlook</value></data>
+  <data name="FieldDeviceState" xml:space="preserve"><value>Device State</value></data>
 </root>

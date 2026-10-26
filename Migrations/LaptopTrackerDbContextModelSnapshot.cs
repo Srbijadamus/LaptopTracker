@@ -168,6 +168,35 @@ namespace LaptopTracker.Migrations
                     b.ToTable("AuditLogs");
                 });
 
+            modelBuilder.Entity("LaptopTracker.Models.DeviceModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ModelName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("SizeClass")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModelName")
+                        .IsUnique();
+
+                    b.ToTable("Models", (string)null);
+                });
+
             modelBuilder.Entity("LaptopTracker.Models.Handover", b =>
                 {
                     b.Property<int>("Id")
@@ -221,11 +250,55 @@ namespace LaptopTracker.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("WorkOrder")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("HandoverId");
 
                     b.ToTable("HandoverDevices");
+                });
+
+            modelBuilder.Entity("LaptopTracker.Models.IdealStockTarget", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DeviceTypeLabel")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("SizeClass")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<int>("TargetQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Location", "SizeClass")
+                        .IsUnique();
+
+                    b.ToTable("IdealStockTargets");
                 });
 
             modelBuilder.Entity("LaptopTracker.Models.LoanerDevice", b =>
@@ -290,6 +363,32 @@ namespace LaptopTracker.Migrations
                     b.ToTable("LoanerDevices");
                 });
 
+            modelBuilder.Entity("LaptopTracker.Models.LocationAlias", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Alias")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("LocationId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Alias")
+                        .IsUnique();
+
+                    b.HasIndex("LocationId");
+
+                    b.ToTable("LocationAliases");
+                });
+
             modelBuilder.Entity("LaptopTracker.Models.ReturnDevice", b =>
                 {
                     b.Property<int>("Id")
@@ -345,6 +444,10 @@ namespace LaptopTracker.Migrations
 
                     b.Property<string>("Location")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Model")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("PickupStatus")
                         .HasColumnType("nvarchar(max)");
@@ -406,6 +509,53 @@ namespace LaptopTracker.Migrations
                     b.ToTable("ReturnDevicePhotos");
                 });
 
+            modelBuilder.Entity("LaptopTracker.Models.WicLocation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CityLabel")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("DeviceLocationKey")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Llid")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("Street")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeviceLocationKey")
+                        .IsUnique();
+
+                    b.HasIndex("Llid")
+                        .IsUnique();
+
+                    b.ToTable("WicLocations");
+                });
+
             modelBuilder.Entity("LaptopTracker.Models.WicStockDevice", b =>
                 {
                     b.Property<int>("Id")
@@ -413,6 +563,22 @@ namespace LaptopTracker.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Acknowledgement")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Category")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<bool?>("ChargerReturned")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("DamageComment")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DamageStatus")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
@@ -432,7 +598,33 @@ namespace LaptopTracker.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsBatterySwollen")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsCustomerInducedDamage")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("KID")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LeaseEndDatePlanned")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("Model")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("PickupStatus")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("PowerCableReturned")
                         .HasColumnType("bit");
 
                     b.Property<string>("RITM")
@@ -460,9 +652,43 @@ namespace LaptopTracker.Migrations
                     b.Property<string>("SwapStatus")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("WorkOrder")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.ToTable("WicStockDevices");
+                });
+
+            modelBuilder.Entity("LaptopTracker.Models.WicStockDevicePhoto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsSignature")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OriginalFileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("WicStockDeviceId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WicStockDeviceId");
+
+                    b.ToTable("WicStockDevicePhotos");
                 });
 
             modelBuilder.Entity("LaptopTracker.Models.HandoverDevice", b =>
@@ -476,6 +702,17 @@ namespace LaptopTracker.Migrations
                     b.Navigation("Handover");
                 });
 
+            modelBuilder.Entity("LaptopTracker.Models.LocationAlias", b =>
+                {
+                    b.HasOne("LaptopTracker.Models.WicLocation", "Location")
+                        .WithMany("Aliases")
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Location");
+                });
+
             modelBuilder.Entity("LaptopTracker.Models.ReturnDevicePhoto", b =>
                 {
                     b.HasOne("LaptopTracker.Models.ReturnDevice", "ReturnDevice")
@@ -487,12 +724,33 @@ namespace LaptopTracker.Migrations
                     b.Navigation("ReturnDevice");
                 });
 
+            modelBuilder.Entity("LaptopTracker.Models.WicStockDevicePhoto", b =>
+                {
+                    b.HasOne("LaptopTracker.Models.WicStockDevice", "WicStockDevice")
+                        .WithMany("Photos")
+                        .HasForeignKey("WicStockDeviceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("WicStockDevice");
+                });
+
             modelBuilder.Entity("LaptopTracker.Models.Handover", b =>
                 {
                     b.Navigation("Devices");
                 });
 
             modelBuilder.Entity("LaptopTracker.Models.ReturnDevice", b =>
+                {
+                    b.Navigation("Photos");
+                });
+
+            modelBuilder.Entity("LaptopTracker.Models.WicLocation", b =>
+                {
+                    b.Navigation("Aliases");
+                });
+
+            modelBuilder.Entity("LaptopTracker.Models.WicStockDevice", b =>
                 {
                     b.Navigation("Photos");
                 });

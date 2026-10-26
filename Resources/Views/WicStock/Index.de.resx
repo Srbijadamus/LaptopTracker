@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -66,16 +66,21 @@
   <!-- Filters -->
   <data name="FilterAllCountries" xml:space="preserve"><value>Alle Länder</value></data>
   <data name="FilterAllStatuses" xml:space="preserve"><value>Alle Status</value></data>
-  <data name="FilterAllLocations" xml:space="preserve"><value>Alle Standorte</value></data>
+  <data name="FilterAllLocations" xml:space="preserve"><value>Alle Gerätestatus</value></data>
+  <data name="FilterAllSites" xml:space="preserve"><value>Alle Standorte</value></data>
   <data name="FilterAllTypes" xml:space="preserve"><value>Alle Typen</value></data>
-  <data name="BtnClearFilters" xml:space="preserve"><value>&#x2715; Filter zurücksetzen</value></data>
+  <data name="FilterAllCategories" xml:space="preserve"><value>Alle Kategorien</value></data>
+  <data name="CatReimaged" xml:space="preserve"><value>Re-imaged Laptops</value></data>
+  <data name="ColCategory" xml:space="preserve"><value>Kategorie</value></data>
+  <data name="ColLeaseEnd" xml:space="preserve"><value>Lease/DaaS-Ende</value></data>
+  <data name="BtnClearFilters" xml:space="preserve"><value>✕ Filter zurücksetzen</value></data>
 
   <!-- Table headers -->
   <data name="ColSelectAll" xml:space="preserve"><value>Alle auswählen</value></data>
   <data name="ColSerial" xml:space="preserve"><value>Seriennummer</value></data>
   <data name="ColType" xml:space="preserve"><value>Typ</value></data>
   <data name="ColDate" xml:space="preserve"><value>Datum</value></data>
-  <data name="ColDeviceLocation" xml:space="preserve"><value>Gerätestandort</value></data>
+  <data name="ColDeviceLocation" xml:space="preserve"><value>Gerätestatus</value></data>
   <data name="ColStatus" xml:space="preserve"><value>Status</value></data>
   <data name="ColSwapRITM" xml:space="preserve"><value>Swap RITM</value></data>
 
@@ -86,10 +91,11 @@
   <!-- Row actions -->
   <data name="CellEdit" xml:space="preserve"><value>Bearbeiten</value></data>
   <data name="CellSwap" xml:space="preserve"><value>SWAP</value></data>
+  <data name="CellGiveToUser" xml:space="preserve"><value>An Benutzer</value></data>
   <data name="CellDelete" xml:space="preserve"><value>Löschen</value></data>
 
   <!-- Bulk bar -->
   <data name="BulkEditSelected" xml:space="preserve"><value>Auswahl bearbeiten</value></data>
   <data name="BulkHandOver" xml:space="preserve"><value>Geräte übergeben</value></data>
+  <data name="BtnAddDevice" xml:space="preserve"><value>+ Gerät hinzufügen</value></data>
 </root>
-  <data name="CellGiveToUser" xml:space="preserve"><value>An Benutzer</value></data>

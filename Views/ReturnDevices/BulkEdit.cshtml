@@ -1,9 +1,11 @@
 @model List<LaptopTracker.Models.ReturnDevice>
 @using LaptopTracker.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
     ViewData["Title"] = "Bulk Edit Return Devices";
     var ids = ViewData["Ids"] as int[] ?? Array.Empty<int>();
-    var eonLocations = LocationList.Locations.OrderBy(l => l).ToList();
+    var siteLocations = LocationList.SiteLocations.OrderBy(l => l).ToList();
 }
 @section Styles {
 <style>
@@ -53,7 +55,7 @@
             <th>Type</th>
             <th>RITM</th>
             <th>Current Status</th>
-            <th>Current Location</th>
+            <th>@Localizer["ColCurrentState"]</th>
             <th>Work Order</th>
           </tr>
         </thead>
@@ -99,7 +101,7 @@
           </div>
 
           <div class="fg">
-            <label>Device Location <span class="hint">(optional)</span></label>
+            <label>@Localizer["FieldDeviceState"] <span class="hint">(optional)</span></label>
             <select name="deviceLocation">
               <option value="">— Keep existing —</option>
               <option value="In WIC">In WIC</option>
@@ -116,7 +118,7 @@
             <label>Location (Site) <span class="hint">(optional)</span></label>
             <select name="location">
               <option value="">— Keep existing —</option>
-              @foreach (var l in eonLocations)
+              @foreach (var l in siteLocations)
               {
                 <option value="@l">@l</option>
               }

@@ -61,6 +61,8 @@
   <data name="LabelDate" xml:space="preserve"><value>Datum</value></data>
   <data name="SectionDevices" xml:space="preserve"><value>Übergebene Geräte</value></data>
   <data name="ColSerial" xml:space="preserve"><value>Seriennummer</value></data>
+  <data name="ColWorkOrder" xml:space="preserve"><value>Work Order</value></data>
+  <data name="LabelWorkOrder" xml:space="preserve"><value>Work Order</value></data>
   <data name="ColSource" xml:space="preserve"><value>Quelle</value></data>
   <data name="EmptyNoDevices" xml:space="preserve"><value>Keine Geräte erfasst.</value></data>
   <data name="SectionSignature" xml:space="preserve"><value>Unterschrift des Empfängers</value></data>
