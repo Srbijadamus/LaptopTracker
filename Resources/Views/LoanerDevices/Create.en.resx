@@ -57,7 +57,7 @@
   <data name="SectionShared" xml:space="preserve"><value>Shared Settings (apply to all devices)</value></data>
   <data name="FieldDate" xml:space="preserve"><value>Date</value></data>
   <data name="FieldStatus" xml:space="preserve"><value>Status</value></data>
-  <data name="FieldDeviceStatus" xml:space="preserve"><value>Device Status</value></data>
+  <data name="FieldDeviceStatus" xml:space="preserve"><value>Device State</value></data>
   <data name="FieldWic" xml:space="preserve"><value>WIC (Office Location) *</value></data>
   <data name="SelectWicPlaceholder" xml:space="preserve"><value>— Select WIC —</value></data>
   <data name="FieldKid" xml:space="preserve"><value>KID (Corporate ID)</value></data>

@@ -240,11 +240,11 @@
     } else {
       @foreach (var a in Model.RecentAudits) {
         var dotColor = actionColors.TryGetValue(a.Action, out var ac) ? ac : "#8B949E";
-        var tsNow = DateTime.UtcNow;
-        var isToday = a.TimestampUtc.Date == tsNow.Date;
+        var tsCet = a.TimestampUtc.ToCet();
+        var isToday = tsCet.Date == DateTime.UtcNow.ToCet().Date;
         var timeStr = isToday
-            ? a.TimestampUtc.ToLocalTime().ToString("HH:mm")
-            : a.TimestampUtc.ToLocalTime().ToString("dd.MM. HH:mm");
+            ? tsCet.ToString("HH:mm")
+            : tsCet.ToString("dd.MM. HH:mm");
         <div class="audit-row">
           <span class="audit-dot" style="background:@dotColor"></span>
           <div class="audit-info">

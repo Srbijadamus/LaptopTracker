@@ -4,7 +4,7 @@
 @inject IViewLocalizer Localizer
 @{
     ViewData["Title"] = Localizer["PageTitle"].Value;
-    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Mini Desktop" };
+    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Rugged tablet", "Microsoft Surface tablet", "Apple tablet" };
     var eonLocations = LocationList.Locations.OrderBy(l => l).ToList();
     var wicOptions = LocationList.SiteLocations.OrderBy(l => l).ToList();
     var curLoc = Model.DeviceLocation ?? "";

@@ -25,12 +25,17 @@ namespace LaptopTracker.Data
         public DbSet<ReturnDevice> ReturnDevices { get; set; } = null!;
         public DbSet<ReturnDevicePhoto> ReturnDevicePhotos { get; set; } = null!;
         public DbSet<WicStockDevice> WicStockDevices { get; set; } = null!;
+        public DbSet<WicStockDevicePhoto> WicStockDevicePhotos { get; set; } = null!;
         public DbSet<LoanerDevice> LoanerDevices { get; set; } = null!;
         public DbSet<Handover> Handovers { get; set; } = null!;
         public DbSet<HandoverDevice> HandoverDevices { get; set; } = null!;
         public DbSet<IdempotencyRecord> IdempotencyRecords { get; set; } = null!;
         public DbSet<AgentActionAudit> AgentActionAudits { get; set; } = null!;
         public DbSet<AuditLog> AuditLogs { get; set; } = null!;
+        public DbSet<IdealStockTarget> IdealStockTargets { get; set; } = null!;
+        public DbSet<WicLocation> WicLocations { get; set; } = null!;
+        public DbSet<LocationAlias> LocationAliases { get; set; } = null!;
+        public DbSet<DeviceModel> Models { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -63,6 +68,18 @@ namespace LaptopTracker.Data
             modelBuilder.Entity<ReturnDevicePhoto>()
                 .HasQueryFilter(p => !p.ReturnDevice.IsDeleted);
 
+            modelBuilder.Entity<WicStockDevicePhoto>()
+                .HasOne(p => p.WicStockDevice)
+                .WithMany(d => d.Photos)
+                .HasForeignKey(p => p.WicStockDeviceId);
+            modelBuilder.Entity<WicStockDevicePhoto>()
+                .HasQueryFilter(p => !p.WicStockDevice.IsDeleted);
+
+            modelBuilder.Entity<WicStockDevice>()
+                .Property(d => d.Category).HasMaxLength(64);
+            modelBuilder.Entity<ReturnDevice>()
+                .Property(d => d.Model).HasMaxLength(128);
+
             modelBuilder.Entity<IdempotencyRecord>()
                 .Property(r => r.RequestId).HasMaxLength(128).IsRequired();
             modelBuilder.Entity<IdempotencyRecord>()
@@ -78,6 +95,48 @@ namespace LaptopTracker.Data
                 .Property(a => a.Source).HasMaxLength(64).IsRequired();
             modelBuilder.Entity<AgentActionAudit>()
                 .Property(a => a.Kid).HasMaxLength(32);
+
+            modelBuilder.Entity<IdealStockTarget>(e =>
+            {
+                e.Property(x => x.Location).HasMaxLength(256).IsRequired();
+                e.Property(x => x.SizeClass).HasConversion<string>().HasMaxLength(8).IsRequired();
+                e.Property(x => x.UpdatedBy).HasMaxLength(32).IsRequired();
+                e.Property(x => x.DeviceTypeLabel).HasMaxLength(64);
+                e.HasIndex(x => new { x.Location, x.SizeClass }).IsUnique();
+            });
+
+            modelBuilder.Entity<WicStockDevice>()
+                .Property(d => d.Location).HasMaxLength(256);
+            modelBuilder.Entity<WicStockDevice>()
+                .Property(d => d.Model).HasMaxLength(128);
+
+            modelBuilder.Entity<WicLocation>(e =>
+            {
+                e.Property(x => x.Llid).HasMaxLength(32).IsRequired();
+                e.Property(x => x.Country).HasMaxLength(64).IsRequired();
+                e.Property(x => x.CityLabel).HasMaxLength(128).IsRequired();
+                e.Property(x => x.Street).HasMaxLength(256).IsRequired();
+                e.Property(x => x.DeviceLocationKey).HasMaxLength(256).IsRequired();
+                e.HasIndex(x => x.Llid).IsUnique();
+                e.HasIndex(x => x.DeviceLocationKey).IsUnique();
+            });
+
+            modelBuilder.Entity<LocationAlias>(e =>
+            {
+                e.Property(x => x.Alias).HasMaxLength(256).IsRequired();
+                e.HasIndex(x => x.Alias).IsUnique();
+                e.HasOne(x => x.Location)
+                    .WithMany(l => l.Aliases)
+                    .HasForeignKey(x => x.LocationId);
+            });
+
+            modelBuilder.Entity<DeviceModel>(e =>
+            {
+                e.Property(x => x.ModelName).HasMaxLength(128).IsRequired();
+                e.Property(x => x.SizeClass).HasConversion<string>().HasMaxLength(8).IsRequired();
+                e.HasIndex(x => x.ModelName).IsUnique();
+                e.ToTable("Models");
+            });
 
             modelBuilder.Entity<AuditLog>(e =>
             {
@@ -101,7 +160,8 @@ namespace LaptopTracker.Data
         private static readonly HashSet<string> Audited = new()
         {
             nameof(ReturnDevice), nameof(LoanerDevice), nameof(WicStockDevice),
-            nameof(ReturnDevicePhoto), nameof(Handover), nameof(HandoverDevice)
+            nameof(ReturnDevicePhoto), nameof(WicStockDevicePhoto),
+            nameof(Handover), nameof(HandoverDevice)
         };
 
         private static readonly HashSet<string> NeverAudit = new()

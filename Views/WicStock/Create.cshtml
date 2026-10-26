@@ -1,12 +1,13 @@
 @model LaptopTracker.Models.WicStockDevice
 @using LaptopTracker.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
     ViewData["Title"] = "Add WIC Stock Device";
-    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Mini Desktop" };
-    var eonLocations = LocationList.Locations.OrderBy(l => l).ToList();
-    var curLoc = Model.DeviceLocation ?? "In WIC";
-    var locInList = eonLocations.Contains(curLoc);
-    var showOther = !locInList && curLoc != "";
+    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Rugged tablet", "Microsoft Surface tablet", "Apple tablet" };
+    var siteLocations = LocationList.SiteLocations.OrderBy(l => l).ToList();
+    var modelNames = ((ViewData["Models"] as List<DeviceModel>) ?? new()).Select(m => m.ModelName).OrderBy(n => n).ToList();
+    var curState = Model.DeviceLocation == "In Transit" ? "In Transit" : "In WIC";
 }
 @section Styles {
 <style>
@@ -61,26 +62,134 @@
             </select>
           </div>
 
-          <div class="fg form-full">
-            <label>Device Location</label>
-            <select id="locSelect" onchange="onLocChange(this)">
-              <option value="">— Select location —</option>
-              @foreach (var l in eonLocations)
-              {
-                <option value="@l" selected="@(locInList && curLoc == l ? "selected" : null)">@l</option>
-              }
-              <option value="__other__" selected="@(showOther ? "selected" : null)">Other (type below)</option>
+          <div class="fg">
+            <label>State</label>
+            <select name="deviceLocation">
+              <option value="In WIC" selected="@(curState == "In WIC" ? "selected" : null)">In WIC</option>
+              <option value="In Transit" selected="@(curState == "In Transit" ? "selected" : null)">In Transit</option>
             </select>
-            <input id="locCustom" type="text" placeholder="Type custom location…"
-                   style="margin-top:6px;@(showOther ? "" : "display:none;")"
-                   value="@(showOther ? curLoc : "")"
-                   oninput="document.getElementById('locHidden').value=this.value" />
-            <input type="hidden" id="locHidden" name="deviceLocation" value="@curLoc" />
+          </div>
+
+          <div class="fg form-full">
+            <label>Site *</label>
+            <select name="location" required>
+              <option value="" disabled selected>— Select site —</option>
+              @foreach (var l in siteLocations)
+              {
+                <option value="@l">@l</option>
+              }
+            </select>
+          </div>
+
+          <div class="fg form-full">
+            <label>Model *</label>
+            <select name="model" required>
+              <option value="" disabled selected>— Select model —</option>
+              @foreach (var m in modelNames)
+              {
+                <option value="@m">@m</option>
+              }
+            </select>
           </div>
 
           <div class="fg form-full">
             <label>Swap RITM <span class="hint">(optional — applied to all)</span></label>
             <input name="swapRITM" type="text" value="@Model.SwapRITM" placeholder="e.g. RITM0098765" />
+          </div>
+
+          <div class="fg">
+            <label>@Localizer["LblCategory"] <span class="hint">(optional — applied to all)</span></label>
+            <select name="category">
+              <option value="" selected>— not recorded —</option>
+              <option value="Re-imaged laptops">@Localizer["CatReimaged"]</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Work Order <span class="hint">(optional — applied to all)</span></label>
+            <input name="workOrder" type="text" />
+          </div>
+
+          <div class="fg">
+            <label>Pickup Status <span class="hint">(optional — applied to all)</span></label>
+            <input name="pickupStatus" type="text" />
+          </div>
+
+          <div class="fg">
+            <label>User KID <span class="hint">(optional — applied to all)</span></label>
+            <input name="kid" type="text" placeholder="e.g. A57253" />
+          </div>
+
+          <div class="fg">
+            <label>@Localizer["LblCharger"]</label>
+            <select name="chargerReturned">
+              <option value="" selected>— Not specified —</option>
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>@Localizer["LblPowerCable"]</label>
+            <select name="powerCableReturned">
+              <option value="" selected>— Not specified —</option>
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Inspection section, same fields as the Return form -->
+      <div class="section-card">
+        <div class="section-head">@Localizer["SectionInspection"]</div>
+        <div class="form-grid">
+
+          <div class="fg">
+            <label>Damage Status</label>
+            <select name="damageStatus">
+              <option value="" selected>— Not specified —</option>
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Lease/DaaS End Date Planned <span class="hint">(dd.MM.yyyy)</span></label>
+            <input type="date" name="leaseEndDatePlanned" />
+          </div>
+
+          <div class="fg">
+            <label>Acknowledgement</label>
+            <select name="acknowledgement">
+              <option value="" selected>— Not specified —</option>
+              <option value="Signed by user">Signed by user</option>
+              <option value="Signed by manager">Signed by manager</option>
+              <option value="Signed by IT-Coordinator">Signed by IT-Coordinator</option>
+              <option value="Declined">Declined</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Damage Comment</label>
+            <textarea name="damageComment" rows="3" style="padding:10px 13px;border:1px solid var(--border-input);border-radius:8px;font-size:14px;color:var(--text-primary);background:var(--bg-input);font-family:inherit;outline:none;resize:vertical;"></textarea>
+          </div>
+
+          <div class="fg">
+            <label>Customer Induced Damage?</label>
+            <select name="isCustomerInducedDamage">
+              <option value="false" selected>No</option>
+              <option value="true">Yes</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Battery Swollen?</label>
+            <select name="isBatterySwollen">
+              <option value="false" selected>No</option>
+              <option value="true">Yes</option>
+            </select>
           </div>
 
         </div>
@@ -135,7 +244,9 @@
         <option value="Dell">Dell</option>
         <option value="Apple iPad">Apple iPad</option>
         <option value="Desktop">Desktop</option>
-        <option value="Mini Desktop">Mini Desktop</option>
+        <option value="Rugged tablet">Rugged tablet</option>
+        <option value="Microsoft Surface tablet">Microsoft Surface tablet</option>
+        <option value="Apple tablet">Apple tablet</option>
       </select>
     </td>
     <td><input type="text" name="ritms" placeholder="e.g. RITM0012345" /></td>
@@ -145,15 +256,6 @@
 
 @section Scripts {
 <script>
-function onLocChange(sel) {
-  var c = document.getElementById('locCustom');
-  var h = document.getElementById('locHidden');
-  if (sel.value === '__other__') {
-    c.style.display = ''; c.value = ''; h.value = ''; c.focus();
-  } else {
-    c.style.display = 'none'; h.value = sel.value;
-  }
-}
 function addRow() {
   var template = document.getElementById('rowTemplate');
   var clone = template.content.cloneNode(true);

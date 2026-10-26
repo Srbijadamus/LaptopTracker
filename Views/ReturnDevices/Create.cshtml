@@ -4,11 +4,13 @@
 @inject IViewLocalizer Localizer
 @{
     ViewData["Title"] = "Add Return Device";
-    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Mini Desktop" };
-    var eonLocations = LocationList.Locations.OrderBy(l => l).ToList();
+    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Rugged tablet", "Microsoft Surface tablet", "Apple tablet" };
+    var siteLocations = LocationList.SiteLocations.OrderBy(l => l).ToList();
+    var modelNames = ((ViewData["Models"] as List<DeviceModel>) ?? new()).Select(m => m.ModelName).OrderBy(n => n).ToList();
+    var curModel = Model.Model ?? "";
+    var modelInList = modelNames.Contains(curModel);
     var curLoc = Model.Location ?? "";
-    var locInList = eonLocations.Contains(curLoc);
-    var showOther = !locInList && curLoc != "";
+    var locInList = siteLocations.Contains(curLoc);
     var prefillStatus = ViewData["StatusChoice"] as string;
 }
 @section Styles {
@@ -40,7 +42,7 @@
 
           <div class="fg">
             <label>Serial Number *</label>
-            <input name="SerialNumber" type="text" value="@Model.SerialNumber" required />
+            <input name="SerialNumber" id="serialNumberInput" type="text" value="@Model.SerialNumber" required autofocus />
           </div>
 
           <div class="fg">
@@ -49,6 +51,21 @@
               @foreach (var t in deviceTypes)
               {
                 <option value="@t" selected="@(Model.DeviceType == t ? "selected" : null)">@t</option>
+              }
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Model <span class="hint">(optional — leave as "not recorded" if unknown)</span></label>
+            <select name="Model">
+              <option value="" selected="@(curModel == "" ? "selected" : null)">— not recorded —</option>
+              @foreach (var m in modelNames)
+              {
+                <option value="@m" selected="@(modelInList && curModel == m ? "selected" : null)">@m</option>
+              }
+              @if (curModel != "" && !modelInList)
+              {
+                <option value="@curModel" selected="selected">@curModel (legacy value)</option>
               }
             </select>
           </div>
@@ -64,7 +81,7 @@
           </div>
 
           <div class="fg">
-            <label>Device Location</label>
+            <label>@Localizer["FieldDeviceState"]</label>
             <select name="DeviceLocation">
               @foreach (var loc in new[] { "In WIC", "In Transit" })
               {
@@ -120,19 +137,17 @@
             @if (ViewData.ModelState["Location"]?.Errors.Count > 0) {
               <span style="color:#e05;font-size:12px;">@ViewData.ModelState["Location"].Errors[0].ErrorMessage</span>
             }
-            <select id="locSelect" onchange="onLocChange(this)">
+            <select name="Location">
               <option value="">— Select location —</option>
-              @foreach (var l in eonLocations)
+              @foreach (var l in siteLocations)
               {
                 <option value="@l" selected="@(locInList && curLoc == l ? "selected" : null)">@l</option>
               }
-              <option value="__other__" selected="@(showOther ? "selected" : null)">Other (type below)</option>
+              @if (curLoc != "" && !locInList)
+              {
+                <option value="@curLoc" selected="selected">@curLoc (legacy value)</option>
+              }
             </select>
-            <input id="locCustom" type="text" placeholder="Type custom location…"
-                   style="margin-top:6px;@(showOther ? "" : "display:none;")"
-                   value="@(showOther ? curLoc : "")"
-                   oninput="document.getElementById('locHidden').value=this.value" />
-            <input type="hidden" id="locHidden" name="Location" value="@curLoc" />
           </div>
 
           <!-- Inspection section -->
@@ -150,9 +165,9 @@
           </div>
 
           <div class="fg">
-            <label>Lease/DaaS End Date Planned <span class="hint">(dd.MM.yyyy HH:mm:ss)</span></label>
-            <input type="datetime-local" name="LeaseEndDatePlanned"
-                   value="@(Model.LeaseEndDatePlanned?.ToString("yyyy-MM-ddTHH:mm:ss"))" />
+            <label>Lease/DaaS End Date Planned <span class="hint">(dd.MM.yyyy)</span></label>
+            <input type="date" name="LeaseEndDatePlanned"
+                   value="@(Model.LeaseEndDatePlanned?.ToString("yyyy-MM-dd"))" />
           </div>
 
           <div id="damageDetails" class="form-full" style="@(Model.DamageStatus == "Yes" ? "" : "display:none;")">
@@ -174,6 +189,7 @@
               <option value="" selected="@(string.IsNullOrEmpty(Model.Acknowledgement) ? "selected" : null)">— Not specified —</option>
               <option value="Signed by user" selected="@(Model.Acknowledgement == "Signed by user" ? "selected" : null)">Signed by user</option>
               <option value="Signed by manager" selected="@(Model.Acknowledgement == "Signed by manager" ? "selected" : null)">Signed by manager</option>
+              <option value="Signed by IT-Coordinator" selected="@(Model.Acknowledgement == "Signed by IT-Coordinator" ? "selected" : null)">Signed by IT-Coordinator</option>
               <option value="Declined" selected="@(Model.Acknowledgement == "Declined" ? "selected" : null)">Declined</option>
             </select>
           </div>
@@ -233,16 +249,6 @@ function onDamageChange(sel) {
   var d = document.getElementById('damageDetails');
   d.style.display = sel.value === 'Yes' ? '' : 'none';
 }
-function onLocChange(sel) {
-  var c = document.getElementById('locCustom');
-  var h = document.getElementById('locHidden');
-  if (sel.value === '__other__') {
-    c.style.display = ''; c.value = ''; h.value = ''; c.focus();
-  } else {
-    c.style.display = 'none'; h.value = sel.value;
-  }
-}
-
 (function () {
   var canvas = document.getElementById('sigPad');
   var ctx = canvas.getContext('2d');
@@ -310,6 +316,16 @@ function onLocChange(sel) {
       document.getElementById('sigData').value = canvas.toDataURL('image/png');
     }
   });
+})();
+
+// After "Save & Add Another" the page reloads with only the carry-over fields
+// (Device Type / State / Date / Status / Work Order) prefilled. Make sure the
+// keyboard focus reliably lands in the empty Serial Number field again.
+(function () {
+  var sn = document.getElementById('serialNumberInput');
+  if (!sn) return;
+  sn.focus();
+  try { sn.setSelectionRange(sn.value.length, sn.value.length); } catch (e) { /* not supported */ }
 })();
 </script>
 }

@@ -57,6 +57,7 @@
   <data name="NavReturns" xml:space="preserve"><value>Rückgaben</value></data>
   <data name="NavWicStock" xml:space="preserve"><value>WIC-Bestand</value></data>
   <data name="NavLoaners" xml:space="preserve"><value>Leihgeräte</value></data>
+  <data name="NavIdealStock" xml:space="preserve"><value>Soll-Bestand Übersicht</value></data>
   <data name="NavSectionOps" xml:space="preserve"><value>Operationen</value></data>
   <data name="NavHandovers" xml:space="preserve"><value>Übergaben</value></data>
   <data name="NavArchive" xml:space="preserve"><value>Archiv</value></data>

@@ -55,4 +55,5 @@
   <data name="LblPowerCable" xml:space="preserve"><value>Power cable returned?</value></data>
   <data name="SectionInspection" xml:space="preserve"><value>Inspection</value></data>
   <data name="SectionSignature" xml:space="preserve"><value>Signature</value></data>
+  <data name="FieldDeviceState" xml:space="preserve"><value>Device State</value></data>
 </root>

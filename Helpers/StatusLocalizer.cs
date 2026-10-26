@@ -31,6 +31,25 @@ public static class StatusLocalizer
             _                         => status.ToString()
         };
 
+    public static string Get(StockStatus status, IStringLocalizer<StatusLabels> loc) =>
+        status switch
+        {
+            StockStatus.Ok        => loc["Status_StockOk"],
+            StockStatus.Surplus   => loc["Status_StockSurplus"],
+            StockStatus.Shortage  => loc["Status_StockShortage"],
+            StockStatus.Undefined => loc["Status_StockUndefined"],
+            _                     => status.ToString()
+        };
+
+    // Informational lease indicator text; None has no label by design.
+    public static string GetLease(LeaseStatus status, IStringLocalizer<StatusLabels> loc) =>
+        status switch
+        {
+            LeaseStatus.Expired  => loc["Lease_Expired"],
+            LeaseStatus.EndsSoon => loc["Lease_EndsSoon"],
+            _                    => ""
+        };
+
     // DeviceLocation badge text — maps raw DB value to localized label
     public static string GetDeviceLocation(string? rawValue, IStringLocalizer<StatusLabels> loc) =>
         rawValue switch

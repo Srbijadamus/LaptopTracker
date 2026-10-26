@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="PageTitle" xml:space="preserve"><value>Soll-Bestand Übersicht</value></data>
+  <data name="EditToggleOn" xml:space="preserve"><value>Sollwerte bearbeiten</value></data>
+  <data name="EditToggleOff" xml:space="preserve"><value>Bearbeitung beenden</value></data>
+  <data name="ColClass" xml:space="preserve"><value>Klasse</value></data>
+  <data name="ColInStock" xml:space="preserve"><value>Auf Lager</value></data>
+  <data name="ColReserved" xml:space="preserve"><value>Reserviert</value></data>
+  <data name="ColIdeal" xml:space="preserve"><value>Soll</value></data>
+  <data name="ColDifference" xml:space="preserve"><value>Differenz</value></data>
+  <data name="ColStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="ColActions" xml:space="preserve"><value>Aktionen</value></data>
+  <data name="NotSet" xml:space="preserve"><value>nicht festgelegt</value></data>
+  <data name="BtnSave" xml:space="preserve"><value>Speichern</value></data>
+  <data name="BtnClear" xml:space="preserve"><value>Zurücksetzen</value></data>
+  <data name="BtnApplyToAll" xml:space="preserve"><value>Sollwerte dieses Standorts auf alle Standorte übertragen</value></data>
+  <data name="BtnUndo" xml:space="preserve"><value>Rückgängig</value></data>
+  <data name="ToastSaved" xml:space="preserve"><value>Gespeichert</value></data>
+  <data name="ToastCleared" xml:space="preserve"><value>Zurückgesetzt</value></data>
+  <data name="ToastApplied" xml:space="preserve"><value>Auf {0} weitere Standorte übertragen</value></data>
+  <data name="ToastRestored" xml:space="preserve"><value>Rückgängig gemacht</value></data>
+  <data name="ToastError" xml:space="preserve"><value>Speichern fehlgeschlagen. Bitte erneut versuchen.</value></data>
+  <data name="LastChanged" xml:space="preserve"><value>Zuletzt geändert: {0} von {1}</value></data>
+  <data name="UnmappedTitle" xml:space="preserve"><value>Nicht zugeordnete Modelle</value></data>
+  <data name="UnmappedHint" xml:space="preserve"><value>Diese Modelle konnten keiner Größenklasse zugeordnet werden und sind oben nicht mitgezählt.</value></data>
+  <data name="ClassS" xml:space="preserve"><value>13&quot; Ultrabook</value></data>
+  <data name="ClassM" xml:space="preserve"><value>14&quot; Ultrabook</value></data>
+  <data name="ClassL" xml:space="preserve"><value>15&quot; Ultrabook</value></data>
+  <data name="ClassD" xml:space="preserve"><value>Desktop</value></data>
+  <data name="EmptyNoLocations" xml:space="preserve"><value>Keine WIC-Lagerstandorte gefunden.</value></data>
+  <data name="UnassignedTitle" xml:space="preserve"><value>Nicht zugeordnet (Altbestand)</value></data>
+  <data name="UnclassifiedRowLabel" xml:space="preserve"><value>Nicht klassifiziert (Altbestand)</value></data>
+  <data name="UnclassifiedCaveat" xml:space="preserve"><value>Dieser Standort hat {0} nicht klassifizierte(s) Altbestand-Gerät(e), das/die oben nicht mitgezählt ist/sind.</value></data>
+  <data name="LegacyBadge" xml:space="preserve"><value>Alt-Standort</value></data>
+  <data name="BtnExportExcel" xml:space="preserve"><value>Nach Excel exportieren</value></data>
+  <data name="DeviceTypeLenovo" xml:space="preserve"><value>Lenovo</value></data>
+  <data name="DeviceTypeRuggedTablet" xml:space="preserve"><value>Robustes Tablet</value></data>
+  <data name="DeviceTypeSurfaceTablet" xml:space="preserve"><value>Microsoft Surface Tablet</value></data>
+  <data name="DeviceTypeAppleTablet" xml:space="preserve"><value>Apple Tablet</value></data>
+</root>

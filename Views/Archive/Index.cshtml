@@ -90,7 +90,7 @@ tbody tr:hover{background:var(--bg-hover)}
                   <td>@d.DeviceType</td>
                   <td class="muted">@d.RITM</td>
                   <td class="muted">@d.Date.ToString("dd/MM/yyyy")</td>
-                  <td class="muted">@(d.DeletedAt.HasValue ? d.DeletedAt.Value.ToString("dd/MM/yyyy HH:mm") : "—")</td>
+                  <td class="muted">@(d.DeletedAt.HasValue ? d.DeletedAt.Value.ToCet().ToString("dd/MM/yyyy HH:mm") : "—")</td>
                   <td><span class="@(days <= 7 ? "days-warn" : "days-ok")">@days @(days == 1 ? Localizer["DaySingular"].Value : Localizer["DayPlural"].Value)</span></td>
                   <td>
                     <form method="post" action="/Archive/RestoreLoaner/@d.Id" style="display:inline">
@@ -132,7 +132,7 @@ tbody tr:hover{background:var(--bg-hover)}
                   <td>@d.DeviceType</td>
                   <td class="muted">@d.RITM</td>
                   <td class="muted">@d.Date.ToString("dd/MM/yyyy")</td>
-                  <td class="muted">@(d.DeletedAt.HasValue ? d.DeletedAt.Value.ToString("dd/MM/yyyy HH:mm") : "—")</td>
+                  <td class="muted">@(d.DeletedAt.HasValue ? d.DeletedAt.Value.ToCet().ToString("dd/MM/yyyy HH:mm") : "—")</td>
                   <td><span class="@(days <= 7 ? "days-warn" : "days-ok")">@days @(days == 1 ? Localizer["DaySingular"].Value : Localizer["DayPlural"].Value)</span></td>
                   <td>
                     <form method="post" action="/Archive/RestoreReturn/@d.Id" style="display:inline">
@@ -174,7 +174,7 @@ tbody tr:hover{background:var(--bg-hover)}
                   <td>@d.DeviceType</td>
                   <td class="muted">@d.RITM</td>
                   <td class="muted">@d.Date.ToString("dd/MM/yyyy")</td>
-                  <td class="muted">@(d.DeletedAt.HasValue ? d.DeletedAt.Value.ToString("dd/MM/yyyy HH:mm") : "—")</td>
+                  <td class="muted">@(d.DeletedAt.HasValue ? d.DeletedAt.Value.ToCet().ToString("dd/MM/yyyy HH:mm") : "—")</td>
                   <td><span class="@(days <= 7 ? "days-warn" : "days-ok")">@days @(days == 1 ? Localizer["DaySingular"].Value : Localizer["DayPlural"].Value)</span></td>
                   <td>
                     <form method="post" action="/Archive/RestoreWic/@d.Id" style="display:inline">

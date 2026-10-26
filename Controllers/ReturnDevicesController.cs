@@ -98,9 +98,59 @@ namespace LaptopTracker.Controllers
             return View(activeDevices);
         }
 
+        private async Task<List<DeviceModel>> GetActiveModelsAsync() =>
+            await _context.Models.Where(m => m.IsActive).OrderBy(m => m.ModelName).ToListAsync();
+
+        // Carries the Return form information onto a WIC stock record. The lease date is
+        // copied exactly as stored (no conversion, no timezone shift); NULL stays NULL.
+        private static void CopyReturnFieldsToWic(ReturnDevice source, WicStockDevice target)
+        {
+            target.Model                   = source.Model;
+            target.Location                = source.Location;
+            target.WorkOrder               = source.WorkOrder;
+            target.PickupStatus            = source.PickupStatus;
+            target.KID                     = source.KID;
+            target.ChargerReturned         = source.ChargerReturned;
+            target.PowerCableReturned      = source.PowerCableReturned;
+            target.DamageStatus            = source.DamageStatus;
+            target.DamageComment           = source.DamageComment;
+            target.LeaseEndDatePlanned     = source.LeaseEndDatePlanned;
+            target.IsCustomerInducedDamage = source.IsCustomerInducedDamage;
+            target.IsBatterySwollen        = source.IsBatterySwollen;
+            target.Acknowledgement         = source.Acknowledgement;
+        }
+
+        // Physical copies, not shared paths: DeletePhoto deletes the file of whichever
+        // record owns the row, so the WIC record needs its own files.
+        private static void CopyPhotosToWic(ReturnDevice source, WicStockDevice target)
+        {
+            if (source.Photos == null || source.Photos.Count == 0) return;
+
+            var uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            Directory.CreateDirectory(uploadDir);
+
+            foreach (var photo in source.Photos)
+            {
+                var sourcePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
+                    photo.FilePath.TrimStart('/'));
+                if (!System.IO.File.Exists(sourcePath)) continue;
+
+                var uniqueName = $"{Guid.NewGuid()}{Path.GetExtension(photo.FilePath)}";
+                System.IO.File.Copy(sourcePath, Path.Combine(uploadDir, uniqueName));
+
+                target.Photos.Add(new WicStockDevicePhoto
+                {
+                    FilePath         = $"/uploads/{uniqueName}",
+                    OriginalFileName = photo.OriginalFileName,
+                    UploadedAt       = photo.UploadedAt,
+                    IsSignature      = photo.IsSignature
+                });
+            }
+        }
+
         [HttpGet]
-        public IActionResult Create(string? serialNumber, string? prefillLocation, string? prefillDeviceType,
-            string? prefillDeviceLocation, string? prefillDate, string? prefillRitm,
+        public async Task<IActionResult> Create(string? serialNumber, string? prefillLocation, string? prefillDeviceType,
+            string? prefillDeviceLocation, string? prefillDate,
             string? prefillStatus, string? prefillWorkOrder)
         {
             var d = new ReturnDevice
@@ -110,10 +160,11 @@ namespace LaptopTracker.Controllers
                 Location       = prefillLocation,
                 DeviceType     = string.IsNullOrEmpty(prefillDeviceType) ? "Lenovo" : prefillDeviceType,
                 DeviceLocation = string.IsNullOrEmpty(prefillDeviceLocation) ? "In WIC" : prefillDeviceLocation,
-                RITM           = prefillRitm ?? string.Empty,
+                RITM           = string.Empty,
                 WorkOrder      = prefillWorkOrder
             };
             ViewData["StatusChoice"] = prefillStatus;
+            ViewData["Models"] = await GetActiveModelsAsync();
             return View(d);
         }
 
@@ -122,7 +173,7 @@ namespace LaptopTracker.Controllers
         {
             if (statusChoice == "WicStock")
             {
-                _context.WicStockDevices.Add(new WicStockDevice
+                var wicDevice = new WicStockDevice
                 {
                     SerialNumber    = device.SerialNumber,
                     DeviceType      = device.DeviceType,
@@ -131,13 +182,19 @@ namespace LaptopTracker.Controllers
                     Date            = device.Date,
                     DeviceLocation  = device.DeviceLocation,
                     Status          = WicStockStatus.Available
-                });
+                };
+                CopyReturnFieldsToWic(device, wicDevice);
+                _context.WicStockDevices.Add(wicDevice);
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Index", "WicStock");
             }
 
             if (string.IsNullOrWhiteSpace(device.Location)) ModelState.AddModelError("Location", "Location is required.");
-            if (!ModelState.IsValid) return View(device);
+            if (!ModelState.IsValid)
+            {
+                ViewData["Models"] = await GetActiveModelsAsync();
+                return View(device);
+            }
             device.Status          = Enum.TryParse<ReturnDeviceStatus>(statusChoice, out var sc) ? sc : ReturnDeviceStatus.PendingPickup;
             device.DeviceStateType = "Return";
             _context.ReturnDevices.Add(device);
@@ -205,7 +262,6 @@ namespace LaptopTracker.Controllers
                     prefillDeviceType     = device.DeviceType,
                     prefillDeviceLocation = device.DeviceLocation,
                     prefillDate           = device.Date.ToString("yyyy-MM-dd"),
-                    prefillRitm           = device.RITM,
                     prefillStatus         = statusChoice,
                     prefillWorkOrder      = device.WorkOrder
                 });
@@ -242,7 +298,18 @@ namespace LaptopTracker.Controllers
                         RITM            = ritms![i]?.Trim() ?? "",
                         Date            = date == default ? DateTime.Today : date,
                         DeviceLocation  = deviceLocation ?? "In WIC",
-                        Status          = WicStockStatus.Available
+                        Status          = WicStockStatus.Available,
+                        // Same carry-over as the single-device form: the shared Return
+                        // values follow the device into WIC stock instead of being dropped.
+                        WorkOrder           = string.IsNullOrWhiteSpace(workOrder) ? null : workOrder,
+                        PickupStatus        = string.IsNullOrWhiteSpace(pickupStatus) ? null : pickupStatus,
+                        Location            = string.IsNullOrWhiteSpace(location) ? null : location,
+                        ChargerReturned     = charger,
+                        PowerCableReturned  = power,
+                        KID                 = string.IsNullOrWhiteSpace(kid) ? null : kid,
+                        DamageStatus        = string.IsNullOrWhiteSpace(damageStatus) ? null : damageStatus,
+                        DamageComment       = string.IsNullOrWhiteSpace(damageComment) ? null : damageComment,
+                        LeaseEndDatePlanned = leaseEndDatePlanned
                     });
                 }
                 await _context.SaveChangesAsync();
@@ -342,11 +409,12 @@ namespace LaptopTracker.Controllers
                 .Include(d => d.Photos)
                 .FirstOrDefaultAsync(d => d.Id == id);
             if (device == null) return NotFound();
+            ViewData["Models"] = await GetActiveModelsAsync();
             return View(device);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(int id, ReturnDevice model, List<IFormFile>? photos, string? signatureData,
+        public async Task<IActionResult> Edit(int id, ReturnDevice input, List<IFormFile>? photos, string? signatureData,
             string? statusChoice, List<IFormFile>? damagePhotos)
         {
             var device = await _context.ReturnDevices
@@ -357,7 +425,7 @@ namespace LaptopTracker.Controllers
             // WIC Stock: move device before any normal update
             if (statusChoice == "WicStock")
             {
-                _context.WicStockDevices.Add(new WicStockDevice
+                var wicDevice = new WicStockDevice
                 {
                     SerialNumber   = device.SerialNumber,
                     DeviceType     = device.DeviceType,
@@ -366,39 +434,49 @@ namespace LaptopTracker.Controllers
                     Date           = device.Date,
                     DeviceLocation = device.DeviceLocation,
                     Status         = WicStockStatus.Available
-                });
+                };
+                // The posted form carries what the user currently sees; the lease date is
+                // merged first so an untouched date keeps its stored value before copying.
+                input.LeaseEndDatePlanned = DateTimeHelper.MergeEditedDate(
+                    device.LeaseEndDatePlanned, input.LeaseEndDatePlanned);
+                CopyReturnFieldsToWic(input, wicDevice);
+                CopyPhotosToWic(device, wicDevice);
+                _context.WicStockDevices.Add(wicDevice);
                 device.IsDeleted = true;
                 device.DeletedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
 
-            if (string.IsNullOrWhiteSpace(model.Location)) ModelState.AddModelError("Location", "Location is required.");
+            if (string.IsNullOrWhiteSpace(input.Location)) ModelState.AddModelError("Location", "Location is required.");
             if (!ModelState.IsValid)
             {
-                model.Photos = device.Photos;
-                return View(model);
+                input.Photos = device.Photos;
+                ViewData["Models"] = await GetActiveModelsAsync();
+                return View(input);
             }
 
-            device.SerialNumber              = model.SerialNumber;
-            device.DeviceType                = model.DeviceType;
+            device.SerialNumber              = input.SerialNumber;
+            device.DeviceType                = input.DeviceType;
             device.DeviceStateType           = "Return";
-            device.RITM                      = model.RITM;
-            device.Date                      = model.Date;
-            device.DeviceLocation            = model.DeviceLocation;
+            device.RITM                      = input.RITM;
+            device.Date                      = input.Date;
+            device.DeviceLocation            = input.DeviceLocation;
             device.Status                    = Enum.TryParse<ReturnDeviceStatus>(statusChoice, out var sc) ? sc : device.Status;
-            device.WorkOrder                 = model.WorkOrder;
-            device.PickupStatus              = model.PickupStatus;
-            device.Location                  = model.Location;
-            device.KID                       = model.KID;
-            device.ChargerReturned           = model.ChargerReturned;
-            device.PowerCableReturned        = model.PowerCableReturned;
-            device.DamageStatus              = model.DamageStatus;
-            device.DamageComment             = model.DamageComment;
-            device.LeaseEndDatePlanned       = model.LeaseEndDatePlanned;
-            device.IsCustomerInducedDamage   = model.IsCustomerInducedDamage;
-            device.IsBatterySwollen          = model.IsBatterySwollen;
-            device.Acknowledgement           = model.Acknowledgement;
+            device.WorkOrder                 = input.WorkOrder;
+            device.PickupStatus              = input.PickupStatus;
+            device.Location                  = input.Location;
+            device.KID                       = input.KID;
+            device.ChargerReturned           = input.ChargerReturned;
+            device.PowerCableReturned        = input.PowerCableReturned;
+            device.DamageStatus              = input.DamageStatus;
+            device.DamageComment             = input.DamageComment;
+            device.LeaseEndDatePlanned       = DateTimeHelper.MergeEditedDate(
+                                                   device.LeaseEndDatePlanned, input.LeaseEndDatePlanned);
+            device.IsCustomerInducedDamage   = input.IsCustomerInducedDamage;
+            device.IsBatterySwollen          = input.IsBatterySwollen;
+            device.Acknowledgement           = input.Acknowledgement;
+            device.Model                     = string.IsNullOrWhiteSpace(input.Model) ? null : input.Model;
 
             var uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
             Directory.CreateDirectory(uploadDir);

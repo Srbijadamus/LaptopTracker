@@ -66,6 +66,7 @@
   <data name="BtnDownloadPdf" xml:space="preserve"><value>&#x2B07; Download Document (PDF)</value></data>
   <data name="BtnEmailDraft" xml:space="preserve"><value>&#x2709; Email Draft (.eml)</value></data>
   <data name="BtnBack" xml:space="preserve"><value>&#x2190; Back to Record</value></data>
+  <data name="LabelAcknowledgement" xml:space="preserve"><value>Acknowledgement</value></data>
   <data name="SectionSignature" xml:space="preserve"><value>Signature</value></data>
   <data name="AltSignature" xml:space="preserve"><value>Signature</value></data>
   <data name="LabelCapturedAt" xml:space="preserve"><value>Captured:</value></data>

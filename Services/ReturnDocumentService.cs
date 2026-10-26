@@ -1,3 +1,4 @@
+using LaptopTracker.Helpers;
 using LaptopTracker.Models;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
@@ -156,6 +157,9 @@ namespace LaptopTracker.Services
                 bodyFont, black, R(y, 10), XStringFormats.TopLeft);
             y += 10;
 
+            if (!string.IsNullOrWhiteSpace(device.Acknowledgement))
+                Row(T("Bestätigung:", "Acknowledgement:"), device.Acknowledgement);
+
             // Signature (image or blank lines)
             var sig = device.Photos?.FirstOrDefault(p => p.IsSignature);
             if (sig is not null)
@@ -219,7 +223,7 @@ namespace LaptopTracker.Services
                 XUnit.FromMillimeter(lm), XUnit.FromMillimeter(fy),
                 XUnit.FromMillimeter(lm + pw), XUnit.FromMillimeter(fy));
             gfx.DrawString(
-                $"WIC Asset Tracker  ·  {T("Dokument-ID", "Document ID")}: {device.Id}  ·  {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC",
+                $"WIC Asset Tracker  ·  {T("Dokument-ID", "Document ID")}: {device.Id}  ·  {DateTime.UtcNow.ToCet():yyyy-MM-dd HH:mm} CET",
                 smallFont, muted, R(fy + 1, 4), XStringFormats.TopLeft);
         }
     }

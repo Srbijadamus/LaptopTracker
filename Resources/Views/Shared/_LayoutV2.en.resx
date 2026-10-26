@@ -57,6 +57,7 @@
   <data name="NavReturns" xml:space="preserve"><value>Returns</value></data>
   <data name="NavWicStock" xml:space="preserve"><value>WIC Stock</value></data>
   <data name="NavLoaners" xml:space="preserve"><value>Loaner Devices</value></data>
+  <data name="NavIdealStock" xml:space="preserve"><value>Ideal Stock Overview</value></data>
   <data name="NavSectionOps" xml:space="preserve"><value>Operations</value></data>
   <data name="NavHandovers" xml:space="preserve"><value>Handovers</value></data>
   <data name="NavArchive" xml:space="preserve"><value>Archive</value></data>

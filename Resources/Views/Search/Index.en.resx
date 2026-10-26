@@ -67,7 +67,7 @@
   <data name="ColModule" xml:space="preserve"><value>Module</value></data>
   <data name="ColSerial" xml:space="preserve"><value>Serial Number</value></data>
   <data name="ColDeviceType" xml:space="preserve"><value>Device Type</value></data>
-  <data name="ColDeviceLocation" xml:space="preserve"><value>Device Location</value></data>
+  <data name="ColDeviceLocation" xml:space="preserve"><value>Device State</value></data>
   <data name="ColStatus" xml:space="preserve"><value>Status</value></data>
   <data name="CellEdit" xml:space="preserve"><value>Edit</value></data>
   <data name="BadgeReturn" xml:space="preserve"><value>Return</value></data>

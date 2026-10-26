@@ -63,7 +63,7 @@
   <data name="MetaEntries" xml:space="preserve"><value>entries found</value></data>
   <data name="MetaPage" xml:space="preserve"><value>page</value></data>
   <data name="MetaOf" xml:space="preserve"><value>of</value></data>
-  <data name="ColTimestamp" xml:space="preserve"><value>Timestamp (UTC)</value></data>
+  <data name="ColTimestamp" xml:space="preserve"><value>Timestamp (CET)</value></data>
   <data name="ColAction" xml:space="preserve"><value>Action</value></data>
   <data name="ColEntity" xml:space="preserve"><value>Entity</value></data>
   <data name="ColId" xml:space="preserve"><value>ID</value></data>

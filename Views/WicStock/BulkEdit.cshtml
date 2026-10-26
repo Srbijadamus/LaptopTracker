@@ -1,9 +1,12 @@
 @model List<LaptopTracker.Models.WicStockDevice>
 @using LaptopTracker.Helpers
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
     ViewData["Title"] = "Bulk Edit WIC Stock";
     var ids = ViewData["Ids"] as int[] ?? Array.Empty<int>();
-    var eonLocations = LocationList.Locations.OrderBy(l => l).ToList();
+    var siteLocations = LocationList.SiteLocations.OrderBy(l => l).ToList();
+    var modelNames = ((ViewData["Models"] as List<DeviceModel>) ?? new()).Select(m => m.ModelName).OrderBy(n => n).ToList();
 }
 @section Styles {
 <style>
@@ -51,7 +54,7 @@
             <th>Type</th>
             <th>RITM</th>
             <th>Current Status</th>
-            <th>Current Location</th>
+            <th>@Localizer["ColCurrentState"]</th>
           </tr>
         </thead>
         <tbody>
@@ -95,12 +98,32 @@
           </div>
 
           <div class="fg">
-            <label>Device Location <span class="hint">(optional)</span></label>
+            <label>State <span class="hint">(optional)</span></label>
             <select name="deviceLocation">
               <option value="">— Keep existing —</option>
-              @foreach (var l in eonLocations)
+              <option value="In WIC">In WIC</option>
+              <option value="In Transit">In Transit</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Site <span class="hint">(optional)</span></label>
+            <select name="location">
+              <option value="">— Keep existing —</option>
+              @foreach (var l in siteLocations)
               {
                 <option value="@l">@l</option>
+              }
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Model <span class="hint">(optional)</span></label>
+            <select name="model">
+              <option value="">— Keep existing —</option>
+              @foreach (var m in modelNames)
+              {
+                <option value="@m">@m</option>
               }
             </select>
           </div>

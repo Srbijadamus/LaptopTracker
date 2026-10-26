@@ -29,6 +29,15 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
+using (var startupScope = app.Services.CreateScope())
+{
+    var db = startupScope.ServiceProvider.GetRequiredService<LaptopTrackerDbContext>();
+    var activeLocations = db.WicLocations
+        .Include(l => l.Aliases)
+        .Where(l => l.IsActive)
+        .ToList();
+    LaptopTracker.Helpers.LocationList.Load(activeLocations);
+}
 
 if (!app.Environment.IsDevelopment())
 {
