@@ -23,6 +23,7 @@
     var statusLabel = new Func<string, string>(s => s switch {
         "Ausstehend"  => Localizer["Status_Pending"].Value,
         "Abgeholt"    => Localizer["Status_Collected"].Value,
+        "Übergeben"   => Localizer["Status_HandedOver"].Value,
         "Verfügbar"   => Localizer["Status_Available"].Value,
         "Nicht verf." => Localizer["Status_Unavailable"].Value,
         "In Nutzung"  => Localizer["Status_InUse"].Value,
@@ -31,6 +32,7 @@
     var sliceLabel = new Func<string, string>(s => s switch {
         "Abholung ausstehend"  => Localizer["Slice_PendingPickup"].Value,
         "Abgeholt"             => Localizer["Slice_Collected"].Value,
+        "Übergeben"            => Localizer["Slice_HandedOver"].Value,
         "WIC Verfügbar"        => Localizer["Slice_WicAvailable"].Value,
         "WIC Nicht verf."      => Localizer["Slice_WicUnavailable"].Value,
         "Leihger. Verfügbar"   => Localizer["Slice_LoanerAvailable"].Value,
@@ -270,6 +272,7 @@
     var sliceLabel = new Func<string, string>(s => s switch {
         "Abholung ausstehend"  => Localizer["Slice_PendingPickup"].Value,
         "Abgeholt"             => Localizer["Slice_Collected"].Value,
+        "Übergeben"            => Localizer["Slice_HandedOver"].Value,
         "WIC Verfügbar"        => Localizer["Slice_WicAvailable"].Value,
         "WIC Nicht verf."      => Localizer["Slice_WicUnavailable"].Value,
         "Leihger. Verfügbar"   => Localizer["Slice_LoanerAvailable"].Value,

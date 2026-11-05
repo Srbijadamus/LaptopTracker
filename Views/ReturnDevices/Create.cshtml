@@ -81,20 +81,9 @@
           </div>
 
           <div class="fg">
-            <label>@Localizer["FieldDeviceState"]</label>
-            <select name="DeviceLocation">
-              @foreach (var loc in new[] { "In WIC", "In Transit" })
-              {
-                <option value="@loc" selected="@(Model.DeviceLocation == loc ? "selected" : null)">@loc</option>
-              }
-            </select>
-          </div>
-
-          <div class="fg">
             <label>Status</label>
             <select name="statusChoice">
               <option value="PendingPickup" selected="@(prefillStatus == "PendingPickup" || (prefillStatus == null && Model.Status == LaptopTracker.Models.ReturnDeviceStatus.PendingPickup) ? "selected" : null)">Pending Pickup</option>
-              <option value="PickedUp" selected="@(prefillStatus == "PickedUp" || (prefillStatus == null && Model.Status == LaptopTracker.Models.ReturnDeviceStatus.PickedUp) ? "selected" : null)">Picked Up</option>
               <option value="WicStock" selected="@(prefillStatus == "WicStock" ? "selected" : null)">WIC Stock</option>
             </select>
           </div>

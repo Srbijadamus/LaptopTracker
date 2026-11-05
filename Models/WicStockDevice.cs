@@ -48,6 +48,12 @@ namespace LaptopTracker.Models
         public bool IsBatterySwollen { get; set; } = false;
         public string? Acknowledgement { get; set; }
 
+        // One-to-one transfer link to the Returns row. The FK lives on this (dependent) side
+        // so purging a soft-deleted Return only clears this link (ON DELETE SET NULL) and never
+        // cascades into the live WIC row. NULL for legacy rows and after the linked Return is purged.
+        public int? ReturnDeviceId { get; set; }
+        public ReturnDevice? ReturnDevice { get; set; }
+
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }
         public List<WicStockDevicePhoto> Photos { get; set; } = new();

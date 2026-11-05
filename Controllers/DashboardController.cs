@@ -26,18 +26,18 @@ namespace LaptopTracker.Controllers
             if (countryLocations != null)
             {
                 returnsQ  = returnsQ.Where(d  => d.Location != null && countryLocations.Contains(d.Location));
-                wicQ      = wicQ.Where(d      => countryLocations.Contains(d.DeviceLocation));
+                wicQ      = wicQ.Where(d      => d.Location != null && countryLocations.Contains(d.Location));
                 loanersQ  = loanersQ.Where(d  => d.WIC != null && countryLocations.Contains(d.WIC));
             }
 
-            var returnCount  = await returnsQ.CountAsync();
+            var returnCount  = await returnsQ.CountAsync(d => d.Status != ReturnDeviceStatus.HandedOver);
             var wicCount     = await wicQ.CountAsync();
             var loanerCount  = await loanersQ.CountAsync();
 
-            // PendingPickup status + "In Transit" device location
+            // PendingPickup status only — "In Transit" (DeviceLocation) is no longer editable, so
+            // it must not drive a visible number.
             var pendingCount = await returnsQ.CountAsync(d =>
-                d.Status == ReturnDeviceStatus.PendingPickup ||
-                d.DeviceLocation == "In Transit");
+                d.Status == ReturnDeviceStatus.PendingPickup);
 
             // Status distribution for doughnut chart
             var returnByStatus = await returnsQ
@@ -58,9 +58,11 @@ namespace LaptopTracker.Controllers
             var statusSlices = new List<StatusSlice>();
             foreach (var r in returnByStatus)
                 statusSlices.Add(new StatusSlice(
-                    r.Status == ReturnDeviceStatus.PendingPickup ? "Abholung ausstehend" : "Abgeholt",
+                    r.Status == ReturnDeviceStatus.PendingPickup ? "Abholung ausstehend"
+                        : r.Status == ReturnDeviceStatus.HandedOver ? "Übergeben" : "Abgeholt",
                     r.Count,
-                    r.Status == ReturnDeviceStatus.PendingPickup ? "#FBBF24" : "#38BDF8"));
+                    r.Status == ReturnDeviceStatus.PendingPickup ? "#FBBF24"
+                        : r.Status == ReturnDeviceStatus.HandedOver ? "#64748B" : "#38BDF8"));
             foreach (var w in wicByStatus)
                 statusSlices.Add(new StatusSlice(
                     w.Status == WicStockStatus.Available ? "WIC Verfügbar" : "WIC Nicht verf.",
@@ -85,8 +87,10 @@ namespace LaptopTracker.Controllers
                 .OrderByDescending(d => d.Date)
                 .Take(5)
                 .Select(d => new RecentDevice(d.Id, d.SerialNumber, d.DeviceType, "Rückgaben", d.RITM,
-                    d.Status == ReturnDeviceStatus.PendingPickup ? "Ausstehend" : "Abgeholt",
-                    d.Status == ReturnDeviceStatus.PendingPickup ? "#FBBF24" : "#38BDF8",
+                    d.Status == ReturnDeviceStatus.PendingPickup ? "Ausstehend"
+                        : d.Status == ReturnDeviceStatus.HandedOver ? "Übergeben" : "Abgeholt",
+                    d.Status == ReturnDeviceStatus.PendingPickup ? "#FBBF24"
+                        : d.Status == ReturnDeviceStatus.HandedOver ? "#64748B" : "#38BDF8",
                     d.Date))
                 .ToListAsync();
 

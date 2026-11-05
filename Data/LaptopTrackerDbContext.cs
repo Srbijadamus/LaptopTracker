@@ -51,6 +51,20 @@ namespace LaptopTracker.Data
             modelBuilder.Entity<WicStockDevice>()
                 .HasQueryFilter(d => !d.IsDeleted);
 
+            // WIC ↔ Returns transfer link: a single nullable FK on the WIC side. SetNull (not
+            // NoAction/Cascade) so a soft-deleted Return row can still be physically purged
+            // without taking the live WIC row with it. One-to-one is enforced by the filtered
+            // unique index below; multiple NULLs (legacy rows) are allowed.
+            modelBuilder.Entity<WicStockDevice>()
+                .HasOne(w => w.ReturnDevice)
+                .WithOne(r => r.WicStockDevice)
+                .HasForeignKey<WicStockDevice>(w => w.ReturnDeviceId)
+                .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<WicStockDevice>()
+                .HasIndex(w => w.ReturnDeviceId)
+                .IsUnique()
+                .HasFilter("[ReturnDeviceId] IS NOT NULL");
+
             modelBuilder.Entity<LoanerDevice>()
                 .Property(d => d.Status).HasConversion<string>().HasMaxLength(32).IsRequired();
             modelBuilder.Entity<LoanerDevice>()

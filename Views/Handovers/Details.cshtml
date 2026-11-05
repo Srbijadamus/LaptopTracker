@@ -112,13 +112,14 @@ tbody tr:last-child td{border-bottom:none}
             <th>#</th>
             <th>@Localizer["ColSerial"]</th>
             <th>@Localizer["ColWorkOrder"]</th>
+            <th>@Localizer["ColRitm"]</th>
             <th>@Localizer["ColSource"]</th>
           </tr>
         </thead>
         <tbody>
           @if (!Model.Devices.Any())
           {
-            <tr><td colspan="4" style="padding:24px;text-align:center;color:var(--text-muted)">@Localizer["EmptyNoDevices"]</td></tr>
+            <tr><td colspan="5" style="padding:24px;text-align:center;color:var(--text-muted)">@Localizer["EmptyNoDevices"]</td></tr>
           }
           else
           {
@@ -129,6 +130,7 @@ tbody tr:last-child td{border-bottom:none}
                 <td class="muted">@(i + 1)</td>
                 <td>@d.SerialNumber</td>
                 <td class="muted">@(string.IsNullOrWhiteSpace(d.WorkOrder) ? string.Empty : d.WorkOrder)</td>
+                <td class="muted">@(string.IsNullOrWhiteSpace(d.Ritm) ? string.Empty : d.Ritm)</td>
                 <td class="muted">@d.DeviceType</td>
               </tr>
             }

@@ -90,6 +90,7 @@
 
   <!-- Row actions -->
   <data name="CellEdit" xml:space="preserve"><value>Bearbeiten</value></data>
+  <data name="CellActions" xml:space="preserve"><value>Aktionen</value></data>
   <data name="CellSwap" xml:space="preserve"><value>SWAP</value></data>
   <data name="CellGiveToUser" xml:space="preserve"><value>An Benutzer</value></data>
   <data name="CellDelete" xml:space="preserve"><value>Löschen</value></data>

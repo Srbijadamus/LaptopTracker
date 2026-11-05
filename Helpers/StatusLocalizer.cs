@@ -12,6 +12,7 @@ public static class StatusLocalizer
         {
             ReturnDeviceStatus.PendingPickup => loc["Status_PendingPickup"],
             ReturnDeviceStatus.PickedUp      => loc["Status_PickedUp"],
+            ReturnDeviceStatus.HandedOver    => loc["Status_HandedOver"],
             _                                => status.ToString()
         };
 

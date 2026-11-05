@@ -63,6 +63,7 @@
   <data name="CatReimaged" xml:space="preserve"><value>Re-imaged laptops</value></data>
   <data name="FieldKid" xml:space="preserve"><value>KID (corporate ID) *</value></data>
   <data name="FieldKidHint" xml:space="preserve"><value>Recipient's KID. Stored and shown in the handover list.</value></data>
+  <data name="FieldRitm" xml:space="preserve"><value>RITM</value></data>
   <data name="BtnSubmit" xml:space="preserve"><value>Hand over</value></data>
   <data name="BtnCancel" xml:space="preserve"><value>Cancel</value></data>
 </root>

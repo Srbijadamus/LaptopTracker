@@ -11,8 +11,6 @@
     var modelNames = ((ViewData["Models"] as List<DeviceModel>) ?? new()).Select(m => m.ModelName).OrderBy(n => n).ToList();
     var curModel = Model.Model ?? "";
     var modelInList = modelNames.Contains(curModel);
-    var wicStates = new[] { "In WIC", "In Transit" };
-    var stateInList = wicStates.Contains(Model.DeviceLocation);
     var regularPhotos = Model.Photos?.Where(p => !p.IsSignature).ToList() ?? new();
     var signatures    = Model.Photos?.Where(p => p.IsSignature).ToList() ?? new();
 }
@@ -90,24 +88,18 @@
           </div>
 
           <div class="fg">
-            <label>@Localizer["FieldDeviceState"]</label>
-            <select name="DeviceLocation">
-              @foreach (var st in wicStates)
-              {
-                <option value="@st" selected="@(Model.DeviceLocation == st ? "selected" : null)">@st</option>
-              }
-              @if (!stateInList)
-              {
-                <option value="@Model.DeviceLocation" selected="selected">@Model.DeviceLocation (legacy value)</option>
-              }
+            <label>@Localizer["LblAvailability"]</label>
+            <select name="Status">
+              <option value="Available" selected="@(Model.Status == LaptopTracker.Models.WicStockStatus.Available ? "selected" : null)">Available</option>
+              <option value="NotAvailable" selected="@(Model.Status == LaptopTracker.Models.WicStockStatus.NotAvailable ? "selected" : null)">Not Available</option>
             </select>
           </div>
 
           <div class="fg">
             <label>Status</label>
-            <select name="Status">
-              <option value="Available" selected="@(Model.Status == LaptopTracker.Models.WicStockStatus.Available ? "selected" : null)">Available</option>
-              <option value="NotAvailable" selected="@(Model.Status == LaptopTracker.Models.WicStockStatus.NotAvailable ? "selected" : null)">Not Available</option>
+            <select name="statusChoice">
+              <option value="WicStock" selected>WIC Stock</option>
+              <option value="PendingPickup">Pending Pickup</option>
             </select>
           </div>
 

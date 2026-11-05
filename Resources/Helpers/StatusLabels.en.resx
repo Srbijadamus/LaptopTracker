@@ -54,6 +54,7 @@
   <!-- ReturnDevice statuses -->
   <data name="Status_PendingPickup" xml:space="preserve"><value>Pending Pickup</value></data>
   <data name="Status_PickedUp" xml:space="preserve"><value>Picked Up</value></data>
+  <data name="Status_HandedOver" xml:space="preserve"><value>Handed over</value></data>
 
   <!-- WicStock / shared Available -->
   <data name="Status_Available" xml:space="preserve"><value>Available</value></data>

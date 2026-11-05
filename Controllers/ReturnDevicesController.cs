@@ -37,9 +37,7 @@ namespace LaptopTracker.Controllers
                 query = query.Where(d => d.Status == sf);
 
             if (!string.IsNullOrWhiteSpace(locationFilter))
-                query = query.Where(d =>
-                    d.DeviceLocation == locationFilter ||
-                    (d.Location != null && d.Location == locationFilter));
+                query = query.Where(d => d.Location != null && d.Location == locationFilter);
 
             if (!string.IsNullOrWhiteSpace(deviceTypeFilter))
                 query = query.Where(d => d.DeviceType == deviceTypeFilter);
@@ -59,13 +57,8 @@ namespace LaptopTracker.Controllers
             if (countryLocations != null)
                 query = query.Where(d => d.Location != null && countryLocations.Contains(d.Location));
 
-            var dbLocations = await _context.ReturnDevices
-                .Where(d => !d.IsDeleted)
-                .Select(d => d.DeviceLocation)
-                .Where(l => l != null && l.Length > 0)
-                .Distinct()
-                .ToListAsync();
-
+            // The location filter is site-only now; the Gerätestatus (DeviceLocation) column no
+            // longer feeds the dropdown.
             var locationFieldValues = await _context.ReturnDevices
                 .Where(d => !d.IsDeleted && d.Location != null && d.Location.Length > 0)
                 .Select(d => d.Location!)
@@ -81,7 +74,7 @@ namespace LaptopTracker.Controllers
 
             var knownTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Mini Desktop" };
 
-            ViewData["Locations"]        = dbLocations.Concat(locationFieldValues).Distinct().OrderBy(l => l).ToList();
+            ViewData["Locations"]        = locationFieldValues.Distinct().OrderBy(l => l).ToList();
             ViewData["DeviceTypes"]      = dbDeviceTypes.Concat(knownTypes).Distinct().OrderBy(t => t).ToList();
             ViewData["SearchQuery"]      = searchQuery;
             ViewData["StatusFilter"]     = statusFilter;
@@ -92,7 +85,7 @@ namespace LaptopTracker.Controllers
             ViewData["DateTo"]           = dateTo;
 
             var allDevices = await query.OrderByDescending(d => d.Date).ToListAsync();
-            var activeDevices   = allDevices.Where(d => d.Status != ReturnDeviceStatus.PickedUp).ToList();
+            var activeDevices   = allDevices.Where(d => d.Status != ReturnDeviceStatus.PickedUp && d.Status != ReturnDeviceStatus.HandedOver).ToList();
             var collectedDevices = allDevices.Where(d => d.Status == ReturnDeviceStatus.PickedUp).ToList();
             ViewData["CollectedDevices"] = collectedDevices;
             return View(activeDevices);
@@ -425,23 +418,47 @@ namespace LaptopTracker.Controllers
             // WIC Stock: move device before any normal update
             if (statusChoice == "WicStock")
             {
-                var wicDevice = new WicStockDevice
-                {
-                    SerialNumber   = device.SerialNumber,
-                    DeviceType     = device.DeviceType,
-                    DeviceStateType = "WIC Stock",
-                    RITM           = device.RITM,
-                    Date           = device.Date,
-                    DeviceLocation = device.DeviceLocation,
-                    Status         = WicStockStatus.Available
-                };
-                // The posted form carries what the user currently sees; the lease date is
-                // merged first so an untouched date keeps its stored value before copying.
+                // Find the linked WIC counterpart (soft-deleted or active) by link only — never
+                // by serial number. Restore and reuse it instead of creating a duplicate row.
+                var wicDevice = await _context.WicStockDevices
+                    .IgnoreQueryFilters()
+                    .FirstOrDefaultAsync(w => w.ReturnDeviceId == device.Id);
+
                 input.LeaseEndDatePlanned = DateTimeHelper.MergeEditedDate(
                     device.LeaseEndDatePlanned, input.LeaseEndDatePlanned);
-                CopyReturnFieldsToWic(input, wicDevice);
-                CopyPhotosToWic(device, wicDevice);
-                _context.WicStockDevices.Add(wicDevice);
+
+                if (wicDevice == null)
+                {
+                    wicDevice = new WicStockDevice
+                    {
+                        SerialNumber    = device.SerialNumber,
+                        DeviceType      = device.DeviceType,
+                        DeviceStateType = "WIC Stock",
+                        RITM            = device.RITM,
+                        Date            = device.Date,
+                        DeviceLocation  = device.DeviceLocation,
+                        Status          = WicStockStatus.Available,
+                        ReturnDeviceId  = device.Id
+                    };
+                    CopyReturnFieldsToWic(input, wicDevice);
+                    CopyPhotosToWic(device, wicDevice);
+                    _context.WicStockDevices.Add(wicDevice);
+                }
+                else
+                {
+                    // Restore the exact linked counterpart and refresh shared fields from the
+                    // source. WIC-only data (Category, SwapRITM, availability) is left untouched.
+                    wicDevice.IsDeleted        = false;
+                    wicDevice.DeletedAt        = null;
+                    wicDevice.SerialNumber     = device.SerialNumber;
+                    wicDevice.DeviceType       = device.DeviceType;
+                    wicDevice.DeviceStateType  = "WIC Stock";
+                    wicDevice.RITM             = device.RITM;
+                    wicDevice.Date             = device.Date;
+                    wicDevice.DeviceLocation   = device.DeviceLocation;
+                    CopyReturnFieldsToWic(input, wicDevice);
+                }
+
                 device.IsDeleted = true;
                 device.DeletedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
@@ -461,7 +478,8 @@ namespace LaptopTracker.Controllers
             device.DeviceStateType           = "Return";
             device.RITM                      = input.RITM;
             device.Date                      = input.Date;
-            device.DeviceLocation            = input.DeviceLocation;
+            // DeviceLocation (Gerätestatus) is no longer edited through the UI; preserve the stored
+            // value (some production rows hold site strings here) instead of overwriting with the default.
             device.Status                    = Enum.TryParse<ReturnDeviceStatus>(statusChoice, out var sc) ? sc : device.Status;
             device.WorkOrder                 = input.WorkOrder;
             device.PickupStatus              = input.PickupStatus;

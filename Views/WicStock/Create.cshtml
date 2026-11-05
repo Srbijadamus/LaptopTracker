@@ -7,7 +7,6 @@
     var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Rugged tablet", "Microsoft Surface tablet", "Apple tablet" };
     var siteLocations = LocationList.SiteLocations.OrderBy(l => l).ToList();
     var modelNames = ((ViewData["Models"] as List<DeviceModel>) ?? new()).Select(m => m.ModelName).OrderBy(n => n).ToList();
-    var curState = Model.DeviceLocation == "In Transit" ? "In Transit" : "In WIC";
 }
 @section Styles {
 <style>
@@ -55,7 +54,7 @@
           </div>
 
           <div class="fg">
-            <label>Status</label>
+            <label>@Localizer["LblAvailability"]</label>
             <select name="status">
               <option value="Available" selected="@(Model.Status == LaptopTracker.Models.WicStockStatus.Available ? "selected" : null)">Available</option>
               <option value="NotAvailable" selected="@(Model.Status == LaptopTracker.Models.WicStockStatus.NotAvailable ? "selected" : null)">Not Available</option>
@@ -63,10 +62,10 @@
           </div>
 
           <div class="fg">
-            <label>State</label>
-            <select name="deviceLocation">
-              <option value="In WIC" selected="@(curState == "In WIC" ? "selected" : null)">In WIC</option>
-              <option value="In Transit" selected="@(curState == "In Transit" ? "selected" : null)">In Transit</option>
+            <label>Status</label>
+            <select name="statusChoice">
+              <option value="WicStock" selected>WIC Stock</option>
+              <option value="PendingPickup">Pending Pickup</option>
             </select>
           </div>
 

@@ -5,16 +5,14 @@
     ViewData["Title"] = Localizer["PageTitle"].Value;
     var searchQuery      = ViewData["SearchQuery"]      as string;
     var statusFilter     = ViewData["StatusFilter"]     as string;
-    var locationFilter   = ViewData["LocationFilter"]   as string;
     var deviceTypeFilter = ViewData["DeviceTypeFilter"] as string;
     var siteFilter       = ViewData["SiteFilter"]       as string;
     var categoryFilter   = ViewData["CategoryFilter"]   as string;
-    var allLocations   = ViewData["Locations"]   as List<string> ?? new List<string>();
     var allDeviceTypes = ViewData["DeviceTypes"] as List<string> ?? new List<string>();
     var allSites       = ViewData["Sites"]       as List<string> ?? new List<string>();
     var allCategories  = ViewData["Categories"]  as List<string> ?? new List<string>();
     var anyFilter = !string.IsNullOrWhiteSpace(searchQuery) || !string.IsNullOrWhiteSpace(statusFilter)
-        || !string.IsNullOrWhiteSpace(locationFilter) || !string.IsNullOrWhiteSpace(deviceTypeFilter)
+        || !string.IsNullOrWhiteSpace(deviceTypeFilter)
         || !string.IsNullOrWhiteSpace(siteFilter) || !string.IsNullOrWhiteSpace(categoryFilter);
 }
 @section Styles {
@@ -64,6 +62,15 @@ tbody tr:hover{background:var(--bg-hover)}
 .bulk-bar{position:fixed;bottom:0;left:var(--sidebar-w,280px);right:0;background:var(--bg-topbar);border-top:1px solid var(--border);padding:14px 28px;display:none;align-items:center;gap:14px;z-index:100;box-shadow:0 -2px 12px rgba(0,0,0,0.15)}
 .bulk-count{font-size:14px;font-weight:600;color:var(--text-primary);white-space:nowrap}
 .bulk-edit{padding:10px 22px;background:var(--bg-panel);color:var(--accent);border:1px solid var(--accent);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
+.row-menu{position:relative;display:inline-block}
+.row-menu-btn{padding:4px 10px;background:var(--bg-input);color:var(--text-primary);border:1px solid var(--border-input);border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;line-height:1}
+.row-menu-btn:hover{border-color:var(--accent)}
+.row-menu-list{position:absolute;right:0;top:calc(100% + 4px);min-width:170px;background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,0.35);padding:4px;display:none;z-index:60}
+.row-menu.open .row-menu-list{display:block}
+.row-menu-item{display:block;width:100%;text-align:left;padding:8px 12px;font-size:13px;color:var(--text-primary);background:transparent;border:none;border-radius:5px;text-decoration:none;cursor:pointer;white-space:nowrap}
+.row-menu-item:hover{background:var(--bg-hover)}
+.row-menu-item-danger{color:#c4314b}
+.row-menu-item-danger:hover{background:#c4314b;color:#fff}
 </style>
 }
 
@@ -93,13 +100,6 @@ tbody tr:hover{background:var(--bg-hover)}
         <option value="">@Localizer["FilterAllStatuses"]</option>
         <option value="Available" selected="@(statusFilter == "Available" ? "selected" : null)">@StatusLocalizer.Get(LaptopTracker.Models.WicStockStatus.Available, StatusLoc)</option>
         <option value="NotAvailable" selected="@(statusFilter == "NotAvailable" ? "selected" : null)">@StatusLocalizer.Get(LaptopTracker.Models.WicStockStatus.NotAvailable, StatusLoc)</option>
-      </select>
-      <select name="locationFilter" class="filter-select" onchange="this.form.submit()">
-        <option value="">@Localizer["FilterAllLocations"]</option>
-        @foreach (var loc in allLocations)
-        {
-          <option value="@loc" selected="@(locationFilter == loc ? "selected" : null)">@loc</option>
-        }
       </select>
       <select name="siteFilter" class="filter-select" onchange="this.form.submit()">
         <option value="">@Localizer["FilterAllSites"]</option>
@@ -140,7 +140,6 @@ tbody tr:hover{background:var(--bg-hover)}
             <th>@Localizer["ColType"]</th>
             <th>RITM</th>
             <th>@Localizer["ColDate"]</th>
-            <th>@Localizer["ColDeviceLocation"]</th>
             <th>@Localizer["ColStatus"]</th>
             <th>@Localizer["ColSwapRITM"]</th>
             <th>@Localizer["ColCategory"]</th>
@@ -151,7 +150,7 @@ tbody tr:hover{background:var(--bg-hover)}
         <tbody>
           @if (!Model.Any())
           {
-            <tr class="empty"><td colspan="12">@Localizer["EmptyNoDevices"]@(anyFilter ? " " + Localizer["EmptyClearFilters"].Value : "")</td></tr>
+            <tr class="empty"><td colspan="11">@Localizer["EmptyNoDevices"]@(anyFilter ? " " + Localizer["EmptyClearFilters"].Value : "")</td></tr>
           }
           else
           {
@@ -159,7 +158,6 @@ tbody tr:hover{background:var(--bg-hover)}
             {
               var d = Model[i];
               var statusClass = d.Status == LaptopTracker.Models.WicStockStatus.Available ? "b-available" : "b-notavail";
-              var locClass    = d.DeviceLocation == "In Use" ? "b-inuse" : "b-inwic";
               <tr>
                 <td><input type="checkbox" value="@d.Id" class="row-check row-checkbox" /></td>
                 <td class="muted">@(i + 1)</td>
@@ -167,7 +165,6 @@ tbody tr:hover{background:var(--bg-hover)}
                 <td>@d.DeviceType</td>
                 <td>@d.RITM</td>
                 <td>@d.Date.ToString("dd/MM/yyyy")</td>
-                <td><span class="badge @locClass">@StatusLocalizer.GetDeviceLocation(d.DeviceLocation, StatusLoc)</span></td>
                 <td><span class="badge @statusClass">@StatusLocalizer.Get(d.Status, StatusLoc)</span></td>
                 <td class="muted">@(string.IsNullOrWhiteSpace(d.SwapRITM) ? "—" : d.SwapRITM)</td>
                 <td>
@@ -188,17 +185,19 @@ tbody tr:hover{background:var(--bg-hover)}
                     <span class="badge @(leaseState == LeaseStatus.Expired ? "b-expired" : "b-leasesoon")">@StatusLocalizer.GetLease(leaseState, StatusLoc)</span>
                   }
                 </td>
-                <td style="white-space:nowrap">
-                  <a class="link" href="/WicStock/Edit/@d.Id">@Localizer["CellEdit"]</a>
-                  &nbsp;
-                  <a class="link" href="/WicStock/CreateSwap/@d.Id" style="color:#f59e0b">@Localizer["CellSwap"]</a>
-                  &nbsp;
-                  @if (d.Category == "Re-imaged laptops")
-                  {
-                    <a class="link" href="/WicStock/GiveToUser/@d.Id" style="color:#1a7f37">@Localizer["CellGiveToUser"]</a>
-                    <text>&nbsp;</text>
-                  }
-                  <button type="button" class="btn-row-del" onclick="deleteDevice(@d.Id,'@Html.Raw(d.SerialNumber.Replace("'","\\'"  ))')">&#x1F5D1; @Localizer["CellDelete"]</button>
+                <td style="white-space:nowrap;text-align:right">
+                  <div class="row-menu" data-menu>
+                    <button type="button" class="row-menu-btn" data-menu-toggle aria-label="@Localizer["CellActions"]" title="@Localizer["CellActions"]">&#8942;</button>
+                    <div class="row-menu-list">
+                      <a class="row-menu-item" href="/WicStock/Edit/@d.Id">@Localizer["CellEdit"]</a>
+                      <a class="row-menu-item" href="/WicStock/CreateSwap/@d.Id">@Localizer["CellSwap"]</a>
+                      @if (d.Category == "Re-imaged laptops")
+                      {
+                        <a class="row-menu-item" href="/WicStock/GiveToUser/@d.Id">@Localizer["CellGiveToUser"]</a>
+                      }
+                      <button type="button" class="row-menu-item row-menu-item-danger" onclick="deleteDevice(@d.Id,'@Html.Raw(d.SerialNumber.Replace("'","\\'"  ))')">@Localizer["CellDelete"]</button>
+                    </div>
+                  </div>
                 </td>
               </tr>
             }
@@ -261,5 +260,18 @@ function handOverSelected() {
   var url = '/Handovers/Create?source=WicStock&' + Array.from(checks).map(function(c) { return 'ids=' + encodeURIComponent(c.value); }).join('&');
   window.location.href = url;
 }
+
+// Row action dropdown: one menu per row, closes on outside click.
+document.addEventListener('click', function(e) {
+  var toggle = e.target.closest('[data-menu-toggle]');
+  if (toggle) {
+    var menu = toggle.closest('.row-menu');
+    var wasOpen = menu.classList.contains('open');
+    document.querySelectorAll('.row-menu.open').forEach(function(m) { m.classList.remove('open'); });
+    if (!wasOpen) menu.classList.add('open');
+  } else {
+    document.querySelectorAll('.row-menu.open').forEach(function(m) { m.classList.remove('open'); });
+  }
+});
 </script>
 }

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LaptopTracker.Models
 {
-    public enum ReturnDeviceStatus { PendingPickup, PickedUp }
+    public enum ReturnDeviceStatus { PendingPickup, PickedUp, HandedOver }
 
     [Index(nameof(Date))]
     public class ReturnDevice
@@ -37,6 +37,9 @@ namespace LaptopTracker.Models
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }
         public List<ReturnDevicePhoto> Photos { get; set; } = new();
+
+        // Inverse navigation of the one-to-one transfer link; the FK lives on WicStockDevice.
+        public WicStockDevice? WicStockDevice { get; set; }
     }
 }
 

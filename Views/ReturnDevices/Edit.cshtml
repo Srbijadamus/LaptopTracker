@@ -83,22 +83,28 @@
           </div>
 
           <div class="fg">
-            <label>@Localizer["FieldDeviceState"]</label>
-            <select name="DeviceLocation">
-              @foreach (var loc in new[] { "In WIC", "In Transit" })
-              {
-                <option value="@loc" selected="@(Model.DeviceLocation == loc ? "selected" : null)">@loc</option>
-              }
-            </select>
-          </div>
-
-          <div class="fg">
             <label>Status</label>
-            <select name="statusChoice">
-              <option value="PendingPickup" selected="@(Model.Status == LaptopTracker.Models.ReturnDeviceStatus.PendingPickup ? "selected" : null)">Pending Pickup</option>
-              <option value="PickedUp" selected="@(Model.Status == LaptopTracker.Models.ReturnDeviceStatus.PickedUp ? "selected" : null)">Picked Up</option>
-              <option value="WicStock">WIC Stock</option>
-            </select>
+            @if (Model.Status == LaptopTracker.Models.ReturnDeviceStatus.PickedUp)
+            {
+              // Historical "Picked Up" records stay editable, but the value is no longer a
+              // selectable choice — the hidden field preserves it so saving never changes it.
+              <input type="hidden" name="statusChoice" value="PickedUp" />
+              <span style="font-size:13px;color:var(--text-muted)">@StatusLocalizer.Get(LaptopTracker.Models.ReturnDeviceStatus.PickedUp, StatusLoc) (historical)</span>
+            }
+            else if (Model.Status == LaptopTracker.Models.ReturnDeviceStatus.HandedOver)
+            {
+              // Handed-over records are listed under Handovers, not Returns; the hidden field
+              // preserves the state so a save from the edit form can never revert it.
+              <input type="hidden" name="statusChoice" value="HandedOver" />
+              <span style="font-size:13px;color:var(--text-muted)">@StatusLocalizer.Get(LaptopTracker.Models.ReturnDeviceStatus.HandedOver, StatusLoc) (historical)</span>
+            }
+            else
+            {
+              <select name="statusChoice">
+                <option value="PendingPickup" selected="@(Model.Status == LaptopTracker.Models.ReturnDeviceStatus.PendingPickup ? "selected" : null)">Pending Pickup</option>
+                <option value="WicStock">WIC Stock</option>
+              </select>
+            }
           </div>
 
           <div class="fg">

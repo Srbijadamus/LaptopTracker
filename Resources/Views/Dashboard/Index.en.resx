@@ -73,11 +73,13 @@
   <data name="Kind_Loaners" xml:space="preserve"><value>Loaner Devices</value></data>
   <data name="Status_Pending" xml:space="preserve"><value>Pending</value></data>
   <data name="Status_Collected" xml:space="preserve"><value>Collected</value></data>
+  <data name="Status_HandedOver" xml:space="preserve"><value>Handed over</value></data>
   <data name="Status_Available" xml:space="preserve"><value>Available</value></data>
   <data name="Status_Unavailable" xml:space="preserve"><value>Unavailable</value></data>
   <data name="Status_InUse" xml:space="preserve"><value>In Use</value></data>
   <data name="Slice_PendingPickup" xml:space="preserve"><value>Pickup Pending</value></data>
   <data name="Slice_Collected" xml:space="preserve"><value>Collected</value></data>
+  <data name="Slice_HandedOver" xml:space="preserve"><value>Handed over</value></data>
   <data name="Slice_WicAvailable" xml:space="preserve"><value>WIC Available</value></data>
   <data name="Slice_WicUnavailable" xml:space="preserve"><value>WIC Unavailable</value></data>
   <data name="Slice_LoanerAvailable" xml:space="preserve"><value>Loaner Available</value></data>

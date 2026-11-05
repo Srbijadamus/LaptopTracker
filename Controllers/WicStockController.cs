@@ -15,7 +15,7 @@ namespace LaptopTracker.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(string? searchQuery, string? statusFilter, string? locationFilter, string? deviceTypeFilter, string? siteFilter, string? categoryFilter)
+        public async Task<IActionResult> Index(string? searchQuery, string? statusFilter, string? deviceTypeFilter, string? siteFilter, string? categoryFilter)
         {
             var query = _context.WicStockDevices.Where(d => !d.IsDeleted).AsQueryable();
 
@@ -27,10 +27,7 @@ namespace LaptopTracker.Controllers
             if (!string.IsNullOrWhiteSpace(statusFilter) && Enum.TryParse<WicStockStatus>(statusFilter, out var sf))
                 query = query.Where(d => d.Status == sf);
 
-            if (!string.IsNullOrWhiteSpace(locationFilter))
-                query = query.Where(d => d.DeviceLocation == locationFilter);
-
-            // Real WIC site, separate from the DeviceLocation state filter above.
+            // Real WIC site. The old Gerätestatus (DeviceLocation) filter is gone.
             if (!string.IsNullOrWhiteSpace(siteFilter))
                 query = query.Where(d => d.Location == siteFilter);
 
@@ -49,13 +46,6 @@ namespace LaptopTracker.Controllers
             if (locsInCountry != null)
                 query = query.Where(d => d.Location != null && locsInCountry.Contains(d.Location));
 
-            var dbLocations = await _context.WicStockDevices
-                .Where(d => !d.IsDeleted)
-                .Select(d => d.DeviceLocation)
-                .Where(l => l != null && l.Length > 0)
-                .Distinct()
-                .ToListAsync();
-
             // Only sites actually present in the current Bestand; Location is nullable, so
             // rows with no site recorded contribute no option.
             var dbSites = await _context.WicStockDevices
@@ -73,11 +63,9 @@ namespace LaptopTracker.Controllers
 
             var knownTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Rugged tablet", "Microsoft Surface tablet", "Apple tablet" };
 
-            ViewData["Locations"]        = dbLocations.OrderBy(l => l).ToList();
             ViewData["DeviceTypes"]      = dbDeviceTypes.Concat(knownTypes).Distinct().OrderBy(t => t).ToList();
             ViewData["SearchQuery"]      = searchQuery;
             ViewData["StatusFilter"]     = statusFilter;
-            ViewData["LocationFilter"]   = locationFilter;
             ViewData["DeviceTypeFilter"] = deviceTypeFilter;
             ViewData["Sites"]            = dbSites.OrderBy(s => s).ToList();
             ViewData["SiteFilter"]       = siteFilter;
@@ -91,6 +79,54 @@ namespace LaptopTracker.Controllers
 
         // Category values, validated like WicStockStates. NULL/empty means "no category".
         private static readonly string[] WicCategories = { "Re-imaged laptops" };
+
+        // Mirrors ReturnDevicesController.CopyReturnFieldsToWic in the opposite direction:
+        // carries the WIC form's shared Return-parity fields onto a Returns record. WIC-only
+        // fields (Category, SwapRITM, availability, …) are deliberately not copied — they stay
+        // on the WIC row, which is soft-deleted and restored by link when the device returns.
+        private static void CopyWicFieldsToReturn(WicStockDevice source, ReturnDevice target)
+        {
+            target.Model                   = source.Model;
+            target.Location                = source.Location;
+            target.WorkOrder               = source.WorkOrder;
+            target.PickupStatus            = source.PickupStatus;
+            target.KID                     = source.KID;
+            target.ChargerReturned         = source.ChargerReturned;
+            target.PowerCableReturned      = source.PowerCableReturned;
+            target.DamageStatus            = source.DamageStatus;
+            target.DamageComment           = source.DamageComment;
+            target.LeaseEndDatePlanned     = source.LeaseEndDatePlanned;
+            target.IsCustomerInducedDamage = source.IsCustomerInducedDamage;
+            target.IsBatterySwollen        = source.IsBatterySwollen;
+            target.Acknowledgement         = source.Acknowledgement;
+        }
+
+        // Physical copies, not shared paths (same reason as CopyPhotosToWic on the Return side).
+        private static void CopyPhotosToReturn(WicStockDevice source, ReturnDevice target)
+        {
+            if (source.Photos == null || source.Photos.Count == 0) return;
+
+            var uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            Directory.CreateDirectory(uploadDir);
+
+            foreach (var photo in source.Photos)
+            {
+                var sourcePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
+                    photo.FilePath.TrimStart('/'));
+                if (!System.IO.File.Exists(sourcePath)) continue;
+
+                var uniqueName = $"{Guid.NewGuid()}{Path.GetExtension(photo.FilePath)}";
+                System.IO.File.Copy(sourcePath, Path.Combine(uploadDir, uniqueName));
+
+                target.Photos.Add(new ReturnDevicePhoto
+                {
+                    FilePath         = $"/uploads/{uniqueName}",
+                    OriginalFileName = photo.OriginalFileName,
+                    UploadedAt       = photo.UploadedAt,
+                    IsSignature      = photo.IsSignature
+                });
+            }
+        }
 
         private async Task<List<DeviceModel>> GetActiveModelsAsync() =>
             await _context.Models.Where(m => m.IsActive).OrderBy(m => m.ModelName).ToListAsync();
@@ -121,6 +157,7 @@ namespace LaptopTracker.Controllers
             string[] serials, string[] types, string[] ritms,
             DateTime date, string deviceLocation, string status,
             string location, string model,
+            string? statusChoice,
             string? swapRITM,
             string? category,
             string? workOrder, string? pickupStatus, string? kid,
@@ -151,6 +188,43 @@ namespace LaptopTracker.Controllers
             var cid       = bool.TryParse(isCustomerInducedDamage, out var cidv) && cidv;
             var battery   = bool.TryParse(isBatterySwollen, out var bsv) && bsv;
             var cat       = WicCategories.Contains(category ?? "") ? category : null;
+
+            // Pending Pickup mirrors the Returns→WIC choice in the opposite direction: the device
+            // is created directly as a Returns record and no WIC row is created. Site and Model are
+            // already required above, matching the Returns create rules.
+            if (statusChoice == "PendingPickup")
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    var sn = serials![i]?.Trim();
+                    if (string.IsNullOrWhiteSpace(sn)) continue;
+                    _context.ReturnDevices.Add(new ReturnDevice
+                    {
+                        SerialNumber       = sn,
+                        DeviceType         = types![i]?.Trim() ?? "Lenovo",
+                        DeviceStateType    = "Return",
+                        RITM               = ritms![i]?.Trim() ?? "",
+                        Date               = date == default ? DateTime.Today : date,
+                        DeviceLocation     = state,
+                        Status             = ReturnDeviceStatus.PendingPickup,
+                        Location           = location,
+                        Model              = model,
+                        WorkOrder          = string.IsNullOrWhiteSpace(workOrder) ? null : workOrder,
+                        PickupStatus       = string.IsNullOrWhiteSpace(pickupStatus) ? null : pickupStatus,
+                        KID                = string.IsNullOrWhiteSpace(kid) ? null : kid,
+                        ChargerReturned    = charger,
+                        PowerCableReturned = power,
+                        DamageStatus       = string.IsNullOrWhiteSpace(damageStatus) ? null : damageStatus,
+                        DamageComment      = string.IsNullOrWhiteSpace(damageComment) ? null : damageComment,
+                        LeaseEndDatePlanned = leaseEndDatePlanned,
+                        Acknowledgement    = string.IsNullOrWhiteSpace(acknowledgement) ? null : acknowledgement,
+                        IsCustomerInducedDamage = cid,
+                        IsBatterySwollen        = battery
+                    });
+                }
+                await _context.SaveChangesAsync();
+                return RedirectToAction("Index", "ReturnDevices");
+            }
 
             for (int i = 0; i < count; i++)
             {
@@ -240,12 +314,73 @@ namespace LaptopTracker.Controllers
 
         [HttpPost]
         public async Task<IActionResult> Edit(int id, WicStockDevice input,
-            List<IFormFile>? damagePhotos, string? signatureData)
+            List<IFormFile>? damagePhotos, string? signatureData, string? statusChoice = null)
         {
             var device = await _context.WicStockDevices
                 .Include(d => d.Photos)
                 .FirstOrDefaultAsync(d => d.Id == id);
             if (device == null) return NotFound();
+
+            // Transfer to Returns: "Pending Pickup" creates/restores the linked Returns row and
+            // books the WIC row out (soft-delete). Site is required on the Returns side.
+            if (statusChoice == "PendingPickup")
+            {
+                if (string.IsNullOrWhiteSpace(input.Location))
+                    ModelState.AddModelError("Location", "Location is required.");
+                if (!ModelState.IsValid)
+                {
+                    input.Photos = device.Photos;
+                    ViewData["Models"] = await GetActiveModelsAsync();
+                    return View(input);
+                }
+
+                // Find the linked Returns row by link only (soft-deleted or active) — never by serial.
+                var returnDevice = device.ReturnDeviceId.HasValue
+                    ? await _context.ReturnDevices.IgnoreQueryFilters()
+                        .FirstOrDefaultAsync(r => r.Id == device.ReturnDeviceId)
+                    : null;
+
+                input.LeaseEndDatePlanned = DateTimeHelper.MergeEditedDate(
+                    device.LeaseEndDatePlanned, input.LeaseEndDatePlanned);
+
+                if (returnDevice == null)
+                {
+                    returnDevice = new ReturnDevice
+                    {
+                        SerialNumber    = device.SerialNumber,
+                        DeviceType      = device.DeviceType,
+                        DeviceStateType = "Return",
+                        RITM            = device.RITM,
+                        Date            = device.Date,
+                        DeviceLocation  = device.DeviceLocation,
+                        Status          = ReturnDeviceStatus.PendingPickup
+                    };
+                    CopyWicFieldsToReturn(input, returnDevice);
+                    CopyPhotosToReturn(device, returnDevice);
+                    _context.ReturnDevices.Add(returnDevice);
+                    device.ReturnDevice = returnDevice;
+                }
+                else
+                {
+                    // Restore the exact linked counterpart and refresh it from the WIC source.
+                    returnDevice.IsDeleted = false;
+                    returnDevice.DeletedAt = null;
+                    returnDevice.SerialNumber    = device.SerialNumber;
+                    returnDevice.DeviceType      = device.DeviceType;
+                    returnDevice.DeviceStateType = "Return";
+                    returnDevice.RITM            = device.RITM;
+                    returnDevice.Date            = device.Date;
+                    returnDevice.DeviceLocation  = device.DeviceLocation;
+                    returnDevice.Status          = ReturnDeviceStatus.PendingPickup;
+                    CopyWicFieldsToReturn(input, returnDevice);
+                }
+
+                device.IsDeleted = true;
+                device.DeletedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                return RedirectToAction("Index", "ReturnDevices");
+            }
+
             if (!ModelState.IsValid)
             {
                 input.Photos = device.Photos;
@@ -258,7 +393,8 @@ namespace LaptopTracker.Controllers
             device.DeviceStateType = "WIC Stock";
             device.RITM            = input.RITM;
             device.Date            = input.Date;
-            device.DeviceLocation  = WicStockStates.Contains(input.DeviceLocation) ? input.DeviceLocation : device.DeviceLocation;
+            // DeviceLocation (Gerätestatus) is no longer edited through the UI; the stored
+            // state value is preserved as-is so existing "In Transit"/"In WIC" rows are not reset.
             device.Location        = string.IsNullOrWhiteSpace(input.Location) ? null : input.Location;
             device.Model           = string.IsNullOrWhiteSpace(input.Model) ? null : input.Model;
             device.Status          = input.Status;
@@ -551,7 +687,7 @@ namespace LaptopTracker.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GiveToUser(int id, string kid)
+        public async Task<IActionResult> GiveToUser(int id, string kid, string? ritm)
         {
             var device = await _context.WicStockDevices
                 .FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted);
@@ -590,11 +726,17 @@ namespace LaptopTracker.Controllers
             device.IsDeleted = true;
             device.DeletedAt = DateTime.UtcNow;
 
+            // Standort = the device's real WIC site; Name = the device's serial (there is no
+            // recipient name — the KID already has its own column). RITM goes into its own
+            // HandoverDevice.Ritm field (distinct from the AIOT flow's WorkOrder).
+            var site = string.IsNullOrWhiteSpace(device.Location) ? "Direkt an Benutzer" : device.Location;
+            var ritmValue = string.IsNullOrWhiteSpace(ritm) ? device.RITM : ritm.Trim();
+
             var handover = new Handover
             {
-                Name     = "Direkt an Benutzer",
+                Name     = device.SerialNumber,
                 Kid      = kid,
-                Location = "Direkt an Benutzer",
+                Location = site,
                 Date     = DateTime.Now,
                 Devices = new List<HandoverDevice>
                 {
@@ -603,7 +745,7 @@ namespace LaptopTracker.Controllers
                         DeviceId     = device.Id,
                         DeviceType   = "WicStock",
                         SerialNumber = device.SerialNumber,
-                        WorkOrder    = device.WorkOrder
+                        Ritm         = ritmValue
                     }
                 }
             };

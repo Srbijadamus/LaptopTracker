@@ -54,7 +54,6 @@
             <th>Type</th>
             <th>RITM</th>
             <th>Current Status</th>
-            <th>@Localizer["ColCurrentState"]</th>
           </tr>
         </thead>
         <tbody>
@@ -62,14 +61,12 @@
           {
             var d = Model[i];
             var sc = d.Status == LaptopTracker.Models.WicStockStatus.Available ? "b-available" : "b-notavail";
-            var lc = d.DeviceLocation == "In Use" ? "b-inuse" : "b-inwic";
             <tr>
               <td class="muted">@(i + 1)</td>
               <td>@d.SerialNumber</td>
               <td class="muted">@d.DeviceType</td>
               <td class="muted">@d.RITM</td>
               <td><span class="badge @sc">@(d.Status == LaptopTracker.Models.WicStockStatus.Available ? "Available" : "Not Available")</span></td>
-              <td><span class="badge @lc">@d.DeviceLocation</span></td>
             </tr>
           }
         </tbody>
@@ -89,20 +86,11 @@
         <div class="form-grid">
 
           <div class="fg">
-            <label>Status <span class="hint">(optional)</span></label>
+            <label>@Localizer["LblAvailability"] <span class="hint">(optional)</span></label>
             <select name="status">
               <option value="">— Keep existing —</option>
               <option value="Available">Available</option>
               <option value="NotAvailable">Not Available</option>
-            </select>
-          </div>
-
-          <div class="fg">
-            <label>State <span class="hint">(optional)</span></label>
-            <select name="deviceLocation">
-              <option value="">— Keep existing —</option>
-              <option value="In WIC">In WIC</option>
-              <option value="In Transit">In Transit</option>
             </select>
           </div>
 

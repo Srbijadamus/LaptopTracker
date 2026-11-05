@@ -13,5 +13,9 @@ namespace LaptopTracker.Models
         // printed handover still shows it after the source row was soft-deleted or purged.
         // Nullable: existing handover lines keep NULL and are resolved by a live lookup instead.
         public string? WorkOrder { get; set; }
+
+        // RITM snapshot for the "Give to user (KID)" flow, kept separate from WorkOrder so the
+        // two meanings never share one column. Nullable: the AIOT flow does not set it.
+        public string? Ritm { get; set; }
     }
 }

@@ -158,7 +158,6 @@ tbody tr:hover{background:var(--bg-hover)}
             <th>@Localizer["ColType"]</th>
             <th>RITM</th>
             <th>@Localizer["ColDate"]</th>
-            <th>@Localizer["ColDeviceLocation"]</th>
             <th>@Localizer["ColStatus"]</th>
             <th>@Localizer["ColWorkOrder"]</th>
             <th>@Localizer["ColPickupStatus"]</th>
@@ -172,7 +171,7 @@ tbody tr:hover{background:var(--bg-hover)}
         <tbody>
           @if (!Model.Any())
           {
-            <tr class="empty"><td colspan="15">@Localizer["EmptyNoDevices"]@(anyFilter ? " " + Localizer["EmptyClearFilters"].Value : "")</td></tr>
+            <tr class="empty"><td colspan="14">@Localizer["EmptyNoDevices"]@(anyFilter ? " " + Localizer["EmptyClearFilters"].Value : "")</td></tr>
           }
           else
           {
@@ -180,7 +179,6 @@ tbody tr:hover{background:var(--bg-hover)}
             {
               var d = Model[i];
               var statusClass = d.Status == LaptopTracker.Models.ReturnDeviceStatus.PendingPickup ? "b-pending" : "b-pickedup";
-              var locClass    = d.DeviceLocation == "In Transit" ? "b-intransit" : "b-inwic";
               string ChargerClass(bool? v) => v == null ? "" : v == true ? "badge b-yes" : "badge b-no";
               <tr>
                 <td><input type="checkbox" name="ids" value="@d.Id" class="row-check row-checkbox" /></td>
@@ -189,7 +187,6 @@ tbody tr:hover{background:var(--bg-hover)}
                 <td>@d.DeviceType</td>
                 <td>@d.RITM</td>
                 <td>@d.Date.ToString("dd/MM/yyyy")</td>
-                <td><span class="badge @locClass">@StatusLocalizer.GetDeviceLocation(d.DeviceLocation, StatusLoc)</span></td>
                 <td><span class="badge @statusClass">@StatusLocalizer.Get(d.Status, StatusLoc)</span></td>
                 <td class="muted">@(string.IsNullOrWhiteSpace(d.WorkOrder) ? "—" : d.WorkOrder)</td>
                 <td class="muted">@(string.IsNullOrWhiteSpace(d.PickupStatus) ? "—" : d.PickupStatus)</td>

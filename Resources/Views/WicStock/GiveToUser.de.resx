@@ -63,6 +63,7 @@
   <data name="CatReimaged" xml:space="preserve"><value>Re-imaged Laptops</value></data>
   <data name="FieldKid" xml:space="preserve"><value>KID (Konzern-ID) *</value></data>
   <data name="FieldKidHint" xml:space="preserve"><value>KID des Empfängers. Wird gespeichert und in der Übergabeliste angezeigt.</value></data>
+  <data name="FieldRitm" xml:space="preserve"><value>RITM</value></data>
   <data name="BtnSubmit" xml:space="preserve"><value>Übergeben</value></data>
   <data name="BtnCancel" xml:space="preserve"><value>Abbrechen</value></data>
 </root>

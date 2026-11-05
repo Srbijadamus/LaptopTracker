@@ -62,12 +62,24 @@ namespace LaptopTracker.Controllers
             var device = await _context.ReturnDevices
                 .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(d => d.Id == id);
-            if (device != null)
+            if (device == null)
+                return RedirectToAction(nameof(Index));
+
+            // Safety: a soft-deleted Return whose linked WIC counterpart is currently active must
+            // not be restorable — that would create two live records for one device.
+            var activeWicCounterpart = await _context.WicStockDevices
+                .IgnoreQueryFilters()
+                .AnyAsync(w => w.ReturnDeviceId == id && !w.IsDeleted);
+            if (activeWicCounterpart)
             {
-                device.IsDeleted = false;
-                device.DeletedAt = null;
-                await _context.SaveChangesAsync();
+                TempData["StatusMessage"] =
+                    "Cannot restore: an active WIC Stock record already exists for this device. / Wiederherstellen nicht möglich: Für dieses Gerät existiert bereits ein aktiver WIC-Bestandseintrag.";
+                return RedirectToAction(nameof(Index));
             }
+
+            device.IsDeleted = false;
+            device.DeletedAt = null;
+            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
@@ -77,12 +89,27 @@ namespace LaptopTracker.Controllers
             var device = await _context.WicStockDevices
                 .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(d => d.Id == id);
-            if (device != null)
+            if (device == null)
+                return RedirectToAction(nameof(Index));
+
+            // Safety: a soft-deleted WIC row whose linked Return counterpart is currently active
+            // must not be restorable — that would create two live records for one device.
+            if (device.ReturnDeviceId.HasValue)
             {
-                device.IsDeleted = false;
-                device.DeletedAt = null;
-                await _context.SaveChangesAsync();
+                var activeReturnCounterpart = await _context.ReturnDevices
+                    .IgnoreQueryFilters()
+                    .AnyAsync(r => r.Id == device.ReturnDeviceId && !r.IsDeleted);
+                if (activeReturnCounterpart)
+                {
+                    TempData["StatusMessage"] =
+                        "Cannot restore: an active Return record already exists for this device. / Wiederherstellen nicht möglich: Für dieses Gerät existiert bereits ein aktiver Rückgabeeintrag.";
+                    return RedirectToAction(nameof(Index));
+                }
             }
+
+            device.IsDeleted = false;
+            device.DeletedAt = null;
+            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 

@@ -246,6 +246,9 @@ namespace LaptopTracker.Migrations
                     b.Property<int>("HandoverId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Ritm")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("SerialNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -631,6 +634,9 @@ namespace LaptopTracker.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("ReturnDeviceId")
+                        .HasColumnType("int");
+
                     b.Property<string>("SerialNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -656,6 +662,10 @@ namespace LaptopTracker.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ReturnDeviceId")
+                        .IsUnique()
+                        .HasFilter("[ReturnDeviceId] IS NOT NULL");
 
                     b.ToTable("WicStockDevices");
                 });
@@ -724,6 +734,16 @@ namespace LaptopTracker.Migrations
                     b.Navigation("ReturnDevice");
                 });
 
+            modelBuilder.Entity("LaptopTracker.Models.WicStockDevice", b =>
+                {
+                    b.HasOne("LaptopTracker.Models.ReturnDevice", "ReturnDevice")
+                        .WithOne("WicStockDevice")
+                        .HasForeignKey("LaptopTracker.Models.WicStockDevice", "ReturnDeviceId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ReturnDevice");
+                });
+
             modelBuilder.Entity("LaptopTracker.Models.WicStockDevicePhoto", b =>
                 {
                     b.HasOne("LaptopTracker.Models.WicStockDevice", "WicStockDevice")
@@ -743,6 +763,8 @@ namespace LaptopTracker.Migrations
             modelBuilder.Entity("LaptopTracker.Models.ReturnDevice", b =>
                 {
                     b.Navigation("Photos");
+
+                    b.Navigation("WicStockDevice");
                 });
 
             modelBuilder.Entity("LaptopTracker.Models.WicLocation", b =>

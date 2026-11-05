@@ -56,38 +56,38 @@ namespace LaptopTracker.Controllers
 
             var ws1 = wb.Worksheets.Add("Return Devices");
             ws1.Cell(1,1).Value = "Serial Number"; ws1.Cell(1,2).Value = "Type"; ws1.Cell(1,3).Value = "RITM";
-            ws1.Cell(1,4).Value = "Date"; ws1.Cell(1,5).Value = "Status"; ws1.Cell(1,6).Value = "Device Location";
-            ws1.Cell(1,7).Value = "Work Order"; ws1.Cell(1,8).Value = "Pickup Status"; ws1.Cell(1,9).Value = "Location";
-            ws1.Cell(1,10).Value = "Charger"; ws1.Cell(1,11).Value = "Power Cable";
-            ws1.Cell(1,12).Value = "Damage"; ws1.Cell(1,13).Value = "CID"; ws1.Cell(1,14).Value = "Battery Swollen"; ws1.Cell(1,15).Value = "Acknowledgement";
+            ws1.Cell(1,4).Value = "Date"; ws1.Cell(1,5).Value = "Status";
+            ws1.Cell(1,6).Value = "Work Order"; ws1.Cell(1,7).Value = "Pickup Status"; ws1.Cell(1,8).Value = "Location";
+            ws1.Cell(1,9).Value = "Charger"; ws1.Cell(1,10).Value = "Power Cable";
+            ws1.Cell(1,11).Value = "Damage"; ws1.Cell(1,12).Value = "CID"; ws1.Cell(1,13).Value = "Battery Swollen"; ws1.Cell(1,14).Value = "Acknowledgement";
             ws1.Row(1).Style.Font.Bold = true;
             for (int i = 0; i < returns.Count; i++)
             {
                 var d = returns[i]; var r = i + 2;
                 ws1.Cell(r,1).Value = d.SerialNumber; ws1.Cell(r,2).Value = d.DeviceType; ws1.Cell(r,3).Value = d.RITM;
                 ws1.Cell(r,4).Value = d.Date.ToString("dd.MM.yyyy"); ws1.Cell(r,5).Value = d.Status.ToString();
-                ws1.Cell(r,6).Value = d.DeviceLocation; ws1.Cell(r,7).Value = d.WorkOrder ?? "";
-                ws1.Cell(r,8).Value = d.PickupStatus ?? ""; ws1.Cell(r,9).Value = d.Location ?? "";
-                ws1.Cell(r,10).Value = d.ChargerReturned == true ? "YES" : "NO";
-                ws1.Cell(r,11).Value = d.PowerCableReturned == true ? "YES" : "NO";
-                ws1.Cell(r,12).Value = d.DamageStatus ?? "";
-                ws1.Cell(r,13).Value = d.IsCustomerInducedDamage ? "YES" : "NO";
-                ws1.Cell(r,14).Value = d.IsBatterySwollen ? "YES" : "NO";
-                ws1.Cell(r,15).Value = d.Acknowledgement ?? "";
+                ws1.Cell(r,6).Value = d.WorkOrder ?? "";
+                ws1.Cell(r,7).Value = d.PickupStatus ?? ""; ws1.Cell(r,8).Value = d.Location ?? "";
+                ws1.Cell(r,9).Value = d.ChargerReturned == true ? "YES" : "NO";
+                ws1.Cell(r,10).Value = d.PowerCableReturned == true ? "YES" : "NO";
+                ws1.Cell(r,11).Value = d.DamageStatus ?? "";
+                ws1.Cell(r,12).Value = d.IsCustomerInducedDamage ? "YES" : "NO";
+                ws1.Cell(r,13).Value = d.IsBatterySwollen ? "YES" : "NO";
+                ws1.Cell(r,14).Value = d.Acknowledgement ?? "";
             }
             ws1.Columns().AdjustToContents();
 
             var ws2 = wb.Worksheets.Add("WIC Stock");
             ws2.Cell(1,1).Value = "Serial Number"; ws2.Cell(1,2).Value = "Type"; ws2.Cell(1,3).Value = "RITM";
-            ws2.Cell(1,4).Value = "Date"; ws2.Cell(1,5).Value = "Status"; ws2.Cell(1,6).Value = "Device Location";
-            ws2.Cell(1,7).Value = "Swap RITM";
+            ws2.Cell(1,4).Value = "Date"; ws2.Cell(1,5).Value = "Status";
+            ws2.Cell(1,6).Value = "Swap RITM";
             ws2.Row(1).Style.Font.Bold = true;
             for (int i = 0; i < wic.Count; i++)
             {
                 var d = wic[i]; var r = i + 2;
                 ws2.Cell(r,1).Value = d.SerialNumber; ws2.Cell(r,2).Value = d.DeviceType; ws2.Cell(r,3).Value = d.RITM;
                 ws2.Cell(r,4).Value = d.Date.ToString("dd.MM.yyyy"); ws2.Cell(r,5).Value = d.Status.ToString();
-                ws2.Cell(r,6).Value = d.DeviceLocation; ws2.Cell(r,7).Value = d.SwapRITM ?? "";
+                ws2.Cell(r,6).Value = d.SwapRITM ?? "";
             }
             ws2.Columns().AdjustToContents();
 
@@ -133,24 +133,24 @@ namespace LaptopTracker.Controllers
             using var wb = new XLWorkbook();
             var ws1 = wb.Worksheets.Add("Selected Return Devices");
             ws1.Cell(1,1).Value = "Serial Number"; ws1.Cell(1,2).Value = "Type"; ws1.Cell(1,3).Value = "RITM";
-            ws1.Cell(1,4).Value = "Date"; ws1.Cell(1,5).Value = "Status"; ws1.Cell(1,6).Value = "Device Location";
-            ws1.Cell(1,7).Value = "Work Order"; ws1.Cell(1,8).Value = "Pickup Status"; ws1.Cell(1,9).Value = "Location";
-            ws1.Cell(1,10).Value = "Charger"; ws1.Cell(1,11).Value = "Power Cable";
-            ws1.Cell(1,12).Value = "Damage"; ws1.Cell(1,13).Value = "CID"; ws1.Cell(1,14).Value = "Battery Swollen"; ws1.Cell(1,15).Value = "Acknowledgement";
+            ws1.Cell(1,4).Value = "Date"; ws1.Cell(1,5).Value = "Status";
+            ws1.Cell(1,6).Value = "Work Order"; ws1.Cell(1,7).Value = "Pickup Status"; ws1.Cell(1,8).Value = "Location";
+            ws1.Cell(1,9).Value = "Charger"; ws1.Cell(1,10).Value = "Power Cable";
+            ws1.Cell(1,11).Value = "Damage"; ws1.Cell(1,12).Value = "CID"; ws1.Cell(1,13).Value = "Battery Swollen"; ws1.Cell(1,14).Value = "Acknowledgement";
             ws1.Row(1).Style.Font.Bold = true;
             for (int i = 0; i < returns.Count; i++)
             {
                 var d = returns[i]; var r = i + 2;
                 ws1.Cell(r,1).Value = d.SerialNumber; ws1.Cell(r,2).Value = d.DeviceType; ws1.Cell(r,3).Value = d.RITM;
                 ws1.Cell(r,4).Value = d.Date.ToString("dd.MM.yyyy"); ws1.Cell(r,5).Value = d.Status.ToString();
-                ws1.Cell(r,6).Value = d.DeviceLocation; ws1.Cell(r,7).Value = d.WorkOrder ?? "";
-                ws1.Cell(r,8).Value = d.PickupStatus ?? ""; ws1.Cell(r,9).Value = d.Location ?? "";
-                ws1.Cell(r,10).Value = d.ChargerReturned == true ? "YES" : "NO";
-                ws1.Cell(r,11).Value = d.PowerCableReturned == true ? "YES" : "NO";
-                ws1.Cell(r,12).Value = d.DamageStatus ?? "";
-                ws1.Cell(r,13).Value = d.IsCustomerInducedDamage ? "YES" : "NO";
-                ws1.Cell(r,14).Value = d.IsBatterySwollen ? "YES" : "NO";
-                ws1.Cell(r,15).Value = d.Acknowledgement ?? "";
+                ws1.Cell(r,6).Value = d.WorkOrder ?? "";
+                ws1.Cell(r,7).Value = d.PickupStatus ?? ""; ws1.Cell(r,8).Value = d.Location ?? "";
+                ws1.Cell(r,9).Value = d.ChargerReturned == true ? "YES" : "NO";
+                ws1.Cell(r,10).Value = d.PowerCableReturned == true ? "YES" : "NO";
+                ws1.Cell(r,11).Value = d.DamageStatus ?? "";
+                ws1.Cell(r,12).Value = d.IsCustomerInducedDamage ? "YES" : "NO";
+                ws1.Cell(r,13).Value = d.IsBatterySwollen ? "YES" : "NO";
+                ws1.Cell(r,14).Value = d.Acknowledgement ?? "";
             }
             ws1.Columns().AdjustToContents();
 

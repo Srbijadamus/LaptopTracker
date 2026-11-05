@@ -1,17 +1,21 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LaptopTracker.Data;
 using LaptopTracker.Models;
+using LaptopTracker.Services;
 
 namespace LaptopTracker.Controllers
 {
     public class HandoversController : Controller
     {
         private readonly LaptopTrackerDbContext _context;
+        private readonly ICurrentUser _currentUser;
 
-        public HandoversController(LaptopTrackerDbContext context)
+        public HandoversController(LaptopTrackerDbContext context, ICurrentUser currentUser)
         {
             _context = context;
+            _currentUser = currentUser;
         }
 
         // GET /Handovers
@@ -92,7 +96,55 @@ namespace LaptopTracker.Controllers
                 }
             }
 
+            // A Return Device that is handed over leaves the Returns list by switching to the
+            // HandedOver status (the Index filter excludes it). The row is untouched otherwise —
+            // no soft delete, so it stays in the database and remains restorable/searchable.
+            // The audit engine records the Status change; the explicit entries below add the
+            // handover ID so the change is traceable back to this handover.
+            var handedOverReturns = new List<(ReturnDevice Device, string OldStatus)>();
+            if (source == "ReturnDevices" && deviceInfos.Count > 0)
+            {
+                var handedOverIds = deviceInfos.Select(d => d.Id).ToList();
+                var returnDevices = await _context.ReturnDevices
+                    .Where(d => handedOverIds.Contains(d.Id) && !d.IsDeleted)
+                    .ToListAsync();
+
+                foreach (var d in returnDevices)
+                {
+                    if (d.Status == ReturnDeviceStatus.HandedOver) continue;
+                    handedOverReturns.Add((d, d.Status.ToString()));
+                    d.Status = ReturnDeviceStatus.HandedOver;
+                }
+            }
+
             await _context.SaveChangesAsync();
+
+            if (handedOverReturns.Count > 0)
+            {
+                foreach (var (device, oldStatus) in handedOverReturns)
+                {
+                    _context.AuditLogs.Add(new AuditLog
+                    {
+                        Kid         = _currentUser.Kid ?? "ANONYMOUS",
+                        Action      = "HandedOver",
+                        EntityName  = nameof(ReturnDevice),
+                        EntityId    = device.Id.ToString(),
+                        EntityLabel = device.SerialNumber,
+                        Changes     = JsonSerializer.Serialize(new
+                        {
+                            oldStatus,
+                            newStatus  = ReturnDeviceStatus.HandedOver.ToString(),
+                            handoverId = handover.Id
+                        }),
+                        Source      = "Web",
+                        IpAddress   = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                        Route       = HttpContext.Request.Path.Value,
+                        RequestId   = HttpContext.TraceIdentifier
+                    });
+                }
+                await _context.SaveChangesAsync();
+            }
+
             return RedirectToAction(nameof(Details), new { id = handover.Id });
         }
 

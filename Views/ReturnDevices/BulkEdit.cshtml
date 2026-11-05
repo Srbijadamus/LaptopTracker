@@ -55,7 +55,6 @@
             <th>Type</th>
             <th>RITM</th>
             <th>Current Status</th>
-            <th>@Localizer["ColCurrentState"]</th>
             <th>Work Order</th>
           </tr>
         </thead>
@@ -64,14 +63,12 @@
           {
             var d = Model[i];
             var sc = d.Status == LaptopTracker.Models.ReturnDeviceStatus.PendingPickup ? "b-pending" : "b-pickedup";
-            var lc = d.DeviceLocation == "In Transit" ? "b-intransit" : "b-inwic";
             <tr>
               <td class="muted">@(i + 1)</td>
               <td>@d.SerialNumber</td>
               <td class="muted">@d.DeviceType</td>
               <td class="muted">@d.RITM</td>
               <td><span class="badge @sc">@StatusLocalizer.Get(d.Status, StatusLoc)</span></td>
-              <td><span class="badge @lc">@d.DeviceLocation</span></td>
               <td class="muted">@(string.IsNullOrWhiteSpace(d.WorkOrder) ? "—" : d.WorkOrder)</td>
             </tr>
           }
@@ -96,16 +93,6 @@
             <select name="status">
               <option value="">— Keep existing —</option>
               <option value="PendingPickup">Pending Pickup</option>
-              <option value="PickedUp">Picked Up</option>
-            </select>
-          </div>
-
-          <div class="fg">
-            <label>@Localizer["FieldDeviceState"] <span class="hint">(optional)</span></label>
-            <select name="deviceLocation">
-              <option value="">— Keep existing —</option>
-              <option value="In WIC">In WIC</option>
-              <option value="In Transit">In Transit</option>
             </select>
           </div>
 

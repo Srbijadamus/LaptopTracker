@@ -58,4 +58,5 @@
   <data name="SectionSignature" xml:space="preserve"><value>Signature</value></data>
   <data name="LblCategory" xml:space="preserve"><value>Category</value></data>
   <data name="CatReimaged" xml:space="preserve"><value>Re-imaged laptops</value></data>
+  <data name="LblAvailability" xml:space="preserve"><value>Availability</value></data>
 </root>
