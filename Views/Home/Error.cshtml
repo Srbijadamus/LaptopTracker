@@ -22,5 +22,9 @@
     {
       <div class="error-id">Request ID: @ViewData["RequestId"]</div>
     }
+    @if (!string.IsNullOrEmpty(ViewData["RequestPath"]?.ToString()))
+    {
+      <div class="error-id">Request path: @ViewData["RequestPath"]</div>
+    }
   </div>
 </div>

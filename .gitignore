@@ -29,3 +29,10 @@ wwwroot/uploads/
 
 LaptopTrackerpublish/
 Tempemltest.txt
+
+# Data files and database backups (never commit)
+*.bak
+*.mdf
+*.ldf
+*.db
+backups/

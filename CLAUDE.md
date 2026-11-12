@@ -20,3 +20,9 @@
 ## Access
 - Users reach the app ONLY via the dev tunnel. Windows Auth cannot work
   through it — identity is KID entry stored in session.
+## Logging
+- Serilog writes app logs + unhandled exceptions to C:\LaptopTracker\logs\laptoptracker-YYYYMMDD.log
+  (daily roll, keep 30 days; folder auto-created, outside publish so deploys never delete it).
+  Config is the "Serilog" section of appsettings.json.
+- Match a screenshot: the error page "Request ID" (trace id) greps to the [ERR] line with stack trace + KID.
+- Bulk actions: AuditLogs.EntityId is nvarchar(64) — write one audit row per entity, never a joined id list.

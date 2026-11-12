@@ -18,19 +18,31 @@ namespace LaptopTracker.Controllers
             _currentUser = currentUser;
         }
 
+        private AuditLog NewExportAuditEntry(string entityName, string entityId) => new AuditLog
+        {
+            Kid        = _currentUser.Kid ?? "ANONYMOUS",
+            Action     = "Export",
+            EntityName = entityName,
+            EntityId   = entityId,
+            Source     = "Web",
+            IpAddress  = HttpContext.Connection.RemoteIpAddress?.ToString(),
+            Route      = HttpContext.Request.Path.Value,
+            RequestId  = HttpContext.TraceIdentifier
+        };
+
         private async Task WriteExportAudit(string entityName, string? entityId = null)
         {
-            _context.AuditLogs.Add(new AuditLog
-            {
-                Kid        = _currentUser.Kid ?? "ANONYMOUS",
-                Action     = "Export",
-                EntityName = entityName,
-                EntityId   = entityId ?? "",
-                Source     = "Web",
-                IpAddress  = HttpContext.Connection.RemoteIpAddress?.ToString(),
-                Route      = HttpContext.Request.Path.Value,
-                RequestId  = HttpContext.TraceIdentifier
-            });
+            _context.AuditLogs.Add(NewExportAuditEntry(entityName, entityId ?? ""));
+            await _context.SaveChangesAsync();
+        }
+
+        // One audit row per selected device (matching the handover audit in HandoversController)
+        // so a multi-device export never stuffs a >64-char id list into AuditLogs.EntityId,
+        // which is nvarchar(64) and would fail with SQL truncation error 2628.
+        private async Task WriteExportAudit(string entityName, IReadOnlyList<int> entityIds)
+        {
+            foreach (var id in entityIds)
+                _context.AuditLogs.Add(NewExportAuditEntry(entityName, id.ToString()));
             await _context.SaveChangesAsync();
         }
 
@@ -158,7 +170,7 @@ namespace LaptopTracker.Controllers
             wb.SaveAs(stream);
             stream.Position = 0;
             var fileName = $"WIC_Export_Selected_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
-            await WriteExportAudit("ReturnDevice", string.Join(",", ids));
+            await WriteExportAudit("ReturnDevice", ids);
             return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
     }

@@ -3,10 +3,19 @@ using LaptopTracker.Services;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using PdfSharp.Fonts;
+using Serilog;
 
 GlobalFontSettings.UseWindowsFontsUnderWindows = true;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Structured logging: levels, sinks and the file path come from appsettings.json
+// ("Serilog" section). The file sink writes outside C:\LaptopTracker\publish so a
+// redeploy never deletes the logs; console stays for local development.
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext());
 
 builder.Services.AddLocalization(opts => opts.ResourcesPath = "Resources");
 builder.Services.AddControllersWithViews(o => o.Filters.Add<RequireKidFilter>())
