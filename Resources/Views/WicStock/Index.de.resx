@@ -74,6 +74,9 @@
   <data name="ColCategory" xml:space="preserve"><value>Kategorie</value></data>
   <data name="ColLeaseEnd" xml:space="preserve"><value>Lease/DaaS-Ende</value></data>
   <data name="BtnClearFilters" xml:space="preserve"><value>✕ Filter zurücksetzen</value></data>
+  <data name="FilterActive" xml:space="preserve"><value>Filter aktiv:</value></data>
+  <data name="BtnResetFilters" xml:space="preserve"><value>Filter zurücksetzen</value></data>
+  <data name="FilterSite" xml:space="preserve"><value>Standort</value></data>
 
   <!-- Table headers -->
   <data name="ColSelectAll" xml:space="preserve"><value>Alle auswählen</value></data>

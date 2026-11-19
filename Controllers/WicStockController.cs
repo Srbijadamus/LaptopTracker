@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using LaptopTracker.Data;
 using LaptopTracker.Helpers;
 using LaptopTracker.Models;
+using LaptopTracker.Services;
 
 namespace LaptopTracker.Controllers
 {
@@ -17,6 +18,21 @@ namespace LaptopTracker.Controllers
 
         public async Task<IActionResult> Index(string? searchQuery, string? statusFilter, string? deviceTypeFilter, string? siteFilter, string? categoryFilter)
         {
+            var kid = HttpContext.Session.GetString(SessionCurrentUser.SessionKey);
+
+            if (Request.Query.ContainsKey("reset"))
+            {
+                FilterMemory.Clear(HttpContext.Session, "WicStock", kid);
+                return RedirectToAction(nameof(Index));
+            }
+
+            var dropdowns = FilterMemory.ResolveDropdowns(
+                Request.Query, HttpContext.Session, "WicStock", kid, FilterMemory.WicStockDropdownKeys);
+            statusFilter     = dropdowns["statusFilter"];
+            siteFilter       = dropdowns["siteFilter"];
+            deviceTypeFilter = dropdowns["deviceTypeFilter"];
+            categoryFilter   = dropdowns["categoryFilter"];
+
             var query = _context.WicStockDevices.Where(d => !d.IsDeleted).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(searchQuery))

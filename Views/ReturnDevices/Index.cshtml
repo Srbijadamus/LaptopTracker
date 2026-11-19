@@ -16,6 +16,18 @@
     var anyFilter = !string.IsNullOrWhiteSpace(searchQuery) || !string.IsNullOrWhiteSpace(statusFilter)
         || !string.IsNullOrWhiteSpace(locationFilter) || !string.IsNullOrWhiteSpace(deviceTypeFilter)
         || !string.IsNullOrEmpty(workOrderFilter) || !string.IsNullOrEmpty(dateFrom) || !string.IsNullOrEmpty(dateTo);
+
+    var activeTab = ViewData["ActiveTab"] as string;
+    if (activeTab != "active" && activeTab != "collected") activeTab = "active";
+
+    var activeParts = new List<string>();
+    if (!string.IsNullOrWhiteSpace(statusFilter) && Enum.TryParse<LaptopTracker.Models.ReturnDeviceStatus>(statusFilter, out var stFilter))
+        activeParts.Add(Localizer["ColStatus"].Value + " = " + StatusLocalizer.Get(stFilter, StatusLoc));
+    if (!string.IsNullOrWhiteSpace(locationFilter))
+        activeParts.Add(Localizer["ColLocation"].Value + " = " + locationFilter);
+    if (!string.IsNullOrWhiteSpace(deviceTypeFilter))
+        activeParts.Add(Localizer["ColType"].Value + " = " + deviceTypeFilter);
+    var hasActiveFilter = activeParts.Count > 0;
 }
 @section Styles {
 <style>
@@ -44,7 +56,7 @@ tbody tr:hover{background:var(--bg-hover)}
 .b-no{background:#fde2c7;color:#8a4f00}
 .muted{color:var(--text-muted);font-size:13px}
 .tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:2px solid var(--border);padding-bottom:0;align-items:center}
-.tab-btn{padding:10px 20px;border:none;background:transparent;font-size:14px;font-weight:600;color:var(--text-secondary);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;border-radius:8px 8px 0 0;transition:all 0.15s}
+.tab-btn{padding:10px 20px;border:none;background:transparent;font-size:14px;font-weight:600;color:var(--text-secondary);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;border-radius:8px 8px 0 0;transition:all 0.15s;text-decoration:none;display:inline-block}
 .tab-btn:hover{background:var(--bg-hover);color:var(--text-primary)}
 .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--accent-bg)}
 .tab-badge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:700;margin-left:6px;background:var(--bg-thead);color:var(--text-secondary)}
@@ -66,6 +78,12 @@ tbody tr:hover{background:var(--bg-hover)}
 .filter-toggle-off{background:var(--bg-panel);color:var(--text-primary)}
 .clear-link{padding:9px 13px;border-radius:8px;font-size:13px;font-weight:600;color:var(--text-secondary);text-decoration:none;border:1px solid var(--border-input);background:var(--bg-panel);white-space:nowrap}
 .clear-link:hover{background:var(--bg-hover)}
+.filter-banner{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 16px;margin-bottom:16px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:10px;font-size:14px;color:var(--text-primary)}
+.filter-banner-label{font-weight:700;color:var(--accent);white-space:nowrap}
+.filter-banner-parts{flex:1;min-width:200px}
+.filter-reset-btn{padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer;white-space:nowrap}
+.filter-reset-btn:hover{opacity:.9}
+.filter-select.filter-active{border-color:var(--accent);background:var(--accent-bg);font-weight:700}
 .btn{padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;border:none;cursor:pointer;display:inline-block}
 .btn-primary{background:var(--accent);color:#fff}
 .btn-danger{background:#c4314b;color:#fff}
@@ -98,39 +116,39 @@ tbody tr:hover{background:var(--bg-hover)}
 <div class="content">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
     <div style="display:flex;gap:4px">
-      <button class="tab-btn active" id="btn-active">@Localizer["TabActive"] <span class="tab-badge">@Model.Count</span></button>
-      <button class="tab-btn" id="btn-collected">@Localizer["TabCollected"] <span class="tab-badge">@collectedDevices.Count</span></button>
+      <a href="/ReturnDevices?tab=active" class="tab-btn @(activeTab == "active" ? "active" : "")" id="btn-active">@Localizer["TabActive"] <span class="tab-badge">@Model.Count</span></a>
+      <a href="/ReturnDevices?tab=collected" class="tab-btn @(activeTab == "collected" ? "active" : "")" id="btn-collected">@Localizer["TabCollected"] <span class="tab-badge">@collectedDevices.Count</span></a>
     </div>
     <a href="/ReturnDevices/Create" class="btn btn-primary">@Localizer["BtnAddDevice"]</a>
   </div>
 
-  <div class="tab-panel active" id="tab-active">
+  <div class="tab-panel @(activeTab == "active" ? "active" : "")" id="tab-active">
   <form method="get" action="/ReturnDevices">
     <div class="search-form">
       <input class="search-input" name="searchQuery" type="text" placeholder="@Localizer["SearchPlaceholder"]" value="@searchQuery" />
       <button type="submit" class="search-btn">@Localizer["BtnSearch"]</button>
     </div>
     <div class="filter-bar">
-      <select name="statusFilter" class="filter-select" onchange="this.form.submit()">
+      <select name="statusFilter" class="filter-select @(string.IsNullOrWhiteSpace(statusFilter) ? "" : "filter-active")" onchange="this.form.submit()">
         <option value="">@Localizer["FilterAllStatuses"]</option>
         <option value="PendingPickup" selected="@(statusFilter == "PendingPickup" ? "selected" : null)">@StatusLocalizer.Get(LaptopTracker.Models.ReturnDeviceStatus.PendingPickup, StatusLoc)</option>
         <option value="PickedUp" selected="@(statusFilter == "PickedUp" ? "selected" : null)">@StatusLocalizer.Get(LaptopTracker.Models.ReturnDeviceStatus.PickedUp, StatusLoc)</option>
       </select>
-      <select name="locationFilter" class="filter-select" onchange="this.form.submit()">
+      <select name="locationFilter" class="filter-select @(string.IsNullOrWhiteSpace(locationFilter) ? "" : "filter-active")" onchange="this.form.submit()">
         <option value="">@Localizer["FilterAllLocations"]</option>
         @foreach (var loc in allLocations)
         {
           <option value="@loc" selected="@(locationFilter == loc ? "selected" : null)">@loc</option>
         }
       </select>
-      <select name="deviceTypeFilter" class="filter-select" onchange="this.form.submit()">
+      <select name="deviceTypeFilter" class="filter-select @(string.IsNullOrWhiteSpace(deviceTypeFilter) ? "" : "filter-active")" onchange="this.form.submit()">
         <option value="">@Localizer["FilterAllTypes"]</option>
         @foreach (var t in allDeviceTypes)
         {
           <option value="@t" selected="@(deviceTypeFilter == t ? "selected" : null)">@t</option>
         }
       </select>
-      <select name="hasWorkOrder" class="filter-select" onchange="this.form.submit()">
+      <select name="hasWorkOrder" class="filter-select @(string.IsNullOrEmpty(workOrderFilter) ? "" : "filter-active")" onchange="this.form.submit()">
         <option value="" selected="@(workOrderFilter == "" ? "selected" : null)">@Localizer["FilterWoAll"]</option>
         <option value="true" selected="@(workOrderFilter == "true" ? "selected" : null)">@Localizer["FilterWoHas"]</option>
         <option value="false" selected="@(workOrderFilter == "false" ? "selected" : null)">@Localizer["FilterWoNo"]</option>
@@ -141,10 +159,19 @@ tbody tr:hover{background:var(--bg-hover)}
              style="min-width:130px" onchange="this.form.submit()" />
       @if (anyFilter)
       {
-        <a href="/ReturnDevices" class="clear-link">@Localizer["BtnClearFilters"]</a>
+        <a href="/ReturnDevices?reset=1" class="clear-link">@Localizer["BtnResetFilters"]</a>
       }
     </div>
   </form>
+
+  @if (hasActiveFilter)
+  {
+    <div class="filter-banner">
+      <span class="filter-banner-label">@Localizer["FilterActive"]</span>
+      <span class="filter-banner-parts">@string.Join(" · ", activeParts)</span>
+      <a href="/ReturnDevices?reset=1" class="filter-reset-btn">@Localizer["BtnResetFilters"]</a>
+    </div>
+  }
 
   <form id="bulkForm" method="post" action="/ReturnDevices/BulkUpdateWorkOrder">
     <div class="panel">
@@ -225,7 +252,7 @@ tbody tr:hover{background:var(--bg-hover)}
   </form>
   </div>
 
-  <div class="tab-panel" id="tab-collected">
+  <div class="tab-panel @(activeTab == "collected" ? "active" : "")" id="tab-collected">
   <div class="panel"><div class="table-scroll"><table>
 <thead><tr>
   <th><input type="checkbox" id="selectAllCollected" class="row-checkbox" title="@Localizer["ColSelectAll"]" /></th>
@@ -357,14 +384,8 @@ function handOverSelected() {
   var url = '/Handovers/Create?source=ReturnDevices&' + Array.from(checks).map(function(c) { return 'ids=' + encodeURIComponent(c.value); }).join('&');
   window.location.href = url;
 }
-document.getElementById("btn-active").addEventListener("click",function(){switchTab("active");});
-document.getElementById("btn-collected").addEventListener("click",function(){switchTab("collected");});
-function switchTab(name){
-  document.querySelectorAll(".tab-panel").forEach(function(p){p.classList.remove("active");});
-  document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active");});
-  document.getElementById("tab-"+name).classList.add("active");
-  document.getElementById("btn-"+name).classList.add("active");
-}
+// Tabs are now plain links (?tab=active|collected) rendered server-side, so the active
+// tab is remembered per user and no client-side switchTab is needed.
 
 // ── Collected tab bulk selection ──────────────────────────────────────────────
 var selectAllCollected = document.getElementById('selectAllCollected');

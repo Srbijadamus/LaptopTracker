@@ -78,6 +78,8 @@
   <data name="FilterAllLocations" xml:space="preserve"><value>All Locations</value></data>
   <data name="FilterAllTypes" xml:space="preserve"><value>All Types</value></data>
   <data name="BtnClearFilters" xml:space="preserve"><value>&#x2715; Clear Filters</value></data>
+  <data name="FilterActive" xml:space="preserve"><value>Filter active:</value></data>
+  <data name="BtnResetFilters" xml:space="preserve"><value>Reset filters</value></data>
 
   <!-- Table headers (active tab) -->
   <data name="ColSelectAll" xml:space="preserve"><value>Select all</value></data>

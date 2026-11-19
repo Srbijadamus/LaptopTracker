@@ -14,6 +14,17 @@
     var anyFilter = !string.IsNullOrWhiteSpace(searchQuery) || !string.IsNullOrWhiteSpace(statusFilter)
         || !string.IsNullOrWhiteSpace(deviceTypeFilter)
         || !string.IsNullOrWhiteSpace(siteFilter) || !string.IsNullOrWhiteSpace(categoryFilter);
+
+    var activeParts = new List<string>();
+    if (!string.IsNullOrWhiteSpace(statusFilter) && Enum.TryParse<LaptopTracker.Models.WicStockStatus>(statusFilter, out var stFilter))
+        activeParts.Add(Localizer["ColStatus"].Value + " = " + StatusLocalizer.Get(stFilter, StatusLoc));
+    if (!string.IsNullOrWhiteSpace(siteFilter))
+        activeParts.Add(Localizer["FilterSite"].Value + " = " + siteFilter);
+    if (!string.IsNullOrWhiteSpace(categoryFilter))
+        activeParts.Add(Localizer["ColCategory"].Value + " = " + (categoryFilter == "Re-imaged laptops" ? Localizer["CatReimaged"].Value : categoryFilter));
+    if (!string.IsNullOrWhiteSpace(deviceTypeFilter))
+        activeParts.Add(Localizer["ColType"].Value + " = " + deviceTypeFilter);
+    var hasActiveFilter = activeParts.Count > 0;
 }
 @section Styles {
 <style>
@@ -55,6 +66,12 @@ tbody tr:hover{background:var(--bg-hover)}
 .filter-select:focus{border-color:var(--accent)}
 .clear-link{padding:9px 13px;border-radius:8px;font-size:13px;font-weight:600;color:var(--text-secondary);text-decoration:none;border:1px solid var(--border-input);background:var(--bg-panel);white-space:nowrap}
 .clear-link:hover{background:var(--bg-hover)}
+.filter-banner{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 16px;margin-bottom:16px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:10px;font-size:14px;color:var(--text-primary)}
+.filter-banner-label{font-weight:700;color:var(--accent);white-space:nowrap}
+.filter-banner-parts{flex:1;min-width:200px}
+.filter-reset-btn{padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer;white-space:nowrap}
+.filter-reset-btn:hover{opacity:.9}
+.filter-select.filter-active{border-color:var(--accent);background:var(--accent-bg);font-weight:700}
 .btn-primary{padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;display:inline-block;cursor:pointer}
 .btn-row-del{padding:4px 10px;background:transparent;color:#c4314b;border:1px solid #c4314b;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer}
 .btn-row-del:hover{background:#c4314b;color:#fff}
@@ -96,26 +113,26 @@ tbody tr:hover{background:var(--bg-hover)}
       <button type="submit" class="search-btn">@Localizer["BtnSearch"]</button>
     </div>
     <div class="filter-bar">
-      <select name="statusFilter" class="filter-select" onchange="this.form.submit()">
+      <select name="statusFilter" class="filter-select @(string.IsNullOrWhiteSpace(statusFilter) ? "" : "filter-active")" onchange="this.form.submit()">
         <option value="">@Localizer["FilterAllStatuses"]</option>
         <option value="Available" selected="@(statusFilter == "Available" ? "selected" : null)">@StatusLocalizer.Get(LaptopTracker.Models.WicStockStatus.Available, StatusLoc)</option>
         <option value="NotAvailable" selected="@(statusFilter == "NotAvailable" ? "selected" : null)">@StatusLocalizer.Get(LaptopTracker.Models.WicStockStatus.NotAvailable, StatusLoc)</option>
       </select>
-      <select name="siteFilter" class="filter-select" onchange="this.form.submit()">
+      <select name="siteFilter" class="filter-select @(string.IsNullOrWhiteSpace(siteFilter) ? "" : "filter-active")" onchange="this.form.submit()">
         <option value="">@Localizer["FilterAllSites"]</option>
         @foreach (var site in allSites)
         {
           <option value="@site" selected="@(siteFilter == site ? "selected" : null)">@site</option>
         }
       </select>
-      <select name="categoryFilter" class="filter-select" onchange="this.form.submit()">
+      <select name="categoryFilter" class="filter-select @(string.IsNullOrWhiteSpace(categoryFilter) ? "" : "filter-active")" onchange="this.form.submit()">
         <option value="">@Localizer["FilterAllCategories"]</option>
         @foreach (var c in allCategories)
         {
           <option value="@c" selected="@(categoryFilter == c ? "selected" : null)">@(c == "Re-imaged laptops" ? Localizer["CatReimaged"].Value : c)</option>
         }
       </select>
-      <select name="deviceTypeFilter" class="filter-select" onchange="this.form.submit()">
+      <select name="deviceTypeFilter" class="filter-select @(string.IsNullOrWhiteSpace(deviceTypeFilter) ? "" : "filter-active")" onchange="this.form.submit()">
         <option value="">@Localizer["FilterAllTypes"]</option>
         @foreach (var t in allDeviceTypes)
         {
@@ -124,10 +141,19 @@ tbody tr:hover{background:var(--bg-hover)}
       </select>
       @if (anyFilter)
       {
-        <a href="/WicStock" class="clear-link">@Localizer["BtnClearFilters"]</a>
+        <a href="/WicStock?reset=1" class="clear-link">@Localizer["BtnResetFilters"]</a>
       }
     </div>
   </form>
+
+  @if (hasActiveFilter)
+  {
+    <div class="filter-banner">
+      <span class="filter-banner-label">@Localizer["FilterActive"]</span>
+      <span class="filter-banner-parts">@string.Join(" · ", activeParts)</span>
+      <a href="/WicStock?reset=1" class="filter-reset-btn">@Localizer["BtnResetFilters"]</a>
+    </div>
+  }
 
   <div class="panel">
     <div class="table-scroll">

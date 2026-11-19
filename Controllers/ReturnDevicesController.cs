@@ -25,6 +25,24 @@ namespace LaptopTracker.Controllers
         public async Task<IActionResult> Index(string? searchQuery, string? statusFilter, string? locationFilter,
             string? deviceTypeFilter, string? hasWorkOrder, string? dateFrom, string? dateTo)
         {
+            var kid = HttpContext.Session.GetString(SessionCurrentUser.SessionKey);
+
+            // "Reset filters" clears the remembered values for this list and returns to the plain list.
+            if (Request.Query.ContainsKey("reset"))
+            {
+                FilterMemory.Clear(HttpContext.Session, "ReturnDevices", kid);
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Remembered dropdown filters + Active/Collected tab. Values present in the URL win
+            // (an explicit filter change or an old link); otherwise the saved values are applied.
+            var dropdowns = FilterMemory.ResolveDropdowns(
+                Request.Query, HttpContext.Session, "ReturnDevices", kid, FilterMemory.ReturnDeviceDropdownKeys);
+            statusFilter     = dropdowns["statusFilter"];
+            locationFilter   = dropdowns["locationFilter"];
+            deviceTypeFilter = dropdowns["deviceTypeFilter"];
+            var activeTab    = FilterMemory.ResolveTab(Request.Query, HttpContext.Session, "ReturnDevices", kid);
+
             var query = _context.ReturnDevices.Where(d => !d.IsDeleted).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(searchQuery))
@@ -83,6 +101,7 @@ namespace LaptopTracker.Controllers
             ViewData["HasWorkOrder"]     = hasWorkOrder;
             ViewData["DateFrom"]         = dateFrom;
             ViewData["DateTo"]           = dateTo;
+            ViewData["ActiveTab"]        = activeTab;
 
             var allDevices = await query.OrderByDescending(d => d.Date).ToListAsync();
             var activeDevices   = allDevices.Where(d => d.Status != ReturnDeviceStatus.PickedUp && d.Status != ReturnDeviceStatus.HandedOver).ToList();

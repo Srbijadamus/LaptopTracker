@@ -64,6 +64,10 @@
   <data name="FilterAllTypes" xml:space="preserve"><value>Alle Typen</value></data>
   <data name="FilterAllWics" xml:space="preserve"><value>Alle WICs</value></data>
   <data name="BtnClearFilters" xml:space="preserve"><value>&#x2715; Filter zurücksetzen</value></data>
+  <data name="FilterActive" xml:space="preserve"><value>Filter aktiv:</value></data>
+  <data name="BtnResetFilters" xml:space="preserve"><value>Filter zurücksetzen</value></data>
+  <data name="FilterLocation" xml:space="preserve"><value>Standort</value></data>
+  <data name="FilterWic" xml:space="preserve"><value>WIC</value></data>
   <data name="ColSelectAll" xml:space="preserve"><value>Alle auswählen</value></data>
   <data name="ColSerial" xml:space="preserve"><value>Seriennummer</value></data>
   <data name="ColType" xml:space="preserve"><value>Typ</value></data>
