@@ -4,7 +4,7 @@
 @inject IViewLocalizer Localizer
 @{
     ViewData["Title"] = "Edit Return Device";
-    var deviceTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Rugged tablet", "Microsoft Surface tablet", "Apple tablet" };
+    var deviceTypes = DeviceTypeList.Ordered;
     var siteLocations = LocationList.SiteLocations.OrderBy(l => l).ToList();
     var modelNames = ((ViewData["Models"] as List<DeviceModel>) ?? new()).Select(m => m.ModelName).OrderBy(n => n).ToList();
     var curModel = Model.Model ?? "";

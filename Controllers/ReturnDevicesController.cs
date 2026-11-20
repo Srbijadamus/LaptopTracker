@@ -90,10 +90,8 @@ namespace LaptopTracker.Controllers
                 .Distinct()
                 .ToListAsync();
 
-            var knownTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Mini Desktop" };
-
             ViewData["Locations"]        = locationFieldValues.Distinct().OrderBy(l => l).ToList();
-            ViewData["DeviceTypes"]      = dbDeviceTypes.Concat(knownTypes).Distinct().OrderBy(t => t).ToList();
+            ViewData["DeviceTypes"]      = DeviceTypeList.Merge(dbDeviceTypes);
             ViewData["SearchQuery"]      = searchQuery;
             ViewData["StatusFilter"]     = statusFilter;
             ViewData["LocationFilter"]   = locationFilter;
@@ -170,7 +168,7 @@ namespace LaptopTracker.Controllers
                 Date           = DateTime.TryParse(prefillDate, out var dt) ? dt : DateTime.Today,
                 SerialNumber   = serialNumber ?? string.Empty,
                 Location       = prefillLocation,
-                DeviceType     = string.IsNullOrEmpty(prefillDeviceType) ? "Lenovo" : prefillDeviceType,
+                DeviceType     = string.IsNullOrEmpty(prefillDeviceType) ? "HP" : prefillDeviceType,
                 DeviceLocation = string.IsNullOrEmpty(prefillDeviceLocation) ? "In WIC" : prefillDeviceLocation,
                 RITM           = string.Empty,
                 WorkOrder      = prefillWorkOrder

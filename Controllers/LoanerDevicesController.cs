@@ -79,10 +79,8 @@ namespace LaptopTracker.Controllers
                 .Distinct()
                 .ToListAsync();
 
-            var knownTypes = new[] { "Lenovo", "HP", "Dell", "Apple iPad", "Desktop", "Rugged tablet", "Microsoft Surface tablet", "Apple tablet" };
-
             ViewData["Locations"]        = dbLocations.OrderBy(l => l).ToList();
-            ViewData["DeviceTypes"]      = dbDeviceTypes.Concat(knownTypes).Distinct().OrderBy(t => t).ToList();
+            ViewData["DeviceTypes"]      = DeviceTypeList.Merge(dbDeviceTypes);
             ViewData["WicValues"]        = dbWicValues.Concat(LocationList.SiteLocations).Distinct().OrderBy(w => w).ToList();
             ViewData["SearchQuery"]      = searchQuery;
             ViewData["StatusFilter"]     = statusFilter;
@@ -96,7 +94,7 @@ namespace LaptopTracker.Controllers
         [HttpGet]
         public IActionResult Create(string? serialNumber)
         {
-            return View(new LoanerDevice { Date = DateTime.Today, SerialNumber = serialNumber ?? string.Empty });
+            return View(new LoanerDevice { Date = DateTime.Today, SerialNumber = serialNumber ?? string.Empty, DeviceType = "HP" });
         }
 
         [HttpPost]
