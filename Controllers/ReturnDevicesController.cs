@@ -30,18 +30,18 @@ namespace LaptopTracker.Controllers
             // "Reset filters" clears the remembered values for this list and returns to the plain list.
             if (Request.Query.ContainsKey("reset"))
             {
-                FilterMemory.Clear(HttpContext.Session, "ReturnDevices", kid);
+                FilterMemory.Clear(HttpContext, "ReturnDevices", kid);
                 return RedirectToAction(nameof(Index));
             }
 
             // Remembered dropdown filters + Active/Collected tab. Values present in the URL win
             // (an explicit filter change or an old link); otherwise the saved values are applied.
             var dropdowns = FilterMemory.ResolveDropdowns(
-                Request.Query, HttpContext.Session, "ReturnDevices", kid, FilterMemory.ReturnDeviceDropdownKeys);
+                Request.Query, HttpContext, "ReturnDevices", kid, FilterMemory.ReturnDeviceDropdownKeys);
             statusFilter     = dropdowns["statusFilter"];
             locationFilter   = dropdowns["locationFilter"];
             deviceTypeFilter = dropdowns["deviceTypeFilter"];
-            var activeTab    = FilterMemory.ResolveTab(Request.Query, HttpContext.Session, "ReturnDevices", kid);
+            var activeTab    = FilterMemory.ResolveTab(Request.Query, HttpContext, "ReturnDevices", kid);
 
             var query = _context.ReturnDevices.Where(d => !d.IsDeleted).AsQueryable();
 

@@ -22,12 +22,12 @@ namespace LaptopTracker.Controllers
 
             if (Request.Query.ContainsKey("reset"))
             {
-                FilterMemory.Clear(HttpContext.Session, "WicStock", kid);
+                FilterMemory.Clear(HttpContext, "WicStock", kid);
                 return RedirectToAction(nameof(Index));
             }
 
             var dropdowns = FilterMemory.ResolveDropdowns(
-                Request.Query, HttpContext.Session, "WicStock", kid, FilterMemory.WicStockDropdownKeys);
+                Request.Query, HttpContext, "WicStock", kid, FilterMemory.WicStockDropdownKeys);
             statusFilter     = dropdowns["statusFilter"];
             siteFilter       = dropdowns["siteFilter"];
             deviceTypeFilter = dropdowns["deviceTypeFilter"];

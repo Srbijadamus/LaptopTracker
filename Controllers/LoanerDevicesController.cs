@@ -22,12 +22,12 @@ namespace LaptopTracker.Controllers
 
             if (Request.Query.ContainsKey("reset"))
             {
-                FilterMemory.Clear(HttpContext.Session, "LoanerDevices", kid);
+                FilterMemory.Clear(HttpContext, "LoanerDevices", kid);
                 return RedirectToAction(nameof(Index));
             }
 
             var dropdowns = FilterMemory.ResolveDropdowns(
-                Request.Query, HttpContext.Session, "LoanerDevices", kid, FilterMemory.LoanerDeviceDropdownKeys);
+                Request.Query, HttpContext, "LoanerDevices", kid, FilterMemory.LoanerDeviceDropdownKeys);
             statusFilter     = dropdowns["statusFilter"];
             locationFilter   = dropdowns["locationFilter"];
             deviceTypeFilter = dropdowns["deviceTypeFilter"];
